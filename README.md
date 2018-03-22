@@ -37,10 +37,12 @@ console.log(decoded) //=> { foo: 'bar' }
 
 ## MongoDB
 
+With a promise chain:
+
 ```javascript
 const mongo = require('lib/mongo')
 const config = require('app/config')
-async function crudTest() {
+async function crudTestPromises() {
   const db = await mongo.connect(config.MONGODB_URL)
   const users = db.collection('users')
   const admin = {id:1, email: 'admin@example.com', password: 'admin'}
@@ -69,7 +71,26 @@ async function crudTest() {
       console.log('find results after remove', results)
     })
 }
-const result = crudTest()
+const resultPromises = crudTestPromises()
+```
+
+With async functions:
+
+```javascript
+const mongo = require('lib/mongo')
+const config = require('app/config')
+async function crudTestAsync() {
+  const db = await mongo.connect(config.MONGODB_URL)
+  const users = db.collection('users')
+  const admin = {id:1, email: 'admin@example.com', password: 'admin'}
+  console.log('insert result', (await users.insert(admin)).result)
+  console.log('find results', await users.find({}).toArray())
+  console.log('update results', (await users.updateOne({id: 1}, {$set: {password: 'changed'}})).result)
+  console.log('find results after update', await users.find({}).toArray())
+  console.log('remove results', (await users.remove({id: 1})).result)
+  console.log('find results after remove', await users.find({}).toArray())
+}
+const resultAsync = crudTestAsync()
 ```
 
 ## Resources
