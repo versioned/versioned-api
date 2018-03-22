@@ -1,0 +1,11 @@
+{
+  "name": "versioned2",
+  "version": "0.0.1",
+  "description": "A CMS REST API on Node/Mongodb, similar to contentful",
+  "main": "app/index.js",
+  "scripts": {
+    "start": "NODE_PATH=. node app/index.js"
+  },
+  "author": "Peter Marklund",
+  "license": "ISC"
+}
