@@ -93,6 +93,17 @@ async function crudTestAsync() {
 const resultAsync = crudTestAsync()
 ```
 
+## HTTP Client
+
+```javascript
+const client = require('lib/http_client')()
+async function get() {
+  const result = await client.get('http://www.google.com')
+  console.log('client.get result', result)
+}
+get()
+```
+
 ## Resources
 
 * [node-mongodb-native](https://github.com/mongodb/node-mongodb-native)

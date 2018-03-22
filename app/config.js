@@ -1,4 +1,4 @@
-const u = require('app/util')
+const u = require('lib/util')
 
 const defaultConfig = {
   PORT: 3000,

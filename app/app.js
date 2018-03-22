@@ -1,7 +1,8 @@
 const http = require('http')
 const routesByMethod = require('app/routes').routesByMethod
-const router = require('app/router').router
-const handleError = require('app/error_handler').handleError
+const router = require('lib/router').router
+const config = require('app/config')
+const handleError = require('lib/error_handler')(config).handleError
 
 function runAllMiddleware(req, res, middlewares, callback) {
   let index = 0
@@ -24,7 +25,7 @@ function runAllMiddleware(req, res, middlewares, callback) {
 const app = {
   middlewares: [],
 
-  router: router(routesByMethod),
+  router: router(routesByMethod, {handleError}),
 
   use(middleware) {
     this.middlewares.push(middleware)

@@ -1,11 +1,11 @@
 const app = require('app/app')
 const routesByMethod = require('app/routes').routesByMethod
-const serveStatic = require('app/middleware/static').serveStatic
-const setCorsHeaders = require('app/middleware/cors').setCorsHeaders
-const attachRoute = require('app/middleware/route').attachRoute
-const queryParser = require('app/middleware/query').queryParser
-const bodyParser = require('app/middleware/body').bodyParser
-const setCacheHeader = require('app/middleware/cache').setCacheHeader
+const serveStatic = require('lib/middleware/static').serveStatic
+const setCorsHeaders = require('lib/middleware/cors').setCorsHeaders
+const attachRoute = require('lib/middleware/route').attachRoute
+const queryParser = require('lib/middleware/query').queryParser
+const bodyParser = require('lib/middleware/body').bodyParser
+const setCacheHeader = require('lib/middleware/cache').setCacheHeader
 const config = require('app/config')
 
 process.on('uncaughtException', (err) => {
