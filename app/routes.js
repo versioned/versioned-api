@@ -1,6 +1,7 @@
 const home = require('app/controllers/home')
+const groupByMethod = require('lib/router').groupByMethod
 
-const routesList = [
+const routes = [
   {
     method: 'get',
     path: '/',
@@ -8,17 +9,4 @@ const routesList = [
   },
 ]
 
-const groupByMethod = function(routes) {
-  return routes.reduce(function(map, route) {
-    const method = route.method.toLowerCase()
-    map[method] = map[method] || []
-    map[method].push(route)
-    return map
-  }, {})
-}
-
-const routesByMethod = groupByMethod(routesList)
-
-module.exports = {
-  routesByMethod
-}
+module.exports = groupByMethod(routes)

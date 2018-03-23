@@ -104,6 +104,16 @@ async function get() {
 get()
 ```
 
+## Type Checks of Function Arguments
+
+```javascript
+const assertTypes = require('lib/assert_types')
+assertTypes([function() {}, 5, true, null], 'function', 'number', 'boolean', 'date?')
+assertTypes([{foo: function() {}}, 5, 'foobar', new Date()], {foo: 'function'}, 'number', 'string', 'date?')
+assertTypes([{foo: 1, bar: 'baz'}], {foo: 'number', bar: 'string'})
+
+```
+
 ## Resources
 
 * [node-mongodb-native](https://github.com/mongodb/node-mongodb-native)

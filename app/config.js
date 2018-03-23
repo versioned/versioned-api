@@ -1,4 +1,5 @@
 const u = require('lib/util')
+const createLogger = require('lib/logger')
 
 const defaultConfig = {
   PORT: 3000,
@@ -9,4 +10,6 @@ const defaultConfig = {
 const envConfig = u.pick(Object.keys(defaultConfig), process.env)
 const config = u.merge(defaultConfig, envConfig)
 
-module.exports = config
+module.exports = Object.assign({}, config, {
+  logger: createLogger(config)
+})
