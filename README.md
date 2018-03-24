@@ -93,6 +93,23 @@ async function crudTestAsync() {
 const resultAsync = crudTestAsync()
 ```
 
+With `lib/db_api`:
+
+```javascript
+const mongo = require('lib/mongo')
+const config = require('app/config')
+mongo.connect(config.MONGODB_URL)
+
+const db = mongo.db
+const dbApi = require('lib/db_api')(db)
+const coll = 'foobar'
+dbApi.find(coll, {}).then(console.log)
+dbApi.count(coll, {}).then(console.log)
+dbApi.create(coll, {id: 1, title: 'bla bla'}).then(console.log)
+dbApi.update(coll, {id: 1}, {$set: {title: 'bla bla updated'}}).then(console.log) // result: { n: 1, nModified: 1, ok: 1 }
+dbApi.remove(coll, {id: 1}).then(console.log) //  result: { n: 1, ok: 1 }
+```
+
 ## HTTP Client
 
 ```javascript
