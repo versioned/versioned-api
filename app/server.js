@@ -1,4 +1,5 @@
 const config = require('app/config')
+const mongo = require('lib/mongo')
 const logger = config.logger
 const routesByMethod = require('app/routes')
 const app = require('lib/app')(routesByMethod, config)

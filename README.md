@@ -2,10 +2,43 @@
 
 This is a CMS REST API on MongoDB/Node.js - similar to Contentful.
 
+## TODO
+
+* MongoDB id sequence
+
+* Try using TypeScript or Flow for function type signatures?
+* Use bcrypt instead of crypto when it works with latest Node?
+* Investigate using [Auth0](https://auth0.com/docs/api-auth) for authentication?
+
 ## Start Dev Server
 
 ```
 npm start
+```
+
+## Create Admin User
+
+```javascript
+async function createAdmin() {
+  const mongo = require('lib/mongo')
+  const config = require('app/config')
+  await mongo.connect(config.MONGODB_URL)
+
+  const users = require('app/models/users')
+  const doc = {name: 'Admin User', email: 'admin@example.com', password: 'admin'}
+  users.create(doc).then(console.log)
+  users.findOne({email: doc.email}).then(console.log)
+}
+createAdmin()
+```
+
+## Login
+
+```bash
+export BASE_URL=http://localhost:3000
+echo '{"email": "admin@example.com", "password": "admin"}' | http POST $BASE_URL/login
+
+echo '{"email": "admin@example.com", "password": "foo"}' | http POST http://localhost:3000/login
 ```
 
 ## Deployment
