@@ -17,8 +17,13 @@ const schema = {
   additionalProperties: false
 }
 
+async function init() {
+  return await db().collection(coll).createIndex({email: 1}, {unique: true})
+}
+
 async function create(doc) {
   // TODO: validate schema
+  await init()
   const hash = await passwordHash.generate(doc.password)
   const dbDoc = merge(doc, {password: hash})
   return db().collection(coll).insert(dbDoc)
@@ -39,6 +44,7 @@ function generateToken(doc) {
 }
 
 module.exports = {
+  init,
   create,
   findOne,
   authenticate,

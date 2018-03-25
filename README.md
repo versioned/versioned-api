@@ -25,6 +25,7 @@ async function createAdmin() {
   await mongo.connect(config.MONGODB_URL)
 
   const users = require('app/models/users')
+  await users.init()
   const doc = {name: 'Admin User', email: 'admin@example.com', password: 'admin'}
   users.create(doc).then(console.log)
   users.findOne({email: doc.email}).then(console.log)
@@ -32,13 +33,40 @@ async function createAdmin() {
 createAdmin()
 ```
 
-## Login
+## API: Login
 
 ```bash
-export BASE_URL=http://localhost:3000
+export BASE_URL=http://localhost:3000/v1
 echo '{"email": "admin@example.com", "password": "admin"}' | http POST $BASE_URL/login
 
-echo '{"email": "admin@example.com", "password": "foo"}' | http POST http://localhost:3000/login
+echo '{"email": "admin@example.com", "password": "foo"}' | http POST $BASE_URL/login
+```
+
+## API: Create User
+
+```
+export BASE_URL=http://localhost:3000/v1
+echo '{"email": "admin@example.com", "password": "admin"}' | http POST $BASE_URL/users
+```
+
+## API Tests
+
+Install dependencies:
+
+```
+npm install jsonapitest -g
+```
+
+Start server in one terminal:
+
+```
+npm run api-test-start
+```
+
+Run tests in a different terminal:
+
+```
+npm run api-test
 ```
 
 ## Deployment
