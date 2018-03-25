@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
+export NODE_ENV=test
 export BASE_URL=http://localhost:3001/v1
-export LOG_DIR=log
+export BASE_LOG_DIR=log
 
-rm -r $LOG_DIR
-mkdir -p $LOG_DIR
+rm -rf $BASE_LOG_DIR

@@ -9,4 +9,9 @@ export PATH=.:$PATH
 
 source setup
 
-source suites/auth
+for suite in $(ls suites); do
+  export SUITE=$suite
+  export LOG_DIR=$BASE_LOG_DIR/$SUITE
+  mkdir -p $LOG_DIR
+  source suites/$SUITE
+done

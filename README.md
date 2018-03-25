@@ -51,13 +51,7 @@ echo '{"email": "admin@example.com", "password": "admin"}' | http POST $BASE_URL
 
 ## API Tests
 
-Install dependencies:
-
-```
-npm install jsonapitest -g
-```
-
-Start server in one terminal:
+Keep test server running in one terminal with hot reload:
 
 ```
 npm run api-test-start

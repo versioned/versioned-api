@@ -26,7 +26,7 @@ async function create(doc) {
   await init()
   const hash = await passwordHash.generate(doc.password)
   const dbDoc = merge(doc, {password: hash})
-  return db().collection(coll).insert(dbDoc)
+  return db().collection(coll).insert(dbDoc).then(result => result.ops[0])
 }
 
 function findOne(query) {

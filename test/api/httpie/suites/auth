@@ -3,11 +3,15 @@
 EMAIL="$(uuid)@example.com"
 PASSWORD=admin
 
-LOG_DIR=$LOG_DIR/auth
-mkdir -p $LOG_DIR
-
 http --check-status --verbose POST $BASE_URL/users email=$EMAIL password=$PASSWORD > $LOG_DIR/create_user_success
+assert-equal $(parse $LOG_DIR/create_user_success body.email) $EMAIL
 
 http --check-status --verbose POST $BASE_URL/login email=$EMAIL password=$PASSWORD > $LOG_DIR/login_success
+TOKEN=$(parse $LOG_DIR/login_success body.token)
+assert-present $TOKEN
 
-parse $LOG_DIR/login_success
+http --verbose POST $BASE_URL/login email=$EMAIL password=foobar > $LOG_DIR/login_failure_password
+assert-equal $(parse $LOG_DIR/login_failure_password status) 401
+
+http --verbose POST $BASE_URL/login email=foobar password=$PASSWORD > $LOG_DIR/login_failure_email
+assert-equal $(parse $LOG_DIR/login_failure_email status) 401
