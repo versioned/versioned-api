@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+EMAIL="$(uuid)@example.com"
+PASSWORD=admin
+
+LOG_DIR=$LOG_DIR/auth
+mkdir -p $LOG_DIR
+
+http --check-status --verbose POST $BASE_URL/users email=$EMAIL password=$PASSWORD > $LOG_DIR/create_user_success
+
+http --check-status --verbose POST $BASE_URL/login email=$EMAIL password=$PASSWORD > $LOG_DIR/login_success
+
+parse $LOG_DIR/login_success

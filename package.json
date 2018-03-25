@@ -7,7 +7,8 @@
     "start": "NODE_PATH=. node app/index.js",
     "test": "jest",
     "api-test-start": "NODE_ENV=test npm start",
-    "api-test": "jsonapitest test/api/jsonapitest"
+    "api-test": "./test/api/httpie/run",
+    "api-test-json": "jsonapitest test/api/jsonapitest"
   },
   "author": "Peter Marklund",
   "license": "ISC",

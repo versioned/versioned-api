@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+export BASE_URL=http://localhost:3001/v1
+export LOG_DIR=log
+
+rm -r $LOG_DIR
+mkdir -p $LOG_DIR
