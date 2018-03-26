@@ -6,7 +6,7 @@
   "scripts": {
     "start": "NODE_PATH=. node app/index.js",
     "dev": "NODE_PATH=. nodemon app/index.js",
-    "test": "jest",
+    "test": "standard && jest",
     "api-test-start": "NODE_ENV=test npm run dev",
     "api-test": "./test/api/httpie/run",
     "api-test-json": "jsonapitest test/api/jsonapitest"
@@ -18,6 +18,10 @@
   },
   "devDependencies": {
     "jest": "^22.4.3",
-    "nodemon": "^1.17.2"
+    "nodemon": "^1.17.2",
+    "standard": "^11.0.1"
+  },
+  "standard": {
+    "globals": ["test", "expect"]
   }
 }

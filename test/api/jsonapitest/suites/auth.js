@@ -1,16 +1,16 @@
 module.exports = {
   suites: [
     {
-      name: "auth",
+      name: 'auth',
       tests: [
         {
-          name: "login",
+          name: 'login',
           api_calls: [
-              {
-                request: "POST /v1/login",
-                "params": "{{users.admin}}"
-              }
-          ]          
+            {
+              request: 'POST /v1/login',
+              params: '{{users.admin}}'
+            }
+          ]
         }
       ]
     }

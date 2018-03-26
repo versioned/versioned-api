@@ -18,7 +18,7 @@ const routes = [
     method: 'post',
     path: '/v1/users',
     handler: users.create
-  },
+  }
 ]
 
 module.exports = groupByMethod(routes)

@@ -19,7 +19,7 @@ if (config.BUGSNAG_API_KEY) {
   bugsnag.register(config.BUGSNAG_API_KEY)
 }
 
-async function start() {
+async function start () {
   await mongo.connect(config.MONGODB_URL)
   app.use(serveStatic('public'))
   app.use(setCorsHeaders)
