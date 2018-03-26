@@ -4,8 +4,19 @@ This is a CMS REST API on MongoDB/Node.js - similar to Contentful.
 
 ## TODO
 
+* JSON schema validation with ajv
+* Remove jsonapitest tests
+* Need to support parse body.errors.message.0 (map over arrays and get by index)
+* http create_user_failure_missing_email status 422 ... - script that wraps httpie and adds logging (use a latest symlink?) and assertion
+* x-meta sortable/indexed, unique
+* content_types model with (space_id)
+* accounts model (users.account_id)
+* spaces model with (account_id, name, key)
 * MongoDB id sequence
 
+* Alternative to ajv for schema validation: https://github.com/tdegrunt/jsonschema
+* Try using Postgres instead of mongo (on a branch)
+  See: https://node-postgres.com/features/types
 * Use bcrypt instead of crypto when it works with latest Node?
 * Investigate using [Auth0](https://auth0.com/docs/api-auth) for authentication?
 

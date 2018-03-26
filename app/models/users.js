@@ -1,32 +1,41 @@
 const {merge} = require('lib/util')
-const db = require('lib/mongo').db
+const {db, formatDbError} = require('lib/mongo')
 const config = require('app/config')
+const logger = config.logger
 const jwt = require('lib/jwt')
 const passwordHash = require('lib/password_hash')
+const jsonSchema = require('lib/json_schema')
 
 const coll = 'users'
 
-// const schema = {
-//   type: 'object',
-//   properties: {
-//     name: {type: 'string'},
-//     email: {type: 'string'},
-//     password: {type: 'string', 'x-meta': {api_readable: false}}
-//   },
-//   required: ['name', 'email', 'password'],
-//   additionalProperties: false
-// }
+const schema = {
+  type: 'object',
+  properties: {
+    name: {type: 'string'},
+    email: {type: 'string', format: 'email'},
+    password: {type: 'string', minLength: 4, maxLength: 100, 'x-meta': {api_readable: false}}
+  },
+  required: ['name', 'email', 'password'],
+  additionalProperties: false
+}
 
 async function init () {
   return db().collection(coll).createIndex({email: 1}, {unique: true})
 }
 
 async function create (doc) {
-  // TODO: validate schema
+  const errors = jsonSchema.validate(schema, doc)
+  logger.debug(`users.create doc=${JSON.stringify(doc)} errors=${JSON.stringify(errors)}`)
+  if (errors) return Promise.reject(errors)
   await init()
   const hash = await passwordHash.generate(doc.password)
   const dbDoc = merge(doc, {password: hash})
-  return db().collection(coll).insert(dbDoc).then(result => result.ops[0])
+  return db().collection(coll).insert(dbDoc)
+    .then(result => result.ops[0])
+    .catch(dbError => {
+      logger.debug(`users.create dbError dbError=${JSON.stringify(dbError)}`)
+      throw formatDbError(dbError)
+    })
 }
 
 function findOne (query) {

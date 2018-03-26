@@ -2,11 +2,9 @@ const u = require('lib/util')
 const createLogger = require('lib/logger')
 
 const NODE_ENV = process.env.NODE_ENV || 'development'
-const PORT = (NODE_ENV === 'development' ? 3000 : 3005)
-
 const defaultConfig = {
   NODE_ENV,
-  PORT,
+  PORT: 3000,
   LOG_LEVEL: 'debug',
   CACHE_EXPIRY: '5',
   MONGODB_URL: `mongodb://localhost:27017/versioned2_${NODE_ENV}`,

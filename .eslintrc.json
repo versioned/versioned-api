@@ -1,0 +1,11 @@
+{
+    "plugins": ["node"],
+    "extends": "standard",
+    "globals": {
+      "test": true,
+      "expect": true
+    },
+    "rules": {
+      "no-throw-literal": 0
+    }
+}

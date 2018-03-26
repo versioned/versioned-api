@@ -1,10 +1,24 @@
 #!/usr/bin/env bash
 
-EMAIL="$(uuid)@example.com"
+NAME=$(uuid)
+EMAIL="$NAME@example.com"
 PASSWORD=admin
 
-http --check-status --verbose POST $BASE_URL/users email=$EMAIL password=$PASSWORD > $LOG_DIR/create_user_success
+http --check-status --verbose POST $BASE_URL/users name=$NAME email=$EMAIL password=$PASSWORD > $LOG_DIR/create_user_success
 assert-equal $(parse body.email $LOG_DIR/create_user_success) $EMAIL
 
-http --verbose POST $BASE_URL/users email=$EMAIL password=$PASSWORD > $LOG_DIR/create_user_failure_email_taken
+http --verbose POST $BASE_URL/users name=$NAME email=$EMAIL password=$PASSWORD > $LOG_DIR/create_user_failure_email_taken
 assert-equal $(parse status $LOG_DIR/create_user_failure_email_taken) 422
+assert-present $(parse body.errors $LOG_DIR/create_user_failure_email_taken)
+
+http --verbose POST $BASE_URL/users password=$PASSWORD > $LOG_DIR/create_user_failure_missing_email
+assert-equal $(parse status $LOG_DIR/create_user_failure_missing_email) 422
+
+http --verbose POST $BASE_URL/users email=$EMAIL > $LOG_DIR/create_user_failure_missing_password
+assert-equal $(parse status $LOG_DIR/create_user_failure_missing_password) 422
+
+http --verbose POST $BASE_URL/users name=$NAME email=foobar password=$PASSWORD > $LOG_DIR/create_user_failure_email_invalid
+assert-equal $(parse status $LOG_DIR/create_user_failure_email_invalid) 422
+
+http --verbose POST $BASE_URL/users name=$NAME email=$EMAIL password=123 > $LOG_DIR/create_user_failure_password_too_short
+assert-equal $(parse status $LOG_DIR/create_user_failure_password_too_short) 422

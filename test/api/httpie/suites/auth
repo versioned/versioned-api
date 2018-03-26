@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 
-EMAIL="$(uuid)@example.com"
+NAME=$(uuid)
+EMAIL="$NAME@example.com"
 PASSWORD=admin
 
-http --check-status --verbose POST $BASE_URL/users email=$EMAIL password=$PASSWORD > $LOG_DIR/create_user_success
+http --check-status --verbose POST $BASE_URL/users name=$NAME email=$EMAIL password=$PASSWORD > $LOG_DIR/create_user_success
 assert-equal $(parse body.email $LOG_DIR/create_user_success) $EMAIL
 
 http --check-status --verbose POST $BASE_URL/login email=$EMAIL password=$PASSWORD > $LOG_DIR/login_success

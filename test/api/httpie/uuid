@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
-function uuid() {
+function uuid (length = 4) {
   const time = (new Date()).valueOf().toString()
   const random = Math.random().toString()
-  return require('crypto').createHash('sha1').update(time + random).digest('hex')
+  return require('crypto').createHash('sha1').update(time + random).digest('hex').substring(0, length)
 }
 
 console.log(uuid())
