@@ -4,14 +4,14 @@ EMAIL="$(uuid)@example.com"
 PASSWORD=admin
 
 http --check-status --verbose POST $BASE_URL/users email=$EMAIL password=$PASSWORD > $LOG_DIR/create_user_success
-assert-equal $(parse $LOG_DIR/create_user_success body.email) $EMAIL
+assert-equal $(parse body.email $LOG_DIR/create_user_success) $EMAIL
 
 http --check-status --verbose POST $BASE_URL/login email=$EMAIL password=$PASSWORD > $LOG_DIR/login_success
-TOKEN=$(parse $LOG_DIR/login_success body.token)
+TOKEN=$(parse body.token $LOG_DIR/login_success)
 assert-present $TOKEN
 
 http --verbose POST $BASE_URL/login email=$EMAIL password=foobar > $LOG_DIR/login_failure_password
-assert-equal $(parse $LOG_DIR/login_failure_password status) 401
+assert-equal $(parse status $LOG_DIR/login_failure_password) 401
 
 http --verbose POST $BASE_URL/login email=foobar password=$PASSWORD > $LOG_DIR/login_failure_email
-assert-equal $(parse $LOG_DIR/login_failure_email status) 401
+assert-equal $(parse status $LOG_DIR/login_failure_email) 401

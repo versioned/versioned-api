@@ -4,7 +4,7 @@ EMAIL="$(uuid)@example.com"
 PASSWORD=admin
 
 http --check-status --verbose POST $BASE_URL/users email=$EMAIL password=$PASSWORD > $LOG_DIR/create_user_success
-assert-equal $(parse $LOG_DIR/create_user_success body.email) $EMAIL
+assert-equal $(parse body.email $LOG_DIR/create_user_success) $EMAIL
 
 http --verbose POST $BASE_URL/users email=$EMAIL password=$PASSWORD > $LOG_DIR/create_user_failure_email_taken
-assert-equal $(parse $LOG_DIR/create_user_failure_email_taken) 422
+assert-equal $(parse status $LOG_DIR/create_user_failure_email_taken) 422

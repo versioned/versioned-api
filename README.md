@@ -6,7 +6,6 @@ This is a CMS REST API on MongoDB/Node.js - similar to Contentful.
 
 * MongoDB id sequence
 
-* Try using TypeScript or Flow for function type signatures?
 * Use bcrypt instead of crypto when it works with latest Node?
 * Investigate using [Auth0](https://auth0.com/docs/api-auth) for authentication?
 

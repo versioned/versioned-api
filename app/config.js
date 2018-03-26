@@ -2,7 +2,7 @@ const u = require('lib/util')
 const createLogger = require('lib/logger')
 
 const NODE_ENV = process.env.NODE_ENV || 'development'
-const PORT = (NODE_ENV === 'development' ? 3000 : 3001)
+const PORT = (NODE_ENV === 'development' ? 3000 : 3005)
 
 const defaultConfig = {
   NODE_ENV,

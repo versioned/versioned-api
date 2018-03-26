@@ -6,10 +6,9 @@
   "scripts": {
     "start": "NODE_PATH=. node app/index.js",
     "dev": "NODE_PATH=. nodemon app/index.js",
-    "test": "standard && jest",
-    "api-test-start": "NODE_ENV=test npm run dev",
-    "api-test": "./test/api/httpie/run",
-    "api-test-json": "jsonapitest test/api/jsonapitest"
+    "test": "npm run unit-test && npm run api-test",
+    "unit-test": "standard && jest",
+    "api-test": "./test/api/httpie/run"
   },
   "author": "Peter Marklund",
   "license": "ISC",
