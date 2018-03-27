@@ -1,5 +1,5 @@
 const {merge} = require('lib/util')
-const {db, formatDbError} = require('lib/mongo')
+const {db, formatDbError, createIndexes} = require('lib/mongo')
 const config = require('app/config')
 const logger = config.logger
 const jwt = require('lib/jwt')
@@ -12,22 +12,18 @@ const schema = {
   type: 'object',
   properties: {
     name: {type: 'string'},
-    email: {type: 'string', format: 'email'},
+    email: {type: 'string', format: 'email', 'x-meta': {unique: true}},
     password: {type: 'string', minLength: 4, maxLength: 100, 'x-meta': {api_readable: false}}
   },
   required: ['name', 'email', 'password'],
   additionalProperties: false
 }
 
-async function init () {
-  return db().collection(coll).createIndex({email: 1}, {unique: true})
-}
-
 async function create (doc) {
   const errors = jsonSchema.validate(schema, doc)
   logger.debug(`users.create doc=${JSON.stringify(doc)} errors=${JSON.stringify(errors)}`)
   if (errors) return Promise.reject(errors)
-  await init()
+  await createIndexes(coll, schema)
   const hash = await passwordHash.generate(doc.password)
   const dbDoc = merge(doc, {password: hash})
   return db().collection(coll).insert(dbDoc)
@@ -53,7 +49,6 @@ function generateToken (doc) {
 }
 
 module.exports = {
-  init,
   create,
   findOne,
   authenticate,
