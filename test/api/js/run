@@ -27,7 +27,7 @@ async function run () {
     const suite = require(`./suites/${suiteName}`)
     await suite(CONFIG)
   }
-  process.exit(0)  
+  process.exit(0)
 }
 
 run()

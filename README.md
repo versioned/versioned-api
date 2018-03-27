@@ -5,7 +5,6 @@ This is a CMS REST API on MongoDB/Node.js - similar to Contentful.
 ## TODO
 
 * JSON schema validation with ajv
-* Remove jsonapitest tests
 * Need to support parse body.errors.message.0 (map over arrays and get by index)
 * http create_user_failure_missing_email status 422 ... - script that wraps httpie and adds logging (use a latest symlink?) and assertion
 * x-meta sortable/indexed, unique
