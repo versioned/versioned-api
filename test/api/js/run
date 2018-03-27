@@ -1,0 +1,33 @@
+#!/usr/bin/env node
+
+// Setup the test env variables before we require the server
+const TEST_ENV = {
+  NODE_ENV: 'test',
+  PORT: 3006
+}
+Object.assign(process.env, TEST_ENV)
+
+const server = require('app/server')
+const fs = require('fs')
+const path = require('path')
+
+function suites () {
+  const suitesPath = __dirname + '/suites'
+  return fs.readdirSync(suitesPath).map(filename => path.parse(filename).name)
+}
+
+const CONFIG = {
+  BASE_URL: `http://localhost:${TEST_ENV.PORT}/v1`
+}
+
+async function run () {
+  await server.start()
+  for (let suiteName of suites()) {
+    console.log(`Suite: ${suiteName}`)
+    const suite = require(`./suites/${suiteName}`)
+    await suite(CONFIG)
+  }
+  process.exit(0)  
+}
+
+run()

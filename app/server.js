@@ -10,6 +10,15 @@ const queryParser = require('lib/middleware/query').queryParser
 const bodyParser = require('lib/middleware/body').bodyParser
 const setCacheHeader = require('lib/middleware/cache').setCacheHeader
 
+function setupMiddleware (app) {
+  app.use(serveStatic('public'))
+  app.use(setCorsHeaders)
+  app.use(attachRoute(routesByMethod))
+  app.use(queryParser)
+  app.use(bodyParser)
+  app.use(setCacheHeader)
+}
+
 process.on('uncaughtException', (err) => {
   logger.error('uncaugthException:', err)
 })
@@ -19,19 +28,21 @@ if (config.BUGSNAG_API_KEY) {
   bugsnag.register(config.BUGSNAG_API_KEY)
 }
 
-async function start () {
-  await mongo.connect(config.MONGODB_URL)
-  app.use(serveStatic('public'))
-  app.use(setCorsHeaders)
-  app.use(attachRoute(routesByMethod))
-  app.use(queryParser)
-  app.use(bodyParser)
-  app.use(setCacheHeader)
-  app.server.on('listening', () => {
-    logger.info(`Server listening on port ${config['PORT']} with config=${JSON.stringify(config, null, 4)}`)
+function start () {
+  return new Promise((resolve, reject) => {
+    logger.info(`Starting server with config=${JSON.stringify(config, null, 4)}`)
+    mongo.connect(config.MONGODB_URL)
+      .then(() => {
+        setupMiddleware(app)
+        app.listen(config['PORT'])
+        app.server.on('listening', () => resolve(app.server))
+        app.server.on('error', reject)
+      })
+      .catch(dbError => {
+        logger.error(`Could not connect to database: ${dbError}`)
+        reject(dbError)
+      })
   })
-  app.listen(config['PORT'])
-  return app.server
 }
 
 module.exports = {

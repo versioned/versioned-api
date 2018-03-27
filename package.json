@@ -9,7 +9,8 @@
     "lint": "eslint --ignore-path .gitignore .",
     "test": "npm run unit-test && npm run api-test",
     "unit-test": "npm run lint && jest",
-    "api-test": "./test/api/httpie/run"
+    "api-test": "./test/api/httpie/run",
+    "api-test-js": "./test/api/js/run"
   },
   "author": "Peter Marklund",
   "license": "ISC",
@@ -18,6 +19,7 @@
     "mongodb": "3.0.4"
   },
   "devDependencies": {
+    "axios": "^0.18.0",
     "eslint": "~4.18.0",
     "eslint-config-standard": "^11.0.0",
     "eslint-plugin-import": "^2.9.0",
