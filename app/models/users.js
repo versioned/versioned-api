@@ -37,7 +37,6 @@ function generateToken (doc) {
 }
 
 module.exports = merge(api, {
-  model,
   create,
   authenticate,
   generateToken

@@ -4,9 +4,46 @@ This is a CMS REST API on MongoDB/Node.js - similar to Contentful.
 
 ## TODO
 
+* API test suites: crud.js, get.js, list.js, create.js, update.js, delete.js
+  Need to test for 404 and validation errors
+
+* content_types model with (space_id, schema)
+
+* Add relationships to model:
+
+```
+:relationships {
+    :type "object"
+    :patternProperties {
+      "^[a-z_]+$" {
+        :type "object"
+        :properties {
+          :from_coll {:type "string"}
+          :from_model {:type ["null", "string"]}
+          :from_field {:type "string"}
+          :to_field {:type "string"}
+          :to_coll {:type "string"}
+          :to_model {:type ["null", "string"]}
+          :find_opts {
+            :type "object"
+            :properties {
+              :sort {:type "object"}
+              :per-page {:type "integer"}
+              :fields {:type "array"}
+            }
+            :additionalProperties false
+          }
+        }
+        :required [:from_coll :from_field :to_field :to_coll]
+        :additionalProperties false
+      }
+    }
+    :additionalProperties false
+  }
+```
+
 * accounts model (users.account_id)
 * spaces model with (account_id, name, key)
-* content_types model with (space_id, schema)
 * MongoDB id sequence
 
 * API test - complete the js tests
