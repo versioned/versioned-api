@@ -1,29 +1,39 @@
 #!/usr/bin/env node
-
-// Setup the test env variables before we require the server
-const TEST_ENV = {
-  NODE_ENV: 'test',
-  PORT: 3006
-}
-Object.assign(process.env, TEST_ENV)
+initEnv() // Setup the test env variables before we require the server
 
 const server = require('app/server')
 const fs = require('fs')
 const path = require('path')
 
-function suites () {
-  const suitesPath = __dirname + '/suites'
-  return fs.readdirSync(suitesPath).map(filename => path.parse(filename).name)
+const CONFIG = {
+  BASE_URL: `http://localhost:${process.env.PORT}/v1`
 }
 
-const CONFIG = {
-  BASE_URL: `http://localhost:${TEST_ENV.PORT}/v1`
+function initEnv () {
+  const TEST_ENV = {
+    NODE_ENV: 'test',
+    PORT: 3006
+  }
+  Object.assign(process.env, TEST_ENV)
+}
+
+function suites () {
+  const suitesPath = path.join(__dirname, '/suites')
+  const allSuites = fs.readdirSync(suitesPath).map(filename => path.parse(filename).name)
+  const customSuites = process.env.SUITES && process.env.SUITES.split(',')
+  return customSuites || allSuites
+}
+
+function suiteHeader (suiteName) {
+  console.log('\n##################################################')
+  console.log(`# Suite: ${suiteName}`)
+  console.log('##################################################\n')
 }
 
 async function run () {
   await server.start()
   for (let suiteName of suites()) {
-    console.log(`Suite: ${suiteName}`)
+    suiteHeader(suiteName)
     const suite = require(`./suites/${suiteName}`)
     await suite(CONFIG)
   }

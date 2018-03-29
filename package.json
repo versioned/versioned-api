@@ -9,8 +9,8 @@
     "lint": "eslint --ignore-path .gitignore .",
     "test": "npm run unit-test && npm run api-test",
     "unit-test": "npm run lint && jest",
-    "api-test": "./test/api/httpie/run",
-    "api-test-js": "./test/api/js/run"
+    "api-test": "./test/api/js/run",
+    "api-test-httpie": "./test/api/httpie/run"
   },
   "author": "Peter Marklund",
   "license": "ISC",

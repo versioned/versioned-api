@@ -7,6 +7,10 @@ This is a CMS REST API on MongoDB/Node.js - similar to Contentful.
 * API test suites: crud.js, get.js, list.js, create.js, update.js, delete.js
   Need to test for 404 and validation errors
 
+* The model API should compact docs
+
+* concat should not take array?
+
 * content_types model with (space_id, schema)
 
 * Add relationships to model:
