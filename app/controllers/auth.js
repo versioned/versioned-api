@@ -1,3 +1,4 @@
+const {json} = require('lib/util')
 const users = require('app/models/users')
 const logger = require('app/config').logger
 
@@ -11,7 +12,7 @@ async function login (req, res) {
     res.writeHead(200, {'Content-Type': 'application/json'})
     res.end(JSON.stringify({user, token}))
   } else {
-    logger.debug(`controllers.login - auth failed email=${email} password=${password} user=${user}`)
+    logger.debug(`controllers.login - auth failed email=${email} password=${password} user=${json(user)}`)
     res.writeHead(401, {'Content-Type': 'application/json'})
     res.end('')
   }
