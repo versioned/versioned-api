@@ -4,6 +4,8 @@ This is a CMS REST API on MongoDB/Node.js - similar to Contentful.
 
 ## TODO
 
+* Add options.user so that created_by gets set
+
 * API test suites: crud.js, get.js, list.js, create.js, update.js, delete.js
   Need to test for 404 and validation errors
 
