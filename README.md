@@ -9,6 +9,12 @@ This is a CMS REST API on MongoDB/Node.js - similar to Contentful.
 
 * The model API should compact docs
 
+* Error handling in callbacks? Compact and validate should also be callbacks?
+
+* api_writable/api_readable filters. Can id be hacked?
+
+* model spec - merging and schema
+
 * concat should not take array?
 
 * content_types model with (space_id, schema)
@@ -97,6 +103,17 @@ export BASE_URL=http://localhost:3000/v1
 echo '{"email": "admin@example.com", "password": "admin"}' | http POST $BASE_URL/users
 ```
 
+## Integer ID Sequence in MongoDB
+
+```javascript
+const mongo = require('lib/mongo')
+const config = require('app/config')
+mongo.connect(config.MONGODB_URL)
+
+mongo.nextSequence('foobar').then(console.log) // => {value: { _id: 'foobar', seq: 1 }}
+mongo.nextSequence('foobar').then(console.log) // => {value: { _id: 'foobar', seq: 2 }}
+```
+
 ## API Tests
 
 Keep test server running in one terminal with hot reload:
@@ -182,10 +199,11 @@ With async functions:
 ```javascript
 const mongo = require('lib/mongo')
 const config = require('app/config')
+const {uuid} = require('lib/util')
 async function crudTestAsync() {
   const db = await mongo.connect(config.MONGODB_URL)
   const users = db.collection('users')
-  const admin = {id:1, email: 'admin@example.com', password: 'admin'}
+  const admin = {id:1, email: `${uuid()}@example.com`, password: 'admin'}
   console.log('insert result', (await users.insert(admin)).result)
   console.log('find results', await users.find({}).toArray())
   console.log('update results', (await users.updateOne({id: 1}, {$set: {password: 'changed'}})).result)
