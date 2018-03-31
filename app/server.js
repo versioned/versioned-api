@@ -9,6 +9,14 @@ const attachRoute = require('lib/middleware/route').attachRoute
 const queryParser = require('lib/middleware/query').queryParser
 const bodyParser = require('lib/middleware/body').bodyParser
 const setCacheHeader = require('lib/middleware/cache').setCacheHeader
+const auth = require('lib/middleware/auth').auth
+const users = require('app/models/users')
+
+const AUTH_CONFIG = {
+  JWT_SECRET: config.JWT_SECRET,
+  findUser: users.get,
+  logger
+}
 
 function setupMiddleware (app) {
   app.use(serveStatic('public'))
@@ -17,6 +25,7 @@ function setupMiddleware (app) {
   app.use(queryParser)
   app.use(bodyParser)
   app.use(setCacheHeader)
+  app.use(auth(AUTH_CONFIG))
 }
 
 process.on('uncaughtException', (err) => {

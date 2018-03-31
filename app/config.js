@@ -8,7 +8,8 @@ const defaultConfig = {
   LOG_LEVEL: 'debug',
   CACHE_EXPIRY: '5',
   MONGODB_URL: `mongodb://localhost:27017/versioned2_${NODE_ENV}`,
-  JWT_SECRET: '393dabff04884cf89ce918f53924d63e'
+  JWT_SECRET: '393dabff04884cf89ce918f53924d63e',
+  JWT_EXPIRY: (3600 * 24 * 30)
 }
 const envConfig = u.pick(process.env, Object.keys(defaultConfig))
 const config = u.merge(defaultConfig, envConfig)

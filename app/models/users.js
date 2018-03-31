@@ -32,7 +32,8 @@ function authenticate (user, password) {
 }
 
 function generateToken (doc) {
-  const payload = {id: doc.id}
+  const exp = Date.now() / 1000 + config.JWT_EXPIRY
+  const payload = {user_id: doc.id, exp}
   return jwt.encode(payload, config.JWT_SECRET)
 }
 

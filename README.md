@@ -6,6 +6,8 @@ This is a CMS REST API on MongoDB/Node.js - similar to Contentful.
 
 * Add options.user so that created_by gets set
 
+* password feature - password not saved, password_hash api_writable/api_readable false
+
 * API test suites: crud.js, get.js, list.js, create.js, update.js, delete.js
   Need to test for 404 and validation errors
 
@@ -81,7 +83,6 @@ async function createAdmin() {
   await mongo.connect(config.MONGODB_URL)
 
   const users = require('app/models/users')
-  await users.init()
   const doc = {name: 'Admin User', email: 'admin@example.com', password: 'admin'}
   users.create(doc).then(console.log)
   users.findOne({email: doc.email}).then(console.log)
@@ -149,7 +150,8 @@ git push heroku master
 
 ```javascript
 const jwt = require('lib/jwt')
-const payload = { foo: 'bar' }
+const exp = Date.now()/1000 + 3600*24*30
+const payload = { foo: 'bar', exp }
 // HS256 secrets are typically 128-bit random strings, for example hex-encoded:
 const secret = Buffer.from('fe1a1915a379f3be5394b64d14794932', 'hex')
 const token = jwt.encode(payload, secret)
