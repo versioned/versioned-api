@@ -4,6 +4,10 @@ This is a CMS REST API on MongoDB/Node.js - similar to Contentful.
 
 ## TODO
 
+* const assert = require('../client') HTTP client in api tests that logs requests in httpie syntax
+  Also a label for each API call?
+  It should also handle assertions and log last request on failure
+
 * Add options.user so that created_by gets set
 
 * password feature - password not saved, password_hash api_writable/api_readable false
