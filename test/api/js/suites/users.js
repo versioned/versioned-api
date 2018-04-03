@@ -11,5 +11,10 @@ module.exports = async function ({BASE_URL}) {
   }
   const result = await axios.post(`${BASE_URL}/users`, user)
   assert.equal(result.status, 200)
-  console.log(result.data)
+  assert.equal(result.data.name, user.name)
+  assert.equal(result.data.email, user.email)
+
+  // TODO: test validation failure on create and update
+
+  // TODO: test valid update
 }

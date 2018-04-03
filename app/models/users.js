@@ -11,7 +11,7 @@ const model = {
     properties: {
       name: {type: 'string'},
       email: {type: 'string', format: 'email', 'x-meta': {unique: true}},
-      password: {type: 'string', minLength: 4, maxLength: 100, 'x-meta': {api_readable: false}}
+      password: {type: 'string', minLength: 4, maxLength: 100, 'x-meta': {readable: false}}
     },
     required: ['name', 'email', 'password'],
     additionalProperties: false

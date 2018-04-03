@@ -10,6 +10,8 @@ This is a CMS REST API on MongoDB/Node.js - similar to Contentful.
 
 * Add options.user so that created_by gets set
 
+* Empty update should yield 204?
+
 * password feature - password not saved, password_hash api_writable/api_readable false
 
 * API test suites: crud.js, get.js, list.js, create.js, update.js, delete.js
@@ -71,6 +73,11 @@ This is a CMS REST API on MongoDB/Node.js - similar to Contentful.
   See: https://node-postgres.com/features/types
 * Use bcrypt instead of crypto when it works with latest Node?
 * Investigate using [Auth0](https://auth0.com/docs/api-auth) for authentication?
+
+## Documentation
+
+* Readable/writable fields
+* Type coercion?
 
 ## Start Dev Server
 

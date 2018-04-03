@@ -20,6 +20,6 @@ const routes = [
   }
 ].concat(modelRoutes(MODELS_DIR))
 
-logger.debug('routes:', routes)
+logger.verbose('routes:', routes)
 
 module.exports = groupByMethod(routes)

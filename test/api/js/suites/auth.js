@@ -12,4 +12,10 @@ module.exports = async function ({BASE_URL}) {
   const result = await axios.post(`${BASE_URL}/users`, user)
   assert.equal(result.status, 200)
   console.log(result.data)
+
+  // TODO: test valid login
+
+  // TODO: test invalid password login
+
+  // TODO: test invalid email login
 }
