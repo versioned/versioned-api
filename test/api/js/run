@@ -5,6 +5,8 @@ const server = require('app/server')
 const fs = require('fs')
 const path = require('path')
 const apiClient = require('./api_client')
+const {unique} = require('lib/util')
+const {elapsedSeconds} = require('lib/date_util')
 
 const BASE_URL = `http://localhost:${process.env.PORT}/v1`
 
@@ -23,20 +25,31 @@ function suites () {
   return customSuites || allSuites
 }
 
-function suiteHeader (suiteName) {
+function printSuiteHeader (suiteName) {
   console.log('\n##################################################')
   console.log(`# Suite: ${suiteName}`)
   console.log('##################################################')
 }
 
+function printResults (client, startTime) {
+  console.log('\nOK!')
+  const suites = unique(client.requests.map(r => r.suite))
+  console.log(`Number of suites: ${suites.length} - ${suites.join(', ')}`)
+  console.log(`Number of API calls: ${client.requests.length}`)
+  console.log(`Elapsed seconds: ${elapsedSeconds(startTime)}`)
+}
+
 async function run () {
+  const startTime = new Date()
   const client = apiClient({BASE_URL})
   await server.start()
   for (let suiteName of suites()) {
-    suiteHeader(suiteName)
+    printSuiteHeader(suiteName)
+    client.suite = suiteName
     const suite = require(`./suites/${suiteName}`)
     await suite(client)
   }
+  printResults(client, startTime)
   process.exit(0)
 }
 
