@@ -1,20 +1,22 @@
-const axios = require('axios')
-const {uuid} = require('lib/util')
-const assert = require('assert')
+const {merge} = require('lib/util')
 
-module.exports = async function ({BASE_URL}) {
-  const name = uuid()
+module.exports = async function (c) {
+  const name = c.uuid()
   const user = {
     name,
     email: `${name}@example.com`,
     password: 'admin'
   }
-  const result = await axios.post(`${BASE_URL}/users`, user)
-  assert.equal(result.status, 200)
-  assert.equal(result.data.name, user.name)
-  assert.equal(result.data.email, user.email)
+  let result = await c.post('valid create user', '/users', user)
+  const id = result.data.id
+  c.assertEqual(result.status, 200)
+  c.assertEqual(result.data.name, user.name)
+  c.assertEqual(result.data.email, user.email)
 
-  // TODO: test validation failure on create and update
+  result = await c.post('can log in', `/login`, user)
+  const headers = {authorization: `Bearer ${result.data.token}`}
 
-  // TODO: test valid update
+  result = await c.post({it: 'invalid create user - missing email', status: 422}, '/users', merge(user, {email: undefined}))
+
+  result = await c.put({it: 'invalid update user - missing email', status: 422}, `/users/${id}`, {email: null}, {headers})
 }

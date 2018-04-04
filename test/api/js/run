@@ -4,10 +4,9 @@ initEnv() // Setup the test env variables before we require the server
 const server = require('app/server')
 const fs = require('fs')
 const path = require('path')
+const apiClient = require('./api_client')
 
-const CONFIG = {
-  BASE_URL: `http://localhost:${process.env.PORT}/v1`
-}
+const BASE_URL = `http://localhost:${process.env.PORT}/v1`
 
 function initEnv () {
   const TEST_ENV = {
@@ -27,15 +26,16 @@ function suites () {
 function suiteHeader (suiteName) {
   console.log('\n##################################################')
   console.log(`# Suite: ${suiteName}`)
-  console.log('##################################################\n')
+  console.log('##################################################')
 }
 
 async function run () {
+  const client = apiClient({BASE_URL})
   await server.start()
   for (let suiteName of suites()) {
     suiteHeader(suiteName)
     const suite = require(`./suites/${suiteName}`)
-    await suite(CONFIG)
+    await suite(client)
   }
   process.exit(0)
 }
