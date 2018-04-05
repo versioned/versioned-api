@@ -4,28 +4,18 @@ This is a CMS REST API on MongoDB/Node.js - similar to Contentful.
 
 ## TODO
 
-* const assert = require('../client') HTTP client in api tests that logs requests in httpie syntax
-  Also a label for each API call?
-  It should also handle assertions and log last request on failure
-
-* Add options.user so that created_by gets set
+* Request/Response JSON schema - compare contentful
 
 * Empty update should yield 204?
 
-* password feature - password not saved, password_hash api_writable/api_readable false
+* changelog
 
 * API test suites: crud.js, get.js, list.js, create.js, update.js, delete.js
   Need to test for 404 and validation errors
 
-* The model API should compact docs
+* versioning
 
-* Error handling in callbacks? Compact and validate should also be callbacks?
-
-* api_writable/api_readable filters. Can id be hacked?
-
-* model spec - merging and schema
-
-* concat should not take array?
+* swagger
 
 * content_types model with (space_id, schema)
 
