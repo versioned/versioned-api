@@ -1,12 +1,13 @@
-const {merge} = require('lib/util')
+const {concat, merge} = require('lib/util')
 const modelApi = require('lib/model_api')
 const config = require('app/config')
 const jwt = require('lib/jwt')
 const passwordHash = require('lib/password_hash')
+const DEFAULTS = require('lib/model_spec').DEFAULTS
 
 const model = {
   coll: 'users',
-  features: ['password'],
+  features: concat(DEFAULTS.features, ['password']),
   schema: {
     type: 'object',
     properties: {

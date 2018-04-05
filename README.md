@@ -4,11 +4,11 @@ This is a CMS REST API on MongoDB/Node.js - similar to Contentful.
 
 ## TODO
 
+* list limit
+
 * Request/Response JSON schema - compare contentful
 
 * Empty update should yield 204?
-
-* changelog
 
 * API test suites: crud.js, get.js, list.js, create.js, update.js, delete.js
   Need to test for 404 and validation errors
