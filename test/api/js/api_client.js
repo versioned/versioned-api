@@ -10,7 +10,11 @@ function isMongoId (id) {
 function dataString (data) {
   if (!data) return ''
   return keyValues(data).map(([key, value]) => {
-    return `${key}:='${json(value)}'`
+    if (typeof value === 'string') {
+      return `${key}='${value}'`
+    } else {
+      return `${key}:='${json(value)}'`
+    }
   }).join(' ')
 }
 

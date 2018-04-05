@@ -6,29 +6,22 @@ const passwordHash = require('lib/password_hash')
 
 const model = {
   coll: 'users',
+  features: ['password'],
   schema: {
     type: 'object',
     properties: {
       name: {type: 'string'},
-      email: {type: 'string', format: 'email', 'x-meta': {unique: true}},
-      password: {type: 'string', minLength: 4, maxLength: 100, 'x-meta': {readable: false}}
+      email: {type: 'string', format: 'email', 'x-meta': {unique: true}}
     },
-    required: ['name', 'email', 'password'],
+    required: ['name', 'email'],
     additionalProperties: false
   }
 }
 
 const api = modelApi(model)
 
-async function create (doc) {
-  const hash = await passwordHash.generate(doc.password)
-  const dbDoc = merge(doc, {password: hash})
-  return api.create(dbDoc)
-}
-
 function authenticate (user, password) {
-  const hash = user && user.password
-  return passwordHash.verify(password, hash)
+  return user && passwordHash.verify(password, user.password_hash)
 }
 
 function generateToken (doc) {
@@ -38,7 +31,6 @@ function generateToken (doc) {
 }
 
 module.exports = merge(api, {
-  create,
   authenticate,
   generateToken
 })
