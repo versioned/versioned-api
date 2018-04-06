@@ -5,7 +5,7 @@ const {nextSequence} = require('lib/mongo')
 
 async function setIdCallback (doc, options) {
   if (!doc.id) {
-    const id = await nextSequence(doc.coll)
+    const id = await nextSequence(options.model.coll)
     return merge(doc, {id})
   } else {
     return doc

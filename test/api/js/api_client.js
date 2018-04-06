@@ -1,10 +1,23 @@
 const {keyValues, json} = require('lib/util')
 const axios = require('axios').create({validateStatus: (status) => status < 500})
 const _assert = require('assert')
-const {uuid} = require('lib/util')
+const {uuid, pick, merge, array} = require('lib/util')
+const {isMongoId} = require('lib/mongo')
 
-function isMongoId (id) {
-  return id && id.match(/[a-z0-9]{24}/)
+function make (attributes) {
+  const id = uuid()
+  return attributes.reduce((acc, item) => {
+    const [key, make] = array(item)
+    acc[key] = (make ? make(id) : id)
+    return acc
+  }, {})
+}
+
+function makeUser () {
+  return make([
+    'name',
+    ['email', (id) => `${id}@example.com`],
+    'password'])
 }
 
 function dataString (data) {
@@ -65,6 +78,19 @@ function client ({BASE_URL}) {
     }
   }
 
+  async function login (user) {
+    let result = await post('log in', `/login`, pick(user, ['email', 'password']))
+    return {authorization: `Bearer ${result.data.token}`}
+  }
+
+  async function registerUser (user) {
+    user = user || makeUser()
+    let result = await post('create user', `/users`, user)
+    user = merge(user, pick(result.data, ['id', '_id']))
+    const headers = await login(user)
+    return {user, headers}
+  }
+
   async function get (expect, path, options = {}) {
     printExpect(expect)
     const url = `${BASE_URL}${path}`
@@ -110,6 +136,9 @@ function client ({BASE_URL}) {
     assertEqual,
     isMongoId,
     uuid,
+    makeUser,
+    registerUser,
+    login,
     get,
     post,
     put,

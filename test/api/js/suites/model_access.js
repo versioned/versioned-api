@@ -17,6 +17,10 @@ module.exports = async function (c) {
 
   result = await c.post('valid login', '/login', user)
   const headers = {authorization: `Bearer ${result.data.token}`}
+  c.assert(result.data.token)
+  c.assert(result.data.user)
+  c.assert(!result.data.user.password)
+  c.assert(!result.data.user.password_hash)
 
   result = await c.put('attempted update of created_at', `/users/${id}`, {created_at: new Date()}, {headers})
 

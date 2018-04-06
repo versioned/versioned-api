@@ -7,6 +7,7 @@ const path = require('path')
 const apiClient = require('./api_client')
 const {unique} = require('lib/util')
 const {elapsedSeconds} = require('lib/date_util')
+const mongo = require('lib/mongo')
 
 const BASE_URL = `http://localhost:${process.env.PORT}/v1`
 
@@ -43,6 +44,7 @@ async function run () {
   const startTime = new Date()
   const client = apiClient({BASE_URL})
   await server.start()
+  await mongo.db().dropDatabase()
   for (let suiteName of suites()) {
     printSuiteHeader(suiteName)
     client.suite = suiteName
@@ -50,7 +52,7 @@ async function run () {
     await suite(client)
   }
   printResults(client, startTime)
-  process.exit(0)
+  // process.exit(0)
 }
 
 run()

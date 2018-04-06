@@ -4,9 +4,10 @@ This is a CMS REST API on MongoDB/Node.js - similar to Contentful.
 
 ## TODO
 
-* list limit
+* OK? Request/Response JSON structure for list/get endpoints - compare contentful
+  doc/docs/meta
 
-* Request/Response JSON schema - compare contentful
+* sequences broken? Increments by 2? Add API test.
 
 * Empty update should yield 204?
 
@@ -56,8 +57,8 @@ This is a CMS REST API on MongoDB/Node.js - similar to Contentful.
 * spaces model with (account_id, name, key)
 * MongoDB id sequence
 
-* API test - complete the js tests
-* httpie api tests - http create_user_failure_missing_email status 422 ... - script that wraps httpie and adds logging (use a latest symlink?) and assertion
+## Discussion Points
+
 * Alternative to ajv for schema validation: https://github.com/tdegrunt/jsonschema
 * Try using Postgres instead of mongo (on a branch)
   See: https://node-postgres.com/features/types
@@ -91,20 +92,32 @@ async function createAdmin() {
 createAdmin()
 ```
 
+## API: Create User
+
+```
+export BASE_URL=http://localhost:3000/v1
+echo '{"name": "Admin User", "email": "admin@example.com", "password": "admin"}' | http POST $BASE_URL/users
+```
+
+Create a bunch of users:
+
+```
+export BASE_URL=http://localhost:3000/v1
+while [ 1 ]; do echo "{\"name\": \"Admin User\", \"email\": \"$(uuid)@example.com\", \"password\": \"admin\"}" | http POST $BASE_URL/users; done
+```
+
 ## API: Login
 
 ```bash
 export BASE_URL=http://localhost:3000/v1
 echo '{"email": "admin@example.com", "password": "admin"}' | http POST $BASE_URL/login
-
-echo '{"email": "admin@example.com", "password": "foo"}' | http POST $BASE_URL/login
 ```
 
-## API: Create User
+## API: List Users
 
 ```
 export BASE_URL=http://localhost:3000/v1
-echo '{"email": "admin@example.com", "password": "admin"}' | http POST $BASE_URL/users
+http GET $BASE_URL/users Authorization:"Bearer $TOKEN"
 ```
 
 ## Integer ID Sequence in MongoDB

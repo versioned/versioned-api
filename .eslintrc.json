@@ -6,6 +6,7 @@
       "expect": true
     },
     "rules": {
-      "no-throw-literal": 0
+      "no-throw-literal": 0,
+      "no-unused-vars": ["error", {"varsIgnorePattern": "^_", "argsIgnorePattern": ".*"}]
     }
 }
