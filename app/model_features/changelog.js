@@ -1,20 +1,12 @@
-const {getIn, omit} = require('lib/util')
-const diff = require('lib/diff')
+const {getIn} = require('lib/util')
 const changelog = require('app/models/changelog')
-
-function changes (doc, options) {
-  if (options.action === 'update') {
-    return omit(diff(options.existingDoc, doc), ['updated_at', 'updated_by'])
-  } else {
-    return undefined
-  }
-}
+const {changes} = require('lib/model_api')
 
 async function changelogCallback (doc, options) {
   await changelog.create({
     action: options.action,
     doc,
-    changes: changes(doc, options),
+    changes: changes(options.existingDoc, doc),
     created_by: getIn(options, ['user', 'id']),
     created_at: new Date()
   }, options)

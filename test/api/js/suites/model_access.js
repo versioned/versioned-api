@@ -22,7 +22,7 @@ module.exports = async function (c) {
   c.assert(!result.data.user.password)
   c.assert(!result.data.user.password_hash)
 
-  result = await c.put('attempted update of created_at', `/users/${id}`, {created_at: new Date()}, {headers})
+  result = await c.put({it: 'attempted update of created_at', status: 204}, `/users/${id}`, {created_at: new Date()}, {headers})
 
   result = await c.get('get user', `/users/${id}`, {headers})
   c.assertEqual(result.data.created_at, createdAt)

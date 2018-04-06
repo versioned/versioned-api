@@ -45,6 +45,8 @@ module.exports = async function (c) {
   c.assert(elapsedSeconds(result.data.updated_at) < 1)
   c.assertEqual(result.data.updated_by, id)
 
+  result = await c.put({it: 'same update again yields 204', status: 204}, `/users/${id}`, {name: 'changed name'}, {headers})
+
   result = await c.get('can get updated user', `/users/${id}`, {headers})
   c.assertEqual(result.data.name, 'changed name')
   c.assertEqual(result.data.email, user.email)
