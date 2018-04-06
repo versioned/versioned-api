@@ -4,9 +4,6 @@ This is a CMS REST API on MongoDB/Node.js - similar to Contentful.
 
 ## TODO
 
-* OK? Request/Response JSON structure for list/get endpoints - compare contentful
-  doc/docs/meta
-
 * sequences broken? Increments by 2? Add API test.
 
 * Empty update should yield 204?
@@ -59,6 +56,8 @@ This is a CMS REST API on MongoDB/Node.js - similar to Contentful.
 
 ## Discussion Points
 
+* OK? Request/Response JSON structure for list/get endpoints - compare contentful
+  doc/docs/meta
 * Alternative to ajv for schema validation: https://github.com/tdegrunt/jsonschema
 * Try using Postgres instead of mongo (on a branch)
   See: https://node-postgres.com/features/types

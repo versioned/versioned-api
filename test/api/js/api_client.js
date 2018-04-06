@@ -4,6 +4,13 @@ const _assert = require('assert')
 const {uuid, pick, merge, array} = require('lib/util')
 const {isMongoId} = require('lib/mongo')
 
+function unwrapData (result) {
+  if (!result.data) return result
+  return merge(result, {
+    data: result.data.data
+  })
+}
+
 function make (attributes) {
   const id = uuid()
   return attributes.reduce((acc, item) => {
@@ -98,7 +105,7 @@ function client ({BASE_URL}) {
     const result = await axios.get(url, options)
     self.requests.push({method: 'GET', path, options, result, suite: self.suite})
     assertEqual(result.status, expect.status || 200)
-    return result
+    return unwrapData(result)
   }
 
   async function post (expect, path, data, options = {}) {
@@ -108,7 +115,7 @@ function client ({BASE_URL}) {
     const result = await axios.post(url, data, options)
     self.requests.push({method: 'POST', path, data, options, result, suite: self.suite})
     assertEqual(result.status, expect.status || 200)
-    return result
+    return unwrapData(result)
   }
 
   async function put (expect, path, data, options = {}) {
@@ -118,7 +125,7 @@ function client ({BASE_URL}) {
     const result = await axios.put(url, data, options)
     self.requests.push({method: 'PUT', path, data, options, result, suite: self.suite})
     assertEqual(result.status, expect.status || 200)
-    return result
+    return unwrapData(result)
   }
 
   async function _delete (expect, path, options = {}) {
@@ -128,7 +135,7 @@ function client ({BASE_URL}) {
     const result = await axios.delete(url, options)
     self.requests.push({method: 'DELETE', path, options, result, suite: self.suite})
     assertEqual(result.status, expect.status || 200)
-    return result
+    return unwrapData(result)
   }
 
   Object.assign(self, {

@@ -11,7 +11,7 @@ async function login (req, res) {
     logger.debug(`controllers.login - auth successful email=${email}`)
     const token = users.generateToken(user)
     res.writeHead(200, {'Content-Type': 'application/json'})
-    res.end(JSON.stringify({user: readableData(users.model, user), token}))
+    res.end(JSON.stringify({data: {user: readableData(users.model, user), token}}))
   } else {
     logger.debug(`controllers.login - auth failed email=${email} password=${password} user=${json(user)}`)
     res.writeHead(401, {'Content-Type': 'application/json'})
