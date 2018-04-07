@@ -7,7 +7,7 @@ module.exports = async function (c) {
     email: `${name}@example.com`,
     password: 'admin'
   }
-  let result = await c.post('create user', `/users`, user)
+  let result = await c.post('create user', `/users`, user, {headers: {authorization: null}})
   const createdUser = result.data
   c.assertEqual(result.data.name, name)
   c.assertEqual(result.data.email, user.email)
@@ -18,7 +18,7 @@ module.exports = async function (c) {
   c.assert(!result.data.updated_by)
   const id = result.data.id
 
-  result = await c.get({it: 'cannot get user without auth', status: 401}, `/users/${id}`)
+  result = await c.get({it: 'cannot get user without auth', status: 401}, `/users/${id}`, {headers: {authorization: null}})
 
   result = await c.post('can log in', `/login`, user)
   const headers = {authorization: `Bearer ${result.data.token}`}
@@ -31,13 +31,13 @@ module.exports = async function (c) {
   c.assert(!result.data.updated_at)
   c.assert(!result.data.updated_by)
 
-  result = await c.get({it: 'cannot list users without auth', status: 401}, `/users`)
+  result = await c.get({it: 'cannot list users without auth', status: 401}, `/users`, {headers: {authorization: null}})
 
   result = await c.get('can list users with auth', `/users`, {headers})
   c.assertEqual(result.data[0].id, id)
   c.assertEqual(result.data[0].email, user.email)
 
-  result = await c.put({it: 'cannot update user without auth', status: 401}, `/users/${id}`, {name: 'changed name'})
+  result = await c.put({it: 'cannot update user without auth', status: 401}, `/users/${id}`, {name: 'changed name'}, {headers: {authorization: null}})
 
   result = await c.put('can update user with auth', `/users/${id}`, {name: 'changed name'}, {headers})
   c.assertEqual(createdUser.created_at, result.data.created_at)
@@ -56,7 +56,7 @@ module.exports = async function (c) {
   c.assert(result.data.updated_at > result.data.created_at)
   c.assertEqual(result.data.updated_by, id)
 
-  result = await c.delete({it: 'cannot delete user without auth', status: 401}, `/users/${id}`)
+  result = await c.delete({it: 'cannot delete user without auth', status: 401}, `/users/${id}`, {headers: {authorization: null}})
 
   result = await c.delete('can delete user with auth', `/users/${id}`, {headers})
 

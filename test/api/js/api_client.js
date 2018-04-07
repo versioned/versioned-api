@@ -50,8 +50,18 @@ function printExpect (expect) {
   if (heading) console.log(`\n### ${heading}`)
 }
 
+function printHttp (method, url, headers, data) {
+  if (typeof data === 'string') {
+    console.log(`echo '${data}' | http ${method} '${url}' ${headerString(headers)}`)
+  } else {
+    console.log(`http ${method} '${url}' ${dataString(data)} ${headerString(headers)}`)
+  }
+}
+
 function client ({BASE_URL}) {
   const self = {
+    data: {},
+    defaultOptions: null,
     suite: null,
     requests: []
   }
@@ -99,9 +109,10 @@ function client ({BASE_URL}) {
   }
 
   async function get (expect, path, options = {}) {
+    options = merge(self.defaultOptions, options)
     printExpect(expect)
     const url = `${BASE_URL}${path}`
-    console.log(`http get '${url}' ${headerString(options.headers)}`)
+    printHttp('get', url, options.headers)
     const result = await axios.get(url, options)
     self.requests.push({method: 'GET', path, options, result, suite: self.suite})
     assertEqual(result.status, expect.status || 200)
@@ -109,9 +120,10 @@ function client ({BASE_URL}) {
   }
 
   async function post (expect, path, data, options = {}) {
+    options = merge(self.defaultOptions, options)
     printExpect(expect)
     const url = `${BASE_URL}${path}`
-    console.log(`http post '${url}' ${dataString(data)} ${headerString(options.headers)}`)
+    printHttp('post', url, options.headers, data)
     const result = await axios.post(url, data, options)
     self.requests.push({method: 'POST', path, data, options, result, suite: self.suite})
     assertEqual(result.status, expect.status || 200)
@@ -119,9 +131,10 @@ function client ({BASE_URL}) {
   }
 
   async function put (expect, path, data, options = {}) {
+    options = merge(self.defaultOptions, options)
     printExpect(expect)
     const url = `${BASE_URL}${path}`
-    console.log(`http put '${url}' ${dataString(data)} ${headerString(options.headers)}`)
+    printHttp('put', url, options.headers, data)
     const result = await axios.put(url, data, options)
     self.requests.push({method: 'PUT', path, data, options, result, suite: self.suite})
     assertEqual(result.status, expect.status || 200)
@@ -129,9 +142,10 @@ function client ({BASE_URL}) {
   }
 
   async function _delete (expect, path, options = {}) {
+    options = merge(self.defaultOptions, options)
     printExpect(expect)
     const url = `${BASE_URL}${path}`
-    console.log(`http delete '${url}' ${headerString(options.headers)}`)
+    printHttp('delete', url, options.headers)
     const result = await axios.delete(url, options)
     self.requests.push({method: 'DELETE', path, options, result, suite: self.suite})
     assertEqual(result.status, expect.status || 200)

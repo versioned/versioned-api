@@ -1,6 +1,4 @@
 module.exports = async function (c) {
-  const {_user, headers} = await c.registerUser()
-
   let startIndex = null
   let maxId = 0
   for (let i = 0; i < 3; ++i) {
@@ -10,17 +8,17 @@ module.exports = async function (c) {
     if (result.data.id > maxId) maxId = result.data.id
   }
 
-  await c.delete('delete last created user', `/users/${maxId}`, {headers})
+  await c.delete('delete last created user', `/users/${maxId}`)
 
   let result = await c.post(`create another user`, `/users`, c.makeUser())
   c.assertEqual(result.data.id, maxId + 1)
   let lastUser = result.data
 
-  result = await c.get(`get user by id`, `/users/${lastUser.id}`, {headers})
+  result = await c.get(`get user by id`, `/users/${lastUser.id}`)
   c.assertEqual(result.data.id, lastUser.id)
   c.assertEqual(result.data.email, lastUser.email)
 
-  result = await c.get(`get user by _id`, `/users/${lastUser._id}`, {headers})
+  result = await c.get(`get user by _id`, `/users/${lastUser._id}`)
   c.assertEqual(result.data.id, lastUser.id)
   c.assertEqual(result.data.email, lastUser.email)
 }
