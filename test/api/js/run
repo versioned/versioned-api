@@ -5,7 +5,7 @@ const server = require('app/server')
 const fs = require('fs')
 const path = require('path')
 const apiClient = require('./api_client')
-const {unique, concat} = require('lib/util')
+const {unique, concat, prettyJson} = require('lib/util')
 const {elapsedSeconds} = require('lib/date_util')
 const mongo = require('lib/mongo')
 
@@ -42,6 +42,12 @@ function printResults (client, startTime) {
   console.log(`Elapsed seconds: ${elapsedSeconds(startTime)}`)
 }
 
+function logRequests (client) {
+  const logPath = path.join(__dirname, '/log.json')
+  fs.writeFileSync(logPath, prettyJson(client.requests))
+  console.log(`Requests writted to ${logPath}`)
+}
+
 async function run () {
   const startTime = new Date()
   const client = apiClient({BASE_URL})
@@ -54,6 +60,7 @@ async function run () {
     await suite(client)
   }
   printResults(client, startTime)
+  logRequests(client)
   // process.exit(0)
 }
 

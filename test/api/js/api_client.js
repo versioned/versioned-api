@@ -45,8 +45,12 @@ function headerString (headers) {
   }).join(' ')
 }
 
+function expectName (expect) {
+  return typeof expect === 'string' ? expect : expect.it
+}
+
 function printExpect (expect) {
-  const heading = (typeof expect === 'string' ? expect : expect.it)
+  const heading = expectName(expect)
   if (heading) console.log(`\n### ${heading}`)
 }
 
@@ -114,7 +118,12 @@ function client ({BASE_URL}) {
     const url = `${BASE_URL}${path}`
     printHttp('get', url, options.headers)
     const result = await axios.get(url, options)
-    self.requests.push({method: 'GET', path, options, result, suite: self.suite})
+    self.requests.push({
+      suite: self.suite,
+      it: expectName(expect),
+      request: {method: 'GET', url, options},
+      response: pick(result, ['status', 'headers', 'data'])
+    })
     assertEqual(result.status, expect.status || 200)
     return unwrapData(result)
   }
@@ -125,7 +134,12 @@ function client ({BASE_URL}) {
     const url = `${BASE_URL}${path}`
     printHttp('post', url, options.headers, data)
     const result = await axios.post(url, data, options)
-    self.requests.push({method: 'POST', path, data, options, result, suite: self.suite})
+    self.requests.push({
+      suite: self.suite,
+      it: expectName(expect),
+      request: {method: 'POST', url, options},
+      response: pick(result, ['status', 'headers', 'data'])
+    })
     assertEqual(result.status, expect.status || 200)
     return unwrapData(result)
   }
@@ -136,7 +150,12 @@ function client ({BASE_URL}) {
     const url = `${BASE_URL}${path}`
     printHttp('put', url, options.headers, data)
     const result = await axios.put(url, data, options)
-    self.requests.push({method: 'PUT', path, data, options, result, suite: self.suite})
+    self.requests.push({
+      suite: self.suite,
+      it: expectName(expect),
+      request: {method: 'PUT', url, options},
+      response: pick(result, ['status', 'headers', 'data'])
+    })
     assertEqual(result.status, expect.status || 200)
     return unwrapData(result)
   }
@@ -147,7 +166,12 @@ function client ({BASE_URL}) {
     const url = `${BASE_URL}${path}`
     printHttp('delete', url, options.headers)
     const result = await axios.delete(url, options)
-    self.requests.push({method: 'DELETE', path, options, result, suite: self.suite})
+    self.requests.push({
+      suite: self.suite,
+      it: expectName(expect),
+      request: {method: 'DELETE', url, options},
+      response: pick(result, ['status', 'headers', 'data'])
+    })
     assertEqual(result.status, expect.status || 200)
     return unwrapData(result)
   }
