@@ -4,48 +4,17 @@ This is a CMS REST API on MongoDB/Node.js - similar to Contentful.
 
 ## TODO
 
-* content_types model with (space_id, schema)
+* models crud API test
+* models_validaton API test
 
-* versioning
+* spaces
+
+* versioning and relationships
 
 * swagger
 
-* Add relationships to model:
-
-```
-:relationships {
-    :type "object"
-    :patternProperties {
-      "^[a-z_]+$" {
-        :type "object"
-        :properties {
-          :from_coll {:type "string"}
-          :from_model {:type ["null", "string"]}
-          :from_field {:type "string"}
-          :to_field {:type "string"}
-          :to_coll {:type "string"}
-          :to_model {:type ["null", "string"]}
-          :find_opts {
-            :type "object"
-            :properties {
-              :sort {:type "object"}
-              :per-page {:type "integer"}
-              :fields {:type "array"}
-            }
-            :additionalProperties false
-          }
-        }
-        :required [:from_coll :from_field :to_field :to_coll]
-        :additionalProperties false
-      }
-    }
-    :additionalProperties false
-  }
-```
-
-* accounts model (users.account_id)
-* spaces model with (account_id, name, key)
-* MongoDB id sequence
+* Multi tenant: accounts model (users.account_id)
+* Multi tenant: spaces model with (account_id, name, key)
 
 ## Discussion Points
 
@@ -110,6 +79,21 @@ echo '{"email": "admin@example.com", "password": "admin"}' | http POST $BASE_URL
 ```
 export BASE_URL=http://localhost:3000/v1
 http GET $BASE_URL/users Authorization:"Bearer $TOKEN"
+```
+
+## Routes
+
+```javascript
+async function printRoutes() {
+  const mongo = require('lib/mongo')
+  const config = require('app/config')
+  await mongo.connect(config.MONGODB_URL)
+
+  const {getRoutes} = require('app/routes')
+  const {prettyJson} = require('lib/util')
+  console.log(prettyJson(await getRoutes()))
+}
+printRoutes()
 ```
 
 ## Integer ID Sequence in MongoDB

@@ -1,13 +1,15 @@
 const home = require('app/controllers/home')
 const auth = require('app/controllers/auth')
-const logger = require('app/config').logger
+const {flatten, concat} = require('lib/util')
 const modelRoutes = require('lib/model_routes')
-const groupByMethod = require('lib/router').groupByMethod
+const modelApi = require('lib/model_api')
+const models = require('app/models/models')
 const path = require('path')
 
+const VERSION = 'v1'
 const MODELS_DIR = path.join(__dirname, '/models')
 
-const routes = [
+const systemRoutes = [
   {
     method: 'get',
     path: '/',
@@ -15,11 +17,22 @@ const routes = [
   },
   {
     method: 'post',
-    path: '/v1/login',
+    path: `/${VERSION}/sys_login`,
     handler: auth.login
   }
-].concat(modelRoutes(MODELS_DIR))
+].concat(modelRoutes.requireDir(MODELS_DIR))
 
-logger.verbose('routes:', routes)
+async function dynamicRoutes () {
+  const dynamicModels = (await models.list()).map(t => modelApi(t.model))
+  return flatten(dynamicModels.map(m => modelRoutes.routes(m, VERSION)))
+}
 
-module.exports = groupByMethod(routes)
+async function getRoutes () {
+  return concat(systemRoutes, (await dynamicRoutes()))
+}
+
+module.exports = {
+  systemRoutes,
+  dynamicRoutes,
+  getRoutes
+}

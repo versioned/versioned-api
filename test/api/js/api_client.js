@@ -1,4 +1,6 @@
-const {keyValues, json} = require('lib/util')
+const fs = require('fs')
+const path = require('path')
+const {keyValues, json, prettyJson} = require('lib/util')
 const axios = require('axios').create({validateStatus: (status) => status < 500})
 const _assert = require('assert')
 const {uuid, pick, merge, array} = require('lib/util')
@@ -70,10 +72,16 @@ function client ({BASE_URL}) {
     requests: []
   }
 
+  function logRequests () {
+    const logPath = path.join(__dirname, '/log.json')
+    fs.writeFileSync(logPath, prettyJson(self.requests))
+    console.log(`Requests writted to ${logPath}`)
+  }
+
   function printLastResult () {
-    const result = self.requests[self.requests.length - 1].result
-    console.log(`Last API response status=${result.status}`)
-    console.log(json(result.data))
+    const response = self.requests[self.requests.length - 1].response
+    console.log(`Last API response status=${response.status}`)
+    console.log(json(response.data))
   }
 
   function assertEqual (actual, expected) {
@@ -84,6 +92,7 @@ function client ({BASE_URL}) {
       console.log(`actual='${json(actual)}'`)
       console.log(`expected='${json(expected)}'`)
       printLastResult()
+      logRequests()
       throw err
     }
   }
@@ -95,18 +104,19 @@ function client ({BASE_URL}) {
       console.log('assert failed')
       console.log(`actual='${json(actual)}'`)
       printLastResult()
+      logRequests()
       throw err
     }
   }
 
   async function login (user) {
-    let result = await post('log in', `/login`, pick(user, ['email', 'password']))
+    let result = await post('log in', `/sys_login`, pick(user, ['email', 'password']))
     return {authorization: `Bearer ${result.data.token}`}
   }
 
   async function registerUser (user) {
     user = user || makeUser()
-    let result = await post('create user', `/users`, user)
+    let result = await post('create user', `/sys_users`, user)
     user = merge(user, pick(result.data, ['id', '_id']))
     const headers = await login(user)
     return {user, headers}
@@ -177,6 +187,7 @@ function client ({BASE_URL}) {
   }
 
   Object.assign(self, {
+    logRequests,
     assert,
     assertEqual,
     isMongoId,

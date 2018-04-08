@@ -1,7 +1,7 @@
 const modelApi = require('lib/model_api')
 
 const model = {
-  coll: 'changelog',
+  coll: 'sys_changelog',
   features: ['integer_id', 'audit'],
   schema: {
     type: 'object',

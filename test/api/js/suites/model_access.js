@@ -7,7 +7,7 @@ module.exports = async function (c) {
     email: `${name}@example.com`,
     password: 'admin'
   }
-  let result = await c.post('valid create user', '/users', user)
+  let result = await c.post('valid create user', '/sys_users', user)
   c.assert(!result.data.password)
   c.assert(!result.data.password_hash)
   const createdAt = result.data.created_at
@@ -15,16 +15,16 @@ module.exports = async function (c) {
   c.assert(id)
   c.assert(elapsedSeconds(createdAt) < 1)
 
-  result = await c.post('valid login', '/login', user)
+  result = await c.post('valid login', '/sys_login', user)
   const headers = {authorization: `Bearer ${result.data.token}`}
   c.assert(result.data.token)
   c.assert(result.data.user)
   c.assert(!result.data.user.password)
   c.assert(!result.data.user.password_hash)
 
-  result = await c.put({it: 'attempted update of created_at', status: 204}, `/users/${id}`, {created_at: new Date()}, {headers})
+  result = await c.put({it: 'attempted update of created_at', status: 204}, `/sys_users/${id}`, {created_at: new Date()}, {headers})
 
-  result = await c.get('get user', `/users/${id}`, {headers})
+  result = await c.get('get user', `/sys_users/${id}`, {headers})
   c.assertEqual(result.data.created_at, createdAt)
   c.assert(!result.data.password)
   c.assert(!result.data.password_hash)

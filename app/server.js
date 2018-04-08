@@ -1,8 +1,8 @@
 const config = require('app/config')
 const mongo = require('lib/mongo')
 const logger = config.logger
-const routesByMethod = require('app/routes')
-const app = require('lib/app')(routesByMethod, config)
+const {getRoutes} = require('app/routes')
+const app = require('lib/app')(config)
 const serveStatic = require('lib/middleware/static').serveStatic
 const setCorsHeaders = require('lib/middleware/cors').setCorsHeaders
 const attachRoute = require('lib/middleware/route').attachRoute
@@ -21,7 +21,7 @@ const AUTH_CONFIG = {
 function setupMiddleware (app) {
   app.use(serveStatic('public'))
   app.use(setCorsHeaders)
-  app.use(attachRoute(routesByMethod))
+  app.use(attachRoute(getRoutes))
   app.use(queryParser)
   app.use(bodyParser)
   app.use(setCacheHeader)

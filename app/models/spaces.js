@@ -1,7 +1,7 @@
 const modelApi = require('lib/model_api')
 
 const model = {
-  coll: 'spaces',
+  coll: 'sys_spaces',
   schema: {
     type: 'object',
     properties: {

@@ -1,7 +1,7 @@
 const modelApi = require('lib/model_api')
 
 const model = {
-  coll: 'accounts',
+  coll: 'sys_accounts',
   schema: {
     type: 'object',
     properties: {
