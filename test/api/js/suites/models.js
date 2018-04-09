@@ -1,7 +1,6 @@
 module.exports = async function (c) {
   // Create a space where models can live
   let result = await c.post('create space', '/spaces', {name: 'My CMS'})
-  console.log('pm debug space', result.data)
   let space = result.data.key
 
   // Create a simple model
@@ -28,7 +27,7 @@ module.exports = async function (c) {
     title: 'My first article',
     body: 'Welcome to my blog!'
   }
-  await c.post('create article', `/docs/${space}_articles`, article)
+  await c.post('create article', `/data/${space}_articles`, article)
 
   // Delete content type
 

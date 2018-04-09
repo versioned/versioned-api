@@ -7,7 +7,7 @@ const models = require('app/models/models')
 const path = require('path')
 
 const VERSION = 'v1'
-const MODEL_PREFIX = `v1/docs`
+const MODEL_PREFIX = `v1/data`
 const MODELS_DIR = path.join(__dirname, '/models')
 
 const systemRoutes = [
