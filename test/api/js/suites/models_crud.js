@@ -10,7 +10,9 @@ async function crudTest (c, prefix, coll, doc, updateDoc) {
   const id = result.data.id
   const created = result.data
   for (let key of keys(doc)) {
-    c.assertEqual(created[key], doc[key])
+    if (typeof doc[key] !== 'object') {
+      c.assertEqual(created[key], doc[key])
+    }
   }
   c.assert(c.isMongoId(created._id))
   c.assert(elapsedSeconds(created.created_at) < 1)
@@ -24,7 +26,9 @@ async function crudTest (c, prefix, coll, doc, updateDoc) {
 
   result = await c.get('can get created doc', getPath)
   for (let key of keys(doc)) {
-    c.assertEqual(result.data[key], doc[key])
+    if (typeof doc[key] !== 'object') {
+      c.assertEqual(result.data[key], doc[key])
+    }
   }
   c.assertEqual(result.data.created_at, created.created_at)
   c.assertEqual(result.data.created_by, created.created_by)
@@ -38,7 +42,9 @@ async function crudTest (c, prefix, coll, doc, updateDoc) {
   c.assertEqual(result.data[0].created_at, created.created_at)
   c.assertEqual(result.data[0].created_by, created.created_by)
   for (let key of keys(doc)) {
-    c.assertEqual(result.data[0][key], doc[key])
+    if (typeof doc[key] !== 'object') {
+      c.assertEqual(result.data[0][key], doc[key])
+    }
   }
 
   await c.put({it: 'cannot update without auth', status: 401}, getPath, updateDoc, anonymous)
@@ -51,7 +57,9 @@ async function crudTest (c, prefix, coll, doc, updateDoc) {
     c.assertEqual(result.data[key], updateDoc[key])
   }
   for (let key of difference(keys(doc), keys(updateDoc))) {
-    c.assertEqual(result.data[key], doc[key])
+    if (typeof doc[key] !== 'object') {
+      c.assertEqual(result.data[key], doc[key])
+    }
   }
   c.assert(elapsedSeconds(result.data.updated_at) < 1)
   c.assertEqual(result.data.updated_by, id)
@@ -66,7 +74,9 @@ async function crudTest (c, prefix, coll, doc, updateDoc) {
     c.assertEqual(result.data[key], updateDoc[key])
   }
   for (let key of difference(keys(doc), keys(updateDoc))) {
-    c.assertEqual(result.data[key], doc[key])
+    if (typeof doc[key] !== 'object') {
+      c.assertEqual(result.data[key], doc[key])
+    }
   }
   c.assert(elapsedSeconds(result.data.updated_at) < 1)
   c.assertEqual(result.data.updated_by, id)
@@ -87,8 +97,8 @@ module.exports = async function (c) {
   const model = {
     title: 'Article',
     space,
+    coll: 'articles',
     model: {
-      coll: 'articles',
       schema: {
         type: 'object',
         properties: {
