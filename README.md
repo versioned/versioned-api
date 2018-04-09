@@ -4,10 +4,11 @@ This is a CMS REST API on MongoDB/Node.js - similar to Contentful.
 
 ## TODO
 
-* route conflict /models/1234 and /models/articles?
+* models_validaton API test. Seems you can create two models with same coll in a space (model.coll unique index - maybe move coll to top level - rename to coll_suffix?)
 
-* models crud API test
-* models_validaton API test
+* Allow space lookup by numeric ID or something human readable?
+
+* Improved models schema (add x-meta etc.) with unit tests
 
 * coll update: false
 
@@ -22,6 +23,7 @@ This is a CMS REST API on MongoDB/Node.js - similar to Contentful.
 
 ## Discussion Points
 
+* Allow human readable space keys?
 * OK? Request/Response JSON structure for list/get endpoints - compare contentful
   doc/docs/meta
 * Alternative to ajv for schema validation: https://github.com/tdegrunt/jsonschema
@@ -111,18 +113,12 @@ mongo.nextSequence('foobar').then(console.log) // => {value: { _id: 'foobar', se
 mongo.nextSequence('foobar').then(console.log) // => {value: { _id: 'foobar', seq: 2 }}
 ```
 
-## API Tests
+## Tests
 
-Keep test server running in one terminal with hot reload:
-
-```
-npm run api-test-start
-```
-
-Run tests in a different terminal:
+Run linting, unit tests, and api tests:
 
 ```
-npm run api-test
+npm test
 ```
 
 ## Deployment

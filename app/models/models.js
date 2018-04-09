@@ -34,11 +34,11 @@ const model = {
     definitions: modelSchema.definitions,
     type: 'object',
     properties: {
-      name: {type: 'string'},
-      space: {type: 'string', pattern: spacePattern},
+      title: {type: 'string'},
+      space: {type: 'string', pattern: spacePattern, 'x-meta': {update: false}},
       model: modelSchema
     },
-    required: ['name', 'space', 'model'],
+    required: ['title', 'space', 'model'],
     additionalProperties: false
   },
   callbacks: {

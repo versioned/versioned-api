@@ -1,13 +1,12 @@
 const home = require('app/controllers/home')
 const auth = require('app/controllers/auth')
-const {flatten, concat} = require('lib/util')
+const {concat} = require('lib/util')
 const modelRoutes = require('lib/model_routes')
-const modelApi = require('lib/model_api')
-const models = require('app/models/models')
+const dataRoutes = require('lib/data_routes')
 const path = require('path')
 
 const VERSION = 'v1'
-const MODEL_PREFIX = `v1/data`
+const DATA_PREFIX = `${VERSION}/data`
 const MODELS_DIR = path.join(__dirname, '/models')
 
 const systemRoutes = [
@@ -23,17 +22,10 @@ const systemRoutes = [
   }
 ].concat(modelRoutes.requireDir(MODELS_DIR, VERSION))
 
-async function dynamicRoutes () {
-  const dynamicModels = (await models.list()).map(doc => modelApi(models.getModel(doc)))
-  return flatten(dynamicModels.map(m => modelRoutes.routes(m, MODEL_PREFIX)))
-}
-
 async function getRoutes () {
-  return concat(systemRoutes, (await dynamicRoutes()))
+  return concat(systemRoutes, dataRoutes(DATA_PREFIX))
 }
 
 module.exports = {
-  systemRoutes,
-  dynamicRoutes,
   getRoutes
 }
