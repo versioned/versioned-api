@@ -7,7 +7,7 @@ module.exports = async function (c) {
     email: `${name}@example.com`,
     password: 'admin'
   }
-  let result = await c.post('create user', `/sys_users`, user, {headers: {authorization: null}})
+  let result = await c.post('create user', `/users`, user, {headers: {authorization: null}})
   const createdUser = result.data
   c.assertEqual(result.data.name, name)
   c.assertEqual(result.data.email, user.email)
@@ -18,12 +18,12 @@ module.exports = async function (c) {
   c.assert(!result.data.updated_by)
   const id = result.data.id
 
-  result = await c.get({it: 'cannot get user without auth', status: 401}, `/sys_users/${id}`, {headers: {authorization: null}})
+  result = await c.get({it: 'cannot get user without auth', status: 401}, `/users/${id}`, {headers: {authorization: null}})
 
-  result = await c.post('can log in', `/sys_login`, user)
+  result = await c.post('can log in', `/login`, user)
   const headers = {authorization: `Bearer ${result.data.token}`}
 
-  result = await c.get('can get user if authorized', `/sys_users/${id}`, {headers})
+  result = await c.get('can get user if authorized', `/users/${id}`, {headers})
   c.assertEqual(result.data.name, user.name)
   c.assertEqual(result.data.email, user.email)
   c.assertEqual(createdUser.created_at, result.data.created_at)
@@ -31,23 +31,23 @@ module.exports = async function (c) {
   c.assert(!result.data.updated_at)
   c.assert(!result.data.updated_by)
 
-  result = await c.get({it: 'cannot list users without auth', status: 401}, `/sys_users`, {headers: {authorization: null}})
+  result = await c.get({it: 'cannot list users without auth', status: 401}, `/users`, {headers: {authorization: null}})
 
-  result = await c.get('can list users with auth', `/sys_users`, {headers})
+  result = await c.get('can list users with auth', `/users`, {headers})
   c.assertEqual(result.data[0].id, id)
   c.assertEqual(result.data[0].email, user.email)
 
-  result = await c.put({it: 'cannot update user without auth', status: 401}, `/sys_users/${id}`, {name: 'changed name'}, {headers: {authorization: null}})
+  result = await c.put({it: 'cannot update user without auth', status: 401}, `/users/${id}`, {name: 'changed name'}, {headers: {authorization: null}})
 
-  result = await c.put('can update user with auth', `/sys_users/${id}`, {name: 'changed name'}, {headers})
+  result = await c.put('can update user with auth', `/users/${id}`, {name: 'changed name'}, {headers})
   c.assertEqual(createdUser.created_at, result.data.created_at)
   c.assert(!result.data.created_by)
   c.assert(elapsedSeconds(result.data.updated_at) < 1)
   c.assertEqual(result.data.updated_by, id)
 
-  result = await c.put({it: 'same update again yields 204', status: 204}, `/sys_users/${id}`, {name: 'changed name'}, {headers})
+  result = await c.put({it: 'same update again yields 204', status: 204}, `/users/${id}`, {name: 'changed name'}, {headers})
 
-  result = await c.get('can get updated user', `/sys_users/${id}`, {headers})
+  result = await c.get('can get updated user', `/users/${id}`, {headers})
   c.assertEqual(result.data.name, 'changed name')
   c.assertEqual(result.data.email, user.email)
   c.assertEqual(createdUser.created_at, result.data.created_at)
@@ -56,33 +56,33 @@ module.exports = async function (c) {
   c.assert(result.data.updated_at > result.data.created_at)
   c.assertEqual(result.data.updated_by, id)
 
-  result = await c.delete({it: 'cannot delete user without auth', status: 401}, `/sys_users/${id}`, {headers: {authorization: null}})
+  result = await c.delete({it: 'cannot delete user without auth', status: 401}, `/users/${id}`, {headers: {authorization: null}})
 
-  result = await c.delete('can delete user with auth', `/sys_users/${id}`, {headers})
+  result = await c.delete('can delete user with auth', `/users/${id}`, {headers})
 
-  result = await c.get({it: 'cannot get deleted user', status: 401}, `/sys_users/${id}`, {headers})
+  result = await c.get({it: 'cannot get deleted user', status: 401}, `/users/${id}`, {headers})
 
   const adminUser = {
     name,
     email: `${c.uuid()}@example.com`,
     password: 'admin'
   }
-  result = await c.post('create admin user', `/sys_users`, adminUser)
+  result = await c.post('create admin user', `/users`, adminUser)
   adminUser.id = result.data.id
 
-  result = await c.post('log in admin user', `/sys_login`, adminUser)
+  result = await c.post('log in admin user', `/login`, adminUser)
   const adminHeaders = {authorization: `Bearer ${result.data.token}`}
 
-  result = await c.get({it: 'getting deleted user as admin', status: 404}, `/sys_users/${id}`, {headers: adminHeaders})
+  result = await c.get({it: 'getting deleted user as admin', status: 404}, `/users/${id}`, {headers: adminHeaders})
 
-  result = await c.delete({it: 'trying to delete user again', status: 404}, `/sys_users/${id}`, {headers: adminHeaders})
+  result = await c.delete({it: 'trying to delete user again', status: 404}, `/users/${id}`, {headers: adminHeaders})
 
   const anotherUser = {
     name,
     email: `${c.uuid()}@example.com`,
     password: 'admin'
   }
-  result = await c.post('admin user can create another user', `/sys_users`, anotherUser, {headers: adminHeaders})
+  result = await c.post('admin user can create another user', `/users`, anotherUser, {headers: adminHeaders})
   c.assertEqual(result.data.name, anotherUser.name)
   c.assertEqual(result.data.email, anotherUser.email)
   c.assert(elapsedSeconds(result.data.created_at) < 1)

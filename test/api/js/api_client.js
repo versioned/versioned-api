@@ -110,13 +110,13 @@ function client ({BASE_URL}) {
   }
 
   async function login (user) {
-    let result = await post('log in', `/sys_login`, pick(user, ['email', 'password']))
+    let result = await post('log in', `/login`, pick(user, ['email', 'password']))
     return {authorization: `Bearer ${result.data.token}`}
   }
 
   async function registerUser (user) {
     user = user || makeUser()
-    let result = await post('create user', `/sys_users`, user)
+    let result = await post('create user', `/users`, user)
     user = merge(user, pick(result.data, ['id', '_id']))
     const headers = await login(user)
     return {user, headers}

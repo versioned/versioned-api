@@ -7,6 +7,7 @@ const models = require('app/models/models')
 const path = require('path')
 
 const VERSION = 'v1'
+const MODEL_PREFIX = `v1/docs`
 const MODELS_DIR = path.join(__dirname, '/models')
 
 const systemRoutes = [
@@ -17,14 +18,14 @@ const systemRoutes = [
   },
   {
     method: 'post',
-    path: `/${VERSION}/sys_login`,
+    path: `/${VERSION}/login`,
     handler: auth.login
   }
-].concat(modelRoutes.requireDir(MODELS_DIR))
+].concat(modelRoutes.requireDir(MODELS_DIR, VERSION))
 
 async function dynamicRoutes () {
-  const dynamicModels = (await models.list()).map(t => modelApi(t.model))
-  return flatten(dynamicModels.map(m => modelRoutes.routes(m, VERSION)))
+  const dynamicModels = (await models.list()).map(doc => modelApi(models.getModel(doc)))
+  return flatten(dynamicModels.map(m => modelRoutes.routes(m, MODEL_PREFIX)))
 }
 
 async function getRoutes () {

@@ -6,7 +6,7 @@ const passwordHash = require('lib/password_hash')
 const DEFAULTS = require('lib/model_spec').DEFAULTS
 
 const model = {
-  coll: 'sys_users',
+  coll: 'users',
   features: concat(DEFAULTS.features, ['password']),
   schema: {
     type: 'object',

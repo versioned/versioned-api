@@ -4,8 +4,12 @@ This is a CMS REST API on MongoDB/Node.js - similar to Contentful.
 
 ## TODO
 
+* route conflict /models/1234 and /models/articles?
+
 * models crud API test
 * models_validaton API test
+
+* coll update: false
 
 * spaces
 
