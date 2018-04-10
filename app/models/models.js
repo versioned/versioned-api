@@ -10,6 +10,15 @@ function validationError (message) {
   return {status: 422, errors: [{type: 'validation', message}]}
 }
 
+function getColl (model) {
+  if (model.space_id && model.coll) {
+    const prefix = `s${model.space_id}`
+    return [prefix, model.coll].join('_')
+  } else {
+    return undefined
+  }
+}
+
 async function validateSpace (doc, options) {
   if (doc.space_id && !(await spaces.findOne({id: doc.space_id}))) {
     return validationError(`space '${doc.space_id}' does not exist`)
@@ -19,9 +28,8 @@ async function validateSpace (doc, options) {
 }
 
 async function setColl (doc, options) {
-  if (doc.space_id && doc.coll) {
-    const prefix = `s${doc.space_id}`
-    const coll = [prefix, doc.coll].join('_')
+  const coll = getColl(doc)
+  if (coll) {
     return setIn(doc, ['model', 'coll'], coll)
   } else {
     return doc
@@ -35,6 +43,15 @@ async function validateCollAvailable (doc, options) {
   } else {
     return doc
   }
+}
+
+async function deleteColl (doc, options) {
+  const coll = getColl(doc)
+  const colls = await mongo.getColls()
+  if (colls.includes(coll)) {
+    await mongo.db().collection(coll).drop()
+  }
+  return doc
 }
 
 const model = {
@@ -58,6 +75,9 @@ const model = {
     },
     create: {
       before_validation: [validateCollAvailable]
+    },
+    delete: {
+      after_delete: [deleteColl]
     }
   },
   indexes: [
@@ -72,4 +92,6 @@ const model = {
   ]
 }
 
-module.exports = modelApi(model)
+module.exports = Object.assign(modelApi(model), {
+  getColl
+})

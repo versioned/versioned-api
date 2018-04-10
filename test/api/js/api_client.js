@@ -83,12 +83,12 @@ function client ({BASE_URL}) {
   function printLastResult () {
     const response = self.requests[self.requests.length - 1].response
     console.log(`Last API response status=${response.status}`)
-    console.log(json(response.data))
+    console.log(prettyJson(response.data))
   }
 
-  function assertEqual (actual, expected) {
+  function assertEqual (actual, expected, msg) {
     try {
-      _assert.deepEqual(actual, expected)
+      _assert.deepEqual(actual, expected, msg)
     } catch (err) {
       console.log('assertEqual failed')
       console.log(`actual='${json(actual)}'`)
@@ -99,9 +99,9 @@ function client ({BASE_URL}) {
     }
   }
 
-  function assert (actual) {
+  function assert (actual, msg) {
     try {
-      _assert(actual)
+      _assert(actual, msg)
     } catch (err) {
       console.log('assert failed')
       console.log(`actual='${json(actual)}'`)

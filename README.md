@@ -4,18 +4,19 @@ This is a CMS REST API on MongoDB/Node.js - similar to Contentful.
 
 ## TODO
 
-* models_crud: Check collections removed
-  use sys/db_stats endpoint with colls.map(stats)
-
 * Improved models schema (add x-meta etc.) with unit tests
 
 * update: false
 
-* spaces
+* Versioning
 
-* versioning and relationships
+* Swagger
 
-* swagger
+* versioned2-ui
+
+* Relationships
+
+* Study contentful
 
 * Multi tenant: accounts model (users.account_id)
 * Multi tenant: spaces model with (account_id, name, key)

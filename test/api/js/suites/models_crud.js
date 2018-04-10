@@ -1,5 +1,6 @@
 const {setIn, keys, difference} = require('lib/util')
 const {elapsedSeconds} = require('lib/date_util')
+const models = require('app/models/models')
 
 async function crudTest (c, prefix, coll, doc, updateDoc) {
   const anonymous = {headers: {authorization: null}}
@@ -130,7 +131,13 @@ module.exports = async function (c) {
   const updateArticle = {
     title: 'Title changed'
   }
+  const articlesColl = models.getColl(model)
   await crudTest(c, `/data/${spaceId}`, 'articles', article, updateArticle)
+
+  await c.post('create article', `/data/${spaceId}/articles`, article)
+
+  result = await c.get('check collection has one record in db stats', '/sys/db_stats')
+  c.assertEqual(result.data[articlesColl].count, 1, `expecting ${articlesColl} to have 1 doc`)
 
   const modelUpdated = setIn(model, ['model', 'schema', 'properties'], {title: {type: 'string'}, slug: {type: 'string'}})
   await c.put('update articles model with new schema property', `/models/${modelId}`, modelUpdated)
@@ -142,6 +149,9 @@ module.exports = async function (c) {
   await c.post('create another article with new property', `/data/${spaceId}/articles`, anotherArticle)
 
   await c.delete('delete articles model', `/models/${modelId}`)
+
+  result = await c.get('check collection is no longer in db stats', '/sys/db_stats')
+  c.assert(!result.data[models.getColl(model)], `expecting ${articlesColl} to not be there`)
 
   const thirdArticle = {
     title: 'My third article',

@@ -1,8 +1,9 @@
-const {prettyJson} = require('lib/util')
+const {wrapData, jsonResponse} = require('lib/response')
+const mongo = require('lib/mongo')
 
 async function dbStats (req, res) {
-  res.writeHead(200, {'Content-Type': 'application/json'})
-  res.end(prettyJson(await require('lib/mongo').dbStats()))
+  const stats = await mongo.dbStats()
+  jsonResponse(res, wrapData(stats))
 }
 
 module.exports = {
