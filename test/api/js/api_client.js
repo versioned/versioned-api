@@ -88,7 +88,7 @@ function client ({BASE_URL}) {
 
   function assertEqual (actual, expected, msg) {
     try {
-      _assert.deepEqual(actual, expected, msg)
+      _assert.deepStrictEqual(actual, expected, msg)
     } catch (err) {
       console.log('assertEqual failed')
       console.log(`actual='${json(actual)}'`)

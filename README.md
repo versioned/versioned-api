@@ -4,9 +4,9 @@ This is a CMS REST API on MongoDB/Node.js - similar to Contentful.
 
 ## TODO
 
-* Improved models schema (add x-meta etc.) with unit tests
-
 * update: false
+
+* Improved models schema (add x-meta etc.) with unit tests
 
 * Versioning
 
