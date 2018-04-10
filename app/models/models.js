@@ -4,7 +4,6 @@ const modelApi = require('lib/model_api')
 const modelSchema = require('lib/model_spec_schema')
 const spaces = require('app/models/spaces')
 
-const spacePattern = getIn(spaces, ['schema', 'properties', 'key', 'pattern'])
 const collPattern = getIn(spaces, ['schema', 'properties', 'coll', 'pattern'])
 
 function validationError (message) {
@@ -12,16 +11,17 @@ function validationError (message) {
 }
 
 async function validateSpace (doc, options) {
-  if (doc.space && !(await spaces.findOne({key: doc.space}))) {
-    return validationError(`space '${doc.space}' does not exist`)
+  if (doc.space_id && !(await spaces.findOne({id: doc.space_id}))) {
+    return validationError(`space '${doc.space_id}' does not exist`)
   } else {
     return doc
   }
 }
 
 async function setColl (doc, options) {
-  if (doc.space && doc.coll) {
-    const coll = [doc.space, doc.coll].join('_')
+  if (doc.space_id && doc.coll) {
+    const prefix = `s${doc.space_id}`
+    const coll = [prefix, doc.coll].join('_')
     return setIn(doc, ['model', 'coll'], coll)
   } else {
     return doc
@@ -45,11 +45,11 @@ const model = {
     type: 'object',
     properties: {
       title: {type: 'string'},
-      space: {type: 'string', pattern: spacePattern, 'x-meta': {update: false, index: true}},
+      space_id: {type: 'integer', 'x-meta': {update: false, index: true}},
       coll: {type: 'string', pattern: collPattern, 'x-meta': {update: false, index: true}},
       model: modelSchema
     },
-    required: ['title', 'space', 'coll', 'model'],
+    required: ['title', 'space_id', 'coll', 'model'],
     additionalProperties: false
   },
   callbacks: {
@@ -63,6 +63,10 @@ const model = {
   indexes: [
     {
       keys: {'model.coll': 1},
+      options: {unique: true}
+    },
+    {
+      keys: {space_id: 1, coll: 1},
       options: {unique: true}
     }
   ]

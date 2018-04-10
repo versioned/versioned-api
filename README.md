@@ -4,7 +4,9 @@ This is a CMS REST API on MongoDB/Node.js - similar to Contentful.
 
 ## TODO
 
-* models_validaton API test. Seems you can create two models with same coll in a space (model.coll unique index - maybe move coll to top level - rename to coll_suffix?)
+* models_crud: Check number of docs in collections
+
+* models_crud: Check collections removed
 
 * Allow space lookup by numeric ID or something human readable?
 
@@ -20,6 +22,8 @@ This is a CMS REST API on MongoDB/Node.js - similar to Contentful.
 
 * Multi tenant: accounts model (users.account_id)
 * Multi tenant: spaces model with (account_id, name, key)
+
+* have a sys/db_stats endpoint with colls.map(stats)
 
 ## Discussion Points
 

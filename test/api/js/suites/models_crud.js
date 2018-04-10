@@ -5,8 +5,13 @@ async function crudTest (c, prefix, coll, doc, updateDoc) {
   const anonymous = {headers: {authorization: null}}
   const listPath = `${prefix}/${coll}`
 
+  let result = await c.get('can list docs', listPath)
+  const countBefore = result.body.stats.count
+  c.assertEqual(result.data.length, countBefore)
+
   await c.post({it: `cannot create without auth`, status: 401}, listPath, doc, anonymous)
-  let result = await c.post(`can create ${coll}`, `${prefix}/${coll}`, doc)
+
+  result = await c.post(`can create ${coll}`, listPath, doc)
   const id = result.data.id
   const created = result.data
   for (let key of keys(doc)) {
@@ -46,6 +51,9 @@ async function crudTest (c, prefix, coll, doc, updateDoc) {
       c.assertEqual(result.data[0][key], doc[key])
     }
   }
+  const countAfter = result.body.stats.count
+  c.assertEqual(countAfter, countBefore + 1)
+  c.assertEqual(result.data.length, countAfter)
 
   await c.put({it: 'cannot update without auth', status: 401}, getPath, updateDoc, anonymous)
 
@@ -91,12 +99,11 @@ async function crudTest (c, prefix, coll, doc, updateDoc) {
 }
 
 module.exports = async function (c) {
-  let result = await c.post('create space', '/spaces', {name: 'My CMS'})
-  let space = result.data.key
+  const spaceId = c.data.space.id
 
   const model = {
     title: 'Article',
-    space,
+    space_id: spaceId,
     coll: 'articles',
     model: {
       schema: {
@@ -113,7 +120,7 @@ module.exports = async function (c) {
 
   await crudTest(c, '', 'models', model, {title: 'Article changed'})
 
-  result = await c.post('create articles model', '/models', model)
+  let result = await c.post('create articles model', '/models', model)
   const modelId = result.data.id
 
   const article = {
@@ -123,7 +130,7 @@ module.exports = async function (c) {
   const updateArticle = {
     title: 'Title changed'
   }
-  await crudTest(c, `/data/${space}`, 'articles', article, updateArticle)
+  await crudTest(c, `/data/${spaceId}`, 'articles', article, updateArticle)
 
   const modelUpdated = setIn(model, ['model', 'schema', 'properties'], {title: {type: 'string'}, slug: {type: 'string'}})
   await c.put('update articles model with new schema property', `/models/${modelId}`, modelUpdated)
@@ -132,7 +139,7 @@ module.exports = async function (c) {
     title: 'My second article',
     slug: 'my-second-article'
   }
-  await c.post('create another article with new property', `/data/${space}/articles`, anotherArticle)
+  await c.post('create another article with new property', `/data/${spaceId}/articles`, anotherArticle)
 
   await c.delete('delete articles model', `/models/${modelId}`)
 
@@ -140,5 +147,5 @@ module.exports = async function (c) {
     title: 'My third article',
     slug: 'my-third-article'
   }
-  await c.post({it: 'trying to create an article without model', status: 404}, `/data/${space}/articles`, thirdArticle)
+  await c.post({it: 'trying to create an article without model', status: 404}, `/data/${spaceId}/articles`, thirdArticle)
 }

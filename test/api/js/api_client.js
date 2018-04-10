@@ -9,7 +9,8 @@ const {isMongoId} = require('lib/mongo')
 function unwrapData (result) {
   if (!result.data) return result
   return merge(result, {
-    data: result.data.data
+    data: result.data.data,
+    body: result.data
   })
 }
 
@@ -76,6 +77,7 @@ function client ({BASE_URL}) {
     const logPath = path.join(__dirname, '/log.json')
     fs.writeFileSync(logPath, prettyJson(self.requests))
     console.log(`Requests writted to ${logPath}`)
+    if (process.env.PRINT_REQUESTS) console.log(prettyJson(self.requests))
   }
 
   function printLastResult () {
@@ -147,7 +149,7 @@ function client ({BASE_URL}) {
     self.requests.push({
       suite: self.suite,
       it: expectName(expect),
-      request: {method: 'POST', url, options},
+      request: {method: 'POST', url, data, options},
       response: pick(result, ['status', 'headers', 'data'])
     })
     assertEqual(result.status, expect.status || 200)
@@ -163,7 +165,7 @@ function client ({BASE_URL}) {
     self.requests.push({
       suite: self.suite,
       it: expectName(expect),
-      request: {method: 'PUT', url, options},
+      request: {method: 'PUT', url, data, options},
       response: pick(result, ['status', 'headers', 'data'])
     })
     assertEqual(result.status, expect.status || 200)
