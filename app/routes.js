@@ -1,5 +1,6 @@
 const home = require('app/controllers/home')
 const auth = require('app/controllers/auth')
+const sys = require('app/controllers/sys')
 const {concat} = require('lib/util')
 const modelRoutes = require('lib/model_routes')
 const dataRoutes = require('lib/data_routes')
@@ -19,6 +20,11 @@ const systemRoutes = [
     method: 'post',
     path: `/${VERSION}/login`,
     handler: auth.login
+  },
+  {
+    method: 'get',
+    path: `/${VERSION}/sys/db_stats`,
+    handler: sys.dbStats
   }
 ].concat(modelRoutes.requireDir(MODELS_DIR, VERSION))
 

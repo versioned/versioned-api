@@ -4,15 +4,12 @@ This is a CMS REST API on MongoDB/Node.js - similar to Contentful.
 
 ## TODO
 
-* models_crud: Check number of docs in collections
-
 * models_crud: Check collections removed
-
-* Allow space lookup by numeric ID or something human readable?
+  use sys/db_stats endpoint with colls.map(stats)
 
 * Improved models schema (add x-meta etc.) with unit tests
 
-* coll update: false
+* update: false
 
 * spaces
 
@@ -22,8 +19,6 @@ This is a CMS REST API on MongoDB/Node.js - similar to Contentful.
 
 * Multi tenant: accounts model (users.account_id)
 * Multi tenant: spaces model with (account_id, name, key)
-
-* have a sys/db_stats endpoint with colls.map(stats)
 
 ## Discussion Points
 
