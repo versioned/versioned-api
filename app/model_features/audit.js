@@ -20,8 +20,8 @@ const model = {
     properties: {
       created_at: {type: 'string', format: 'date-time', 'x-meta': {writable: false, versioned: false, index: -1}},
       created_by: {type: 'integer', 'x-meta': {writable: false, versioned: false}},
-      updated_at: {type: 'string', format: 'date-time', 'x-meta': {writable: false, versioned: false, change_tracking: false}},
-      updated_by: {type: 'integer', 'x-meta': {writable: false, versioned: false, change_tracking: false}}
+      updated_at: {type: 'string', format: 'date-time', 'x-meta': {writable: false, versioned: false}},
+      updated_by: {type: 'integer', 'x-meta': {writable: false, versioned: false}}
     },
     required: ['created_at']
   },
