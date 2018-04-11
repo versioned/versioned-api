@@ -3,6 +3,8 @@ const createLogger = require('lib/logger')
 
 const NODE_ENV = process.env.NODE_ENV || 'development'
 const defaultConfig = {
+  TITLE: 'CMS Rest API',
+  DESCRIPTION: 'Supports custom content types and versioning',
   NODE_ENV,
   PORT: 3000,
   LOG_LEVEL: 'debug',

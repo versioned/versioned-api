@@ -1,14 +1,22 @@
 # versioned2
 
-This is a CMS REST API on MongoDB/Node.js - similar to Contentful.
+A CMS REST API on MongoDB/Node.js - similar to Contentful
 
 ## TODO
 
-* Improved models schema (add x-meta etc.) with unit tests
+* Unit test model schema validation (x-meta properties etc.)
+
+* Complete Swagger with parameters and schemas for CRUD and data endpoints
+
+* list endpoint
+  swagger parameters
+  stats optional via query param
+  always add count instead
+  make sure count always uses the same query as list
 
 * Versioning
 
-* Swagger
+* Need to resolve swagger $refs? (deep-resolve-refs)
 
 * versioned2-ui
 
@@ -99,6 +107,26 @@ async function printRoutes() {
 }
 printRoutes()
 ```
+
+## Swagger Spec Validation
+
+There are compatibility issues between the latest Swagger JSON schema (2.0) and the ajv validator, see: https://www.bountysource.com/issues/44610526-no-schema-with-key-or-ref-http-json-schema-org-draft-04-schema
+
+I tried to migrate the Swagger 2.0 schema for ajv to be able to deal with it:
+
+```
+ajv migrate -s public/swagger-2.0-schema.json
+```
+
+```
+const swaggerSchema = require('public/schema')
+const swagger = {}
+const Ajv = require('ajv')
+const ajv = new Ajv({allErrors: true, extendRefs: true, meta: false, unknownFormats: 'ignore'})
+ajv.compile(swaggerSchema)(swagger)
+```
+
+I ended up making manual modifications to the swagger schema, basically remove $refs, to make ajv swallow it.
 
 ## Integer ID Sequence in MongoDB
 
@@ -247,3 +275,4 @@ assertTypes([{foo: 1, bar: 'baz'}], {foo: 'number', bar: 'string'})
 ## Resources
 
 * [node-mongodb-native](https://github.com/mongodb/node-mongodb-native)
+* [json-schema-ref-parser](https://www.npmjs.com/package/json-schema-ref-parser)

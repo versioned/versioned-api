@@ -6,7 +6,7 @@
   "scripts": {
     "start": "NODE_PATH=. node app/index.js",
     "dev": "NODE_PATH=. nodemon app/index.js",
-    "lint": "eslint --ignore-path .gitignore .",
+    "lint": "eslint {test/api,app,lib}",
     "test": "npm run unit-test && npm run api-test",
     "unit-test": "npm run lint && jest",
     "api-test": "./test/api/js/run",
@@ -15,7 +15,7 @@
   "author": "Peter Marklund",
   "license": "ISC",
   "dependencies": {
-    "ajv": "^6.4.0",
+    "ajv": "6.4.0",
     "mongodb": "3.0.4"
   },
   "devDependencies": {

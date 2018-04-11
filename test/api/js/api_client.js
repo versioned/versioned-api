@@ -6,6 +6,8 @@ const _assert = require('assert')
 const {uuid, pick, merge, array} = require('lib/util')
 const {isMongoId} = require('lib/mongo')
 
+const anonymous = {headers: {authorization: null}}
+
 function unwrapData (result) {
   if (!result.data) return result
   return merge(result, {
@@ -189,6 +191,7 @@ function client ({BASE_URL}) {
   }
 
   Object.assign(self, {
+    anonymous,
     logRequests,
     assert,
     assertEqual,

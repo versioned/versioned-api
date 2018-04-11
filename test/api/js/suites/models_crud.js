@@ -3,14 +3,13 @@ const {elapsedSeconds} = require('lib/date_util')
 const models = require('app/models/models')
 
 async function crudTest (c, prefix, coll, doc, updateDoc) {
-  const anonymous = {headers: {authorization: null}}
   const listPath = `${prefix}/${coll}`
 
   let result = await c.get('can list docs', listPath)
   const countBefore = result.body.stats.count
   c.assertEqual(result.data.length, countBefore)
 
-  await c.post({it: `cannot create without auth`, status: 401}, listPath, doc, anonymous)
+  await c.post({it: `cannot create without auth`, status: 401}, listPath, doc, c.anonymous)
 
   result = await c.post(`can create ${coll}`, listPath, doc)
   const id = result.data.id
@@ -28,7 +27,7 @@ async function crudTest (c, prefix, coll, doc, updateDoc) {
 
   const getPath = `${listPath}/${id}`
 
-  result = await c.get({it: 'cannot get without auth', status: 401}, getPath, anonymous)
+  result = await c.get({it: 'cannot get without auth', status: 401}, getPath, c.anonymous)
 
   result = await c.get('can get created doc', getPath)
   for (let key of keys(doc)) {
@@ -41,7 +40,7 @@ async function crudTest (c, prefix, coll, doc, updateDoc) {
   c.assert(!result.data.updated_at)
   c.assert(!result.data.updated_by)
 
-  await c.get({it: 'cannot list without auth', status: 401}, listPath, anonymous)
+  await c.get({it: 'cannot list without auth', status: 401}, listPath, c.anonymous)
 
   result = await c.get('can list docs', listPath)
   c.assertEqual(result.data[0].id, id)
@@ -56,7 +55,7 @@ async function crudTest (c, prefix, coll, doc, updateDoc) {
   c.assertEqual(countAfter, countBefore + 1)
   c.assertEqual(result.data.length, countAfter)
 
-  await c.put({it: 'cannot update without auth', status: 401}, getPath, updateDoc, anonymous)
+  await c.put({it: 'cannot update without auth', status: 401}, getPath, updateDoc, c.anonymous)
 
   result = await c.put('can update doc', getPath, updateDoc)
   c.assertEqual(result.data.id, id)
@@ -90,7 +89,7 @@ async function crudTest (c, prefix, coll, doc, updateDoc) {
   c.assert(elapsedSeconds(result.data.updated_at) < 1)
   c.assertEqual(result.data.updated_by, id)
 
-  await c.delete({it: 'cannot delete without auth', status: 401}, getPath, anonymous)
+  await c.delete({it: 'cannot delete without auth', status: 401}, getPath, c.anonymous)
 
   await c.delete('can delete doc', getPath)
 

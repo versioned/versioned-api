@@ -1,4 +1,5 @@
 const home = require('app/controllers/home')
+const swagger = require('app/controllers/swagger')
 const auth = require('app/controllers/auth')
 const sys = require('app/controllers/sys')
 const {concat} = require('lib/util')
@@ -7,23 +8,40 @@ const dataRoutes = require('lib/data_routes')
 const path = require('path')
 
 const VERSION = 'v1'
+const PREFIX = `/${VERSION}`
 const DATA_PREFIX = `${VERSION}/data`
 const MODELS_DIR = path.join(__dirname, '/models')
 
 const systemRoutes = [
   {
+    tags: ['docs'],
+    summary: 'Home - redirects to documentation page (HTML)',
     method: 'get',
     path: '/',
-    handler: home.index
+    handler: home.index,
+    require_auth: false
   },
   {
-    method: 'post',
-    path: `/${VERSION}/login`,
-    handler: auth.login
-  },
-  {
+    tags: ['docs'],
+    summary: 'Swagger JSON description of the API',
     method: 'get',
-    path: `/${VERSION}/sys/db_stats`,
+    path: `${PREFIX}/swagger.json`,
+    handler: swagger.index,
+    require_auth: false
+  },
+  {
+    tags: ['auth'],
+    summary: 'Log in with email/password and get JWT token',
+    method: 'post',
+    path: `${PREFIX}/login`,
+    handler: auth.login,
+    require_auth: false
+  },
+  {
+    tags: ['system'],
+    summary: 'Get statistics on database data',
+    method: 'get',
+    path: `${PREFIX}/sys/db_stats`,
     handler: sys.dbStats
   }
 ].concat(modelRoutes.requireDir(MODELS_DIR, VERSION))
@@ -33,5 +51,7 @@ async function getRoutes () {
 }
 
 module.exports = {
+  VERSION,
+  PREFIX,
   getRoutes
 }
