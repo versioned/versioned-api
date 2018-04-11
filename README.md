@@ -4,12 +4,6 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 
 ## TODO
 
-* Unit test model schema validation (x-meta properties etc.)
-
-* models save before_validation metaSchema against schema
-
-* models save before_validation needs to check that model_spec.generate works without errors for model
-
 * models save before_validation check non-empty properties
 
 * Complete Swagger with parameters and schemas for CRUD and data endpoints

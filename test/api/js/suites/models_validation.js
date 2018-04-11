@@ -1,4 +1,4 @@
-const {omit, keys} = require('lib/util')
+const {omit, keys, merge} = require('lib/util')
 
 module.exports = async function (c) {
   const spaceId = c.data.space.id
@@ -31,4 +31,28 @@ module.exports = async function (c) {
   await c.post({it: 'cannot create article model again with same coll', status: 422}, '/models', articleModel)
 
   await c.put({it: 'cannot change coll or space_id of model', status: 204}, `/models/${id}`, {space_id: 123, coll: 'foobar'})
+
+  await c.post({it: 'cannot create article model with invalid schema - property type', status: 422}, '/models', merge(articleModel, {
+    schema: {
+      type: 'object',
+      properties: {
+        title: {type: 'foobar'},
+        body: {type: 'string'}
+      },
+      additionalProperties: false,
+      required: ['title']
+    }
+  }))
+
+  await c.post({it: 'cannot create article model with invalid schema - x-meta property', status: 422}, '/models', merge(articleModel, {
+    schema: {
+      type: 'object',
+      properties: {
+        title: {type: 'integer', 'x-meta': {'foobar': true}},
+        body: {type: 'string'}
+      },
+      additionalProperties: false,
+      required: ['title']
+    }
+  }))
 }

@@ -36,6 +36,11 @@ async function setColl (doc, options) {
   }
 }
 
+async function validateModel (doc, options) {
+  if (doc.model) modelApi(doc.model) // creating the API this should not throw any error
+  return doc
+}
+
 async function validateCollAvailable (doc, options) {
   const coll = getIn(doc, ['model', 'coll'])
   if (coll && (await mongo.getColls()).includes(coll)) {
@@ -71,7 +76,7 @@ const model = {
   },
   callbacks: {
     save: {
-      before_validation: [validateSpace, setColl]
+      before_validation: [validateSpace, setColl, validateModel]
     },
     create: {
       before_validation: [validateCollAvailable]
