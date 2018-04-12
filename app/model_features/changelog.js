@@ -7,8 +7,8 @@ async function changelogCallback (doc, options) {
     action: options.action,
     doc,
     changes: changes(options.existingDoc, doc),
-    created_by: getIn(options, ['user', 'id']),
-    created_at: new Date()
+    createdBy: getIn(options, ['user', 'id']),
+    createdAt: new Date()
   }, options)
   return doc
 }

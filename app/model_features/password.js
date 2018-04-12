@@ -4,7 +4,7 @@ const passwordHash = require('lib/password_hash')
 async function setPasswordHashCallback (doc, options) {
   if (doc.password) {
     return merge(doc, {
-      password_hash: (await passwordHash.generate(doc.password)),
+      passwordHash: (await passwordHash.generate(doc.password)),
       password: undefined
     })
   } else {
@@ -17,9 +17,9 @@ const model = {
     type: 'object',
     properties: {
       password: {type: 'string', minLength: 4, maxLength: 100, 'x-meta': {readable: false}},
-      password_hash: {type: 'string', 'x-meta': {readable: false, writable: false}}
+      passwordHash: {type: 'string', 'x-meta': {readable: false, writable: false}}
     },
-    required: ['password_hash']
+    required: ['passwordHash']
   },
   callbacks: {
     save: {

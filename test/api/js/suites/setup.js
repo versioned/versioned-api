@@ -7,7 +7,7 @@ module.exports = async function (c) {
 
   result = await c.post('create model', '/models', {
     title: 'Posts',
-    space_id: space.id,
+    spaceId: space.id,
     coll: 'posts',
     model: {
       schema: {

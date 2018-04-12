@@ -11,8 +11,8 @@ function validationError (message) {
 }
 
 function getColl (model) {
-  if (model.space_id && model.coll) {
-    const prefix = `s${model.space_id}`
+  if (model.spaceId && model.coll) {
+    const prefix = `s${model.spaceId}`
     return [prefix, model.coll].join('_')
   } else {
     return undefined
@@ -20,8 +20,8 @@ function getColl (model) {
 }
 
 async function validateSpace (doc, options) {
-  if (doc.space_id && !(await spaces.findOne({id: doc.space_id}))) {
-    return validationError(`space '${doc.space_id}' does not exist`)
+  if (doc.spaceId && !(await spaces.findOne({id: doc.spaceId}))) {
+    return validationError(`space '${doc.spaceId}' does not exist`)
   } else {
     return doc
   }
@@ -67,11 +67,11 @@ const model = {
     type: 'object',
     properties: {
       title: {type: 'string'},
-      space_id: {type: 'integer', 'x-meta': {update: false, index: true}},
+      spaceId: {type: 'integer', 'x-meta': {update: false, index: true}},
       coll: {type: 'string', pattern: collPattern, 'x-meta': {update: false, index: true}},
       model: modelSchema
     },
-    required: ['title', 'space_id', 'coll', 'model'],
+    required: ['title', 'spaceId', 'coll', 'model'],
     additionalProperties: false
   },
   callbacks: {
@@ -91,7 +91,7 @@ const model = {
       options: {unique: true}
     },
     {
-      keys: {space_id: 1, coll: 1},
+      keys: {spaceId: 1, coll: 1},
       options: {unique: true}
     }
   ]

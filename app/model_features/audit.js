@@ -2,15 +2,15 @@ const {merge, getIn} = require('lib/util')
 
 function auditCreateCallback (doc, options) {
   return merge(doc, {
-    created_at: new Date(),
-    created_by: getIn(options, ['user', 'id'])
+    createdAt: new Date(),
+    createdBy: getIn(options, ['user', 'id'])
   })
 }
 
 function auditUpdateCallback (doc, options) {
   return merge(doc, {
-    updated_at: new Date(),
-    updated_by: getIn(options, ['user', 'id'])
+    updatedAt: new Date(),
+    updatedBy: getIn(options, ['user', 'id'])
   })
 }
 
@@ -18,12 +18,12 @@ const model = {
   schema: {
     type: 'object',
     properties: {
-      created_at: {type: 'string', format: 'date-time', 'x-meta': {writable: false, versioned: false, index: -1}},
-      created_by: {type: 'integer', 'x-meta': {writable: false, versioned: false}},
-      updated_at: {type: 'string', format: 'date-time', 'x-meta': {writable: false, versioned: false}},
-      updated_by: {type: 'integer', 'x-meta': {writable: false, versioned: false}}
+      createdAt: {type: 'string', format: 'date-time', 'x-meta': {writable: false, versioned: false, index: -1}},
+      createdBy: {type: 'integer', 'x-meta': {writable: false, versioned: false}},
+      updatedAt: {type: 'string', format: 'date-time', 'x-meta': {writable: false, versioned: false}},
+      updatedBy: {type: 'integer', 'x-meta': {writable: false, versioned: false}}
     },
-    required: ['created_at']
+    required: ['createdAt']
   },
   callbacks: {
     create: {

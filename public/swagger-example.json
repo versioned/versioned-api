@@ -790,7 +790,7 @@
                 }
             }
         },
-        "/v1/data/{space_id}/{model}": {
+        "/v1/data/{spaceId}/{model}": {
             "get": {
                 "tags": [
                     "data"
@@ -848,7 +848,7 @@
                 }
             }
         },
-        "/v1/data/{space_id}/{model}/{id}": {
+        "/v1/data/{spaceId}/{model}/{id}": {
             "get": {
                 "tags": [
                     "data"

@@ -12,10 +12,10 @@ module.exports = async function (c) {
   c.assertEqual(result.data.name, name)
   c.assertEqual(result.data.email, user.email)
   c.assert(c.isMongoId(result.data._id))
-  c.assert(elapsedSeconds(result.data.created_at) < 1)
-  c.assert(!result.data.created_by)
-  c.assert(!result.data.updated_at)
-  c.assert(!result.data.updated_by)
+  c.assert(elapsedSeconds(result.data.createdAt) < 1)
+  c.assert(!result.data.createdBy)
+  c.assert(!result.data.updatedAt)
+  c.assert(!result.data.updatedBy)
   const id = result.data.id
 
   result = await c.get({it: 'cannot get user without auth', status: 401}, `/users/${id}`, {headers: {authorization: null}})
@@ -26,10 +26,10 @@ module.exports = async function (c) {
   result = await c.get('can get user if authorized', `/users/${id}`, {headers})
   c.assertEqual(result.data.name, user.name)
   c.assertEqual(result.data.email, user.email)
-  c.assertEqual(createdUser.created_at, result.data.created_at)
-  c.assert(!result.data.created_by)
-  c.assert(!result.data.updated_at)
-  c.assert(!result.data.updated_by)
+  c.assertEqual(createdUser.createdAt, result.data.createdAt)
+  c.assert(!result.data.createdBy)
+  c.assert(!result.data.updatedAt)
+  c.assert(!result.data.updatedBy)
 
   result = await c.get({it: 'cannot list users without auth', status: 401}, `/users`, {headers: {authorization: null}})
 
@@ -40,21 +40,21 @@ module.exports = async function (c) {
   result = await c.put({it: 'cannot update user without auth', status: 401}, `/users/${id}`, {name: 'changed name'}, {headers: {authorization: null}})
 
   result = await c.put('can update user with auth', `/users/${id}`, {name: 'changed name'}, {headers})
-  c.assertEqual(createdUser.created_at, result.data.created_at)
-  c.assert(!result.data.created_by)
-  c.assert(elapsedSeconds(result.data.updated_at) < 1)
-  c.assertEqual(result.data.updated_by, id)
+  c.assertEqual(createdUser.createdAt, result.data.createdAt)
+  c.assert(!result.data.createdBy)
+  c.assert(elapsedSeconds(result.data.updatedAt) < 1)
+  c.assertEqual(result.data.updatedBy, id)
 
   result = await c.put({it: 'same update again yields 204', status: 204}, `/users/${id}`, {name: 'changed name'}, {headers})
 
   result = await c.get('can get updated user', `/users/${id}`, {headers})
   c.assertEqual(result.data.name, 'changed name')
   c.assertEqual(result.data.email, user.email)
-  c.assertEqual(createdUser.created_at, result.data.created_at)
-  c.assert(!result.data.created_by)
-  c.assert(elapsedSeconds(result.data.updated_at) < 1)
-  c.assert(result.data.updated_at > result.data.created_at)
-  c.assertEqual(result.data.updated_by, id)
+  c.assertEqual(createdUser.createdAt, result.data.createdAt)
+  c.assert(!result.data.createdBy)
+  c.assert(elapsedSeconds(result.data.updatedAt) < 1)
+  c.assert(result.data.updatedAt > result.data.createdAt)
+  c.assertEqual(result.data.updatedBy, id)
 
   result = await c.delete({it: 'cannot delete user without auth', status: 401}, `/users/${id}`, {headers: {authorization: null}})
 
@@ -85,8 +85,8 @@ module.exports = async function (c) {
   result = await c.post('admin user can create another user', `/users`, anotherUser, {headers: adminHeaders})
   c.assertEqual(result.data.name, anotherUser.name)
   c.assertEqual(result.data.email, anotherUser.email)
-  c.assert(elapsedSeconds(result.data.created_at) < 1)
-  c.assertEqual(result.data.created_by, adminUser.id)
-  c.assert(!result.data.updated_at)
-  c.assert(!result.data.updated_by)
+  c.assert(elapsedSeconds(result.data.createdAt) < 1)
+  c.assertEqual(result.data.createdBy, adminUser.id)
+  c.assert(!result.data.updatedAt)
+  c.assert(!result.data.updatedBy)
 }

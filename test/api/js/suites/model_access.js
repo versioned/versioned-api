@@ -9,8 +9,8 @@ module.exports = async function (c) {
   }
   let result = await c.post('valid create user', '/users', user)
   c.assert(!result.data.password)
-  c.assert(!result.data.password_hash)
-  const createdAt = result.data.created_at
+  c.assert(!result.data.passwordHash)
+  const createdAt = result.data.createdAt
   const id = result.data.id
   c.assert(id)
   c.assert(elapsedSeconds(createdAt) < 1)
@@ -20,12 +20,12 @@ module.exports = async function (c) {
   c.assert(result.data.token)
   c.assert(result.data.user)
   c.assert(!result.data.user.password)
-  c.assert(!result.data.user.password_hash)
+  c.assert(!result.data.user.passwordHash)
 
-  result = await c.put({it: 'attempted update of created_at', status: 204}, `/users/${id}`, {created_at: new Date()}, {headers})
+  result = await c.put({it: 'attempted update of createdAt', status: 204}, `/users/${id}`, {createdAt: new Date()}, {headers})
 
   result = await c.get('get user', `/users/${id}`, {headers})
-  c.assertEqual(result.data.created_at, createdAt)
+  c.assertEqual(result.data.createdAt, createdAt)
   c.assert(!result.data.password)
-  c.assert(!result.data.password_hash)
+  c.assert(!result.data.passwordHash)
 }

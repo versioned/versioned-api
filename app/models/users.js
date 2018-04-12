@@ -22,7 +22,7 @@ const model = {
 const api = modelApi(model)
 
 function authenticate (user, password) {
-  return user && passwordHash.verify(password, user.password_hash)
+  return user && passwordHash.verify(password, user.passwordHash)
 }
 
 function generateToken (doc) {

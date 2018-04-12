@@ -27,8 +27,8 @@ module.exports = async function (c) {
   c.assertEqual(result.data.doc.id, id)
   c.assertEqual(result.data.doc.name, user.name)
   c.assertEqual(result.data.doc.email, user.email)
-  c.assert(elapsedSeconds(result.data.created_at) < 1)
-  c.assert(result.data.created_by, c.data.user.id)
+  c.assert(elapsedSeconds(result.data.createdAt) < 1)
+  c.assert(result.data.createdBy, c.data.user.id)
 
   result = await c.put({it: 'there is no changelog update', status: 404}, `/changelog/${changelogId}`, {})
 
@@ -39,8 +39,8 @@ module.exports = async function (c) {
   c.assertEqual(result.data[0].doc.id, id)
   c.assertEqual(result.data[0].doc.name, 'changed name')
   c.assertEqual(result.data[0].doc.email, user.email)
-  c.assert(elapsedSeconds(result.data[0].created_at) < 1)
-  c.assertEqual(result.data[0].created_by, c.data.user.id)
+  c.assert(elapsedSeconds(result.data[0].createdAt) < 1)
+  c.assertEqual(result.data[0].createdBy, c.data.user.id)
   c.assertEqual(result.data[0].changes, {name: {changed: {from: user.name, to: 'changed name'}}})
 
   result = await c.delete('delete user', `/users/${id}`)
@@ -50,7 +50,7 @@ module.exports = async function (c) {
   c.assertEqual(result.data[0].doc.id, id)
   c.assertEqual(result.data[0].doc.name, 'changed name')
   c.assertEqual(result.data[0].doc.email, user.email)
-  c.assert(elapsedSeconds(result.data[0].created_at) < 1)
-  c.assertEqual(result.data[0].created_by, c.data.user.id)
+  c.assert(elapsedSeconds(result.data[0].createdAt) < 1)
+  c.assertEqual(result.data[0].createdBy, c.data.user.id)
   c.assert(!result.data[0].changes)
 }

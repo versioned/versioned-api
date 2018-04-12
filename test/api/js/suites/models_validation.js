@@ -17,7 +17,7 @@ module.exports = async function (c) {
 
   const articleModel = {
     title: 'Article',
-    space_id: spaceId,
+    spaceId: spaceId,
     coll: 'articles',
     model
   }
@@ -30,7 +30,7 @@ module.exports = async function (c) {
   const id = result.data.id
   await c.post({it: 'cannot create article model again with same coll', status: 422}, '/models', articleModel)
 
-  await c.put({it: 'cannot change coll or space_id of model', status: 204}, `/models/${id}`, {space_id: 123, coll: 'foobar'})
+  await c.put({it: 'cannot change coll or spaceId of model', status: 204}, `/models/${id}`, {spaceId: 123, coll: 'foobar'})
 
   await c.post({it: 'cannot create article model with invalid schema - property type', status: 422}, '/models', merge(articleModel, {
     schema: {

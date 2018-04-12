@@ -262,7 +262,7 @@
         "x-model": "changelog"
       }
     },
-    "/v1/data/{space_id}/{model}": {
+    "/v1/data/{spaceId}/{model}": {
       "get": {
         "parameters": [
           {
@@ -324,7 +324,7 @@
         ]
       }
     },
-    "/v1/data/{space_id}/{model}/{id}": {
+    "/v1/data/{spaceId}/{model}/{id}": {
       "delete": {
         "parameters": [
           {

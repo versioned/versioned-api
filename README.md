@@ -4,8 +4,6 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 
 ## TODO
 
-* Switch to camel case instead of snake case (i.e. be consistent with space_id vs spaceId)
-
 * Need a swagger per space and need to validate this on models save
 
 * Max 50 properties per model
@@ -106,7 +104,7 @@ http POST $BASE_URL/spaces Authorization:"Bearer $TOKEN" name="foobar"
 Create Model in Space:
 
 ```
-echo '{"title": "Foobar", "space_id": 1, "coll": "foobar", "model": {"schema": {"type": "object", "properties": {"title": {"type": "string"}}}}}' | http POST $BASE_URL/models Authorization:"Bearer $TOKEN"
+echo '{"title": "Foobar", "spaceId": 1, "coll": "foobar", "model": {"schema": {"type": "object", "properties": {"title": {"type": "string"}}}}}' | http POST $BASE_URL/models Authorization:"Bearer $TOKEN"
 ```
 
 ## Create Admin User from JavaScript
