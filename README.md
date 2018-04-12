@@ -4,11 +4,7 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 
 ## TODO
 
-* Need a swagger per space and need to validate this on models save
-
-* Max 50 properties per model
-
-* Max 100 models per space
+* Max 50 properties per model and max 100 models per space (PROPERTY_LIMIT, MODELS_LIMIT)
 
 * Complete Swagger with parameters and schemas for CRUD and data endpoints
   Also, distinguish responses per route?
@@ -16,9 +12,6 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 * Contentful data types and constraints (short text, long text)
 
 * Rename swagger to openapi?
-
-const swaggerUiAssetPath = require('swagger-ui-dist').getAbsoluteFSPath()
-const STATIC_PATHS = ['public', swaggerUiAssetPath]
 
 * list endpoint
   swagger parameters
@@ -30,9 +23,9 @@ const STATIC_PATHS = ['public', swaggerUiAssetPath]
 
 * versioned2-ui
 
-* Relationships
-
 * Study contentful
+
+* Relationships
 
 * Multi tenant: accounts model (users.account_id)
 * Multi tenant: spaces model with (account_id, name, key)

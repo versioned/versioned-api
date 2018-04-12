@@ -3,6 +3,9 @@ const mongo = require('lib/mongo')
 const modelApi = require('lib/model_api')
 const modelSchema = require('lib/model_spec_schema')
 const spaces = require('app/models/spaces')
+const swagger = require('app/swagger')
+const jsonSchema = require('lib/json_schema')
+const swaggerSchema = require('public/openapi-schema')
 
 const collPattern = getIn(spaces, ['schema', 'properties', 'coll', 'pattern'])
 
@@ -41,6 +44,18 @@ async function validateModel (doc, options) {
   return doc
 }
 
+async function validateSwagger (doc, options) {
+  if (doc.model && doc.spaceId) {
+    let systemSwagger = await swagger()
+    let spaceSwagger = await swagger({spaceId: doc.spaceId, models: [doc.model]})
+    for (let swagger of [systemSwagger, spaceSwagger]) {
+      const errors = jsonSchema.validate(swaggerSchema, swagger)
+      if (errors) throw errors
+    }
+  }
+  return doc
+}
+
 async function validateCollAvailable (doc, options) {
   const coll = getIn(doc, ['model', 'coll'])
   if (coll && (await mongo.getColls()).includes(coll)) {
@@ -76,7 +91,8 @@ const model = {
   },
   callbacks: {
     save: {
-      before_validation: [validateSpace, setColl, validateModel]
+      before_validation: [validateSpace, setColl, validateModel],
+      after_validation: [validateSwagger]
     },
     create: {
       before_validation: [validateCollAvailable]
