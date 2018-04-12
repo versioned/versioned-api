@@ -4,15 +4,15 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 
 ## TODO
 
-* API test space swagger (need at least one model in setup for this - /v1/data/{space_id}/swagger.json)
-
 * Switch to camel case instead of snake case (i.e. be consistent with space_id vs spaceId)
-
-* Update swagger to openapi 3.0
 
 * Need a swagger per space and need to validate this on models save
 
+* Max 50 properties per model
+
 * Max 100 models per space
+
+* Contentful data types and constraints (short text, long text)
 
 * Complete Swagger with parameters and schemas for CRUD and data endpoints
   Also, distinguish responses per route?
