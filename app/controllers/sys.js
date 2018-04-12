@@ -3,7 +3,7 @@ const mongo = require('lib/mongo')
 
 async function dbStats (req, res) {
   const stats = await mongo.dbStats()
-  jsonResponse(res, wrapData(stats))
+  jsonResponse(req, res, wrapData(stats))
 }
 
 module.exports = {

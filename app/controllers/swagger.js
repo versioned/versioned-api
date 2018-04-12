@@ -4,7 +4,7 @@ const swagger = require('app/swagger')
 
 async function index (req, res) {
   const body = await swagger(pick(req.params, ['spaceId']))
-  jsonResponse(res, body)
+  jsonResponse(req, res, body)
 }
 
 module.exports = {
