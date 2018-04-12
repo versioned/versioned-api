@@ -4,9 +4,16 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 
 ## TODO
 
-* models save before_validation check non-empty properties
+* Update swagger to openapi 3.0
 
 * Complete Swagger with parameters and schemas for CRUD and data endpoints
+
+* Remove swagger-ui-2.0
+
+* Rename swagger to openapi?
+
+const swaggerUiAssetPath = require('swagger-ui-dist').getAbsoluteFSPath()
+const STATIC_PATHS = ['public', swaggerUiAssetPath]
 
 * list endpoint
   swagger parameters
@@ -106,7 +113,7 @@ async function printRoutes() {
 printRoutes()
 ```
 
-## Swagger Spec Validation
+## Swagger 2.0 Spec Validation
 
 There are compatibility issues between the latest Swagger JSON schema (2.0) and the ajv validator, see: https://www.bountysource.com/issues/44610526-no-schema-with-key-or-ref-http-json-schema-org-draft-04-schema
 
@@ -117,14 +124,26 @@ ajv migrate -s public/swagger-2.0-schema.json
 ```
 
 ```
-const swaggerSchema = require('public/schema')
-const swagger = {}
+const swaggerSchema = require('public/swagger-2.0-schema')
+const swagger = require('public/swagger-example')
 const Ajv = require('ajv')
-const ajv = new Ajv({allErrors: true, extendRefs: true, meta: false, unknownFormats: 'ignore'})
+const ajv = new Ajv({allErrors: true})
 ajv.compile(swaggerSchema)(swagger)
 ```
 
 I ended up making manual modifications to the swagger schema, basically remove $refs, to make ajv swallow it.
+
+## OpenAPI 3.0 Spec Validation
+
+Had same $ref issues here with ajv validation as with Swagger 2.0 (see above).
+
+```
+const openapiSchema = require('public/openapi-schema')
+const openapi = require('public/openapi-example')
+const Ajv = require('ajv')
+const ajv = new Ajv({allErrors: true})
+ajv.compile(openapiSchema)(openapi)
+```
 
 ## Integer ID Sequence in MongoDB
 
@@ -274,3 +293,4 @@ assertTypes([{foo: 1, bar: 'baz'}], {foo: 'number', bar: 'string'})
 
 * [node-mongodb-native](https://github.com/mongodb/node-mongodb-native)
 * [json-schema-ref-parser](https://www.npmjs.com/package/json-schema-ref-parser)
+* [Converting your Swagger 2.0 API Definition to OpenAPI 3.0](https://blog.runscope.com/posts/tutorial-upgrading-swagger-2-api-definition-to-openapi-3)

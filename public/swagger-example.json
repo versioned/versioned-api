@@ -1,0 +1,938 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "CMS Rest API",
+        "description": "Supports custom content types and versioning",
+        "version": "v1"
+    },
+    "produces": [
+        "application/json"
+    ],
+    "paths": {
+        "/": {
+            "get": {
+                "tags": [
+                    "docs"
+                ],
+                "summary": "Home - redirects to documentation page (HTML)",
+                "x-handler": "index",
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/v1/swagger.json": {
+            "get": {
+                "tags": [
+                    "docs"
+                ],
+                "summary": "Swagger JSON description of the API",
+                "x-handler": "index",
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/v1/login": {
+            "post": {
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Log in with email/password and get JWT token",
+                "x-handler": "login",
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/v1/sys/db_stats": {
+            "get": {
+                "tags": [
+                    "system"
+                ],
+                "summary": "Get statistics on database data",
+                "x-handler": "dbStats",
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "description": "User auth header with JWT token on the format \"Bearer {token}\"",
+                        "in": "header",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/v1/accounts": {
+            "get": {
+                "tags": [
+                    "accounts"
+                ],
+                "x-model": "accounts",
+                "x-handler": "list",
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "description": "User auth header with JWT token on the format \"Bearer {token}\"",
+                        "in": "header",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "accounts"
+                ],
+                "x-model": "accounts",
+                "x-handler": "create",
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "description": "User auth header with JWT token on the format \"Bearer {token}\"",
+                        "in": "header",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/v1/accounts/{id}": {
+            "get": {
+                "tags": [
+                    "accounts"
+                ],
+                "x-model": "accounts",
+                "x-handler": "get",
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "description": "User auth header with JWT token on the format \"Bearer {token}\"",
+                        "in": "header",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "accounts"
+                ],
+                "x-model": "accounts",
+                "x-handler": "update",
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "description": "User auth header with JWT token on the format \"Bearer {token}\"",
+                        "in": "header",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "accounts"
+                ],
+                "x-model": "accounts",
+                "x-handler": "_delete",
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "description": "User auth header with JWT token on the format \"Bearer {token}\"",
+                        "in": "header",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/v1/changelog": {
+            "get": {
+                "tags": [
+                    "changelog"
+                ],
+                "x-model": "changelog",
+                "x-handler": "list",
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "description": "User auth header with JWT token on the format \"Bearer {token}\"",
+                        "in": "header",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/v1/changelog/{id}": {
+            "get": {
+                "tags": [
+                    "changelog"
+                ],
+                "x-model": "changelog",
+                "x-handler": "get",
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "description": "User auth header with JWT token on the format \"Bearer {token}\"",
+                        "in": "header",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/v1/models": {
+            "get": {
+                "tags": [
+                    "models"
+                ],
+                "x-model": "models",
+                "x-handler": "list",
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "description": "User auth header with JWT token on the format \"Bearer {token}\"",
+                        "in": "header",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "models"
+                ],
+                "x-model": "models",
+                "x-handler": "create",
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "description": "User auth header with JWT token on the format \"Bearer {token}\"",
+                        "in": "header",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/v1/models/{id}": {
+            "get": {
+                "tags": [
+                    "models"
+                ],
+                "x-model": "models",
+                "x-handler": "get",
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "description": "User auth header with JWT token on the format \"Bearer {token}\"",
+                        "in": "header",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "models"
+                ],
+                "x-model": "models",
+                "x-handler": "update",
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "description": "User auth header with JWT token on the format \"Bearer {token}\"",
+                        "in": "header",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "models"
+                ],
+                "x-model": "models",
+                "x-handler": "_delete",
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "description": "User auth header with JWT token on the format \"Bearer {token}\"",
+                        "in": "header",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/v1/spaces": {
+            "get": {
+                "tags": [
+                    "spaces"
+                ],
+                "x-model": "spaces",
+                "x-handler": "list",
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "description": "User auth header with JWT token on the format \"Bearer {token}\"",
+                        "in": "header",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "spaces"
+                ],
+                "x-model": "spaces",
+                "x-handler": "create",
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "description": "User auth header with JWT token on the format \"Bearer {token}\"",
+                        "in": "header",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/v1/spaces/{id}": {
+            "get": {
+                "tags": [
+                    "spaces"
+                ],
+                "x-model": "spaces",
+                "x-handler": "get",
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "description": "User auth header with JWT token on the format \"Bearer {token}\"",
+                        "in": "header",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "spaces"
+                ],
+                "x-model": "spaces",
+                "x-handler": "update",
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "description": "User auth header with JWT token on the format \"Bearer {token}\"",
+                        "in": "header",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "spaces"
+                ],
+                "x-model": "spaces",
+                "x-handler": "_delete",
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "description": "User auth header with JWT token on the format \"Bearer {token}\"",
+                        "in": "header",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/v1/users": {
+            "get": {
+                "tags": [
+                    "users"
+                ],
+                "x-model": "users",
+                "x-handler": "list",
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "description": "User auth header with JWT token on the format \"Bearer {token}\"",
+                        "in": "header",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "users"
+                ],
+                "x-model": "users",
+                "x-handler": "create",
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "description": "User auth header with JWT token on the format \"Bearer {token}\"",
+                        "in": "header",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/v1/users/{id}": {
+            "get": {
+                "tags": [
+                    "users"
+                ],
+                "x-model": "users",
+                "x-handler": "get",
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "description": "User auth header with JWT token on the format \"Bearer {token}\"",
+                        "in": "header",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "users"
+                ],
+                "x-model": "users",
+                "x-handler": "update",
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "description": "User auth header with JWT token on the format \"Bearer {token}\"",
+                        "in": "header",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "users"
+                ],
+                "x-model": "users",
+                "x-handler": "_delete",
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "description": "User auth header with JWT token on the format \"Bearer {token}\"",
+                        "in": "header",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/v1/data/{space_id}/{model}": {
+            "get": {
+                "tags": [
+                    "data"
+                ],
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "description": "User auth header with JWT token on the format \"Bearer {token}\"",
+                        "in": "header",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "data"
+                ],
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "description": "User auth header with JWT token on the format \"Bearer {token}\"",
+                        "in": "header",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/v1/data/{space_id}/{model}/{id}": {
+            "get": {
+                "tags": [
+                    "data"
+                ],
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "description": "User auth header with JWT token on the format \"Bearer {token}\"",
+                        "in": "header",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "data"
+                ],
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "description": "User auth header with JWT token on the format \"Bearer {token}\"",
+                        "in": "header",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "data"
+                ],
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "description": "User auth header with JWT token on the format \"Bearer {token}\"",
+                        "in": "header",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        }
+    }
+}
