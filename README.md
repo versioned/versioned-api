@@ -4,9 +4,18 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 
 ## TODO
 
+* API test space swagger (need at least one model in setup for this - /v1/data/{space_id}/swagger.json)
+
+* Switch to camel case instead of snake case (i.e. be consistent with space_id vs spaceId)
+
 * Update swagger to openapi 3.0
 
+* Need a swagger per space and need to validate this on models save
+
+* Max 100 models per space
+
 * Complete Swagger with parameters and schemas for CRUD and data endpoints
+  Also, distinguish responses per route?
 
 * Remove swagger-ui-2.0
 
@@ -32,8 +41,10 @@ const STATIC_PATHS = ['public', swaggerUiAssetPath]
 * Multi tenant: accounts model (users.account_id)
 * Multi tenant: spaces model with (account_id, name, key)
 
-## Discussion Points
+## Discussion Points and Backlog
 
+* Log response times
+* Change naming convention from snake case to camel case?
 * Allow human readable space keys?
 * OK? Request/Response JSON structure for list/get endpoints - compare contentful
   doc/docs/meta
@@ -42,35 +53,25 @@ const STATIC_PATHS = ['public', swaggerUiAssetPath]
   See: https://node-postgres.com/features/types
 * Use bcrypt instead of crypto when it works with latest Node?
 * Investigate using [Auth0](https://auth0.com/docs/api-auth) for authentication?
-
-## Documentation
-
-* Readable/writable fields
-* Type coercion?
+* Documentation - Readable/writable fields, type coercion, etc.
 
 ## Start Dev Server
 
 ```
-npm start
+npm run dev
 ```
 
-## Create Admin User
+## Tests
 
-```javascript
-async function createAdmin() {
-  const mongo = require('lib/mongo')
-  const config = require('app/config')
-  await mongo.connect(config.MONGODB_URL)
+Run linting, unit tests, and api tests:
 
-  const users = require('app/models/users')
-  const doc = {name: 'Admin User', email: 'admin@example.com', password: 'admin'}
-  users.create(doc).then(console.log)
-  users.findOne({email: doc.email}).then(console.log)
-}
-createAdmin()
+```
+npm test
 ```
 
-## API: Create User
+## API Examples
+
+Create user:
 
 ```
 export BASE_URL=http://localhost:3000/v1
@@ -84,18 +85,46 @@ export BASE_URL=http://localhost:3000/v1
 while [ 1 ]; do echo "{\"name\": \"Admin User\", \"email\": \"$(uuid)@example.com\", \"password\": \"admin\"}" | http POST $BASE_URL/users; done
 ```
 
-## API: Login
+Login:
 
 ```bash
 export BASE_URL=http://localhost:3000/v1
 echo '{"email": "admin@example.com", "password": "admin"}' | http POST $BASE_URL/login
 ```
 
-## API: List Users
+List Users:
 
 ```
 export BASE_URL=http://localhost:3000/v1
 http GET $BASE_URL/users Authorization:"Bearer $TOKEN"
+```
+
+Create Space:
+
+```
+http POST $BASE_URL/spaces Authorization:"Bearer $TOKEN" name="foobar"
+```
+
+Create Model in Space:
+
+```
+echo '{"title": "Foobar", "space_id": 1, "coll": "foobar", "model": {"schema": {"type": "object", "properties": {"title": {"type": "string"}}}}}' | http POST $BASE_URL/models Authorization:"Bearer $TOKEN"
+```
+
+## Create Admin User from JavaScript
+
+```javascript
+async function createAdmin() {
+  const mongo = require('lib/mongo')
+  const config = require('app/config')
+  await mongo.connect(config.MONGODB_URL)
+
+  const users = require('app/models/users')
+  const doc = {name: 'Admin User', email: 'admin@example.com', password: 'admin'}
+  users.create(doc).then(console.log)
+  users.findOne({email: doc.email}).then(console.log)
+}
+createAdmin()
 ```
 
 ## Routes
@@ -154,14 +183,6 @@ mongo.connect(config.MONGODB_URL)
 
 mongo.nextSequence('foobar').then(console.log) // => {value: { _id: 'foobar', seq: 1 }}
 mongo.nextSequence('foobar').then(console.log) // => {value: { _id: 'foobar', seq: 2 }}
-```
-
-## Tests
-
-Run linting, unit tests, and api tests:
-
-```
-npm test
 ```
 
 ## Deployment

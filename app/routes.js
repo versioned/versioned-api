@@ -14,7 +14,7 @@ const MODELS_DIR = path.join(__dirname, '/models')
 
 const systemRoutes = [
   {
-    tags: ['docs'],
+    tags: ['documentation'],
     summary: 'Home - redirects to documentation page (HTML)',
     method: 'get',
     path: '/',
@@ -22,7 +22,7 @@ const systemRoutes = [
     require_auth: false
   },
   {
-    tags: ['docs'],
+    tags: ['documentation'],
     summary: 'Swagger JSON description of the API',
     method: 'get',
     path: `${PREFIX}/swagger.json`,
@@ -46,8 +46,8 @@ const systemRoutes = [
   }
 ].concat(modelRoutes.requireDir(MODELS_DIR, VERSION))
 
-async function getRoutes () {
-  return concat(systemRoutes, dataRoutes(DATA_PREFIX))
+async function getRoutes (options = {}) {
+  return concat(systemRoutes, (await dataRoutes(DATA_PREFIX, options)))
 }
 
 module.exports = {

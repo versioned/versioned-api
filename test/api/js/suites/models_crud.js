@@ -70,7 +70,7 @@ async function crudTest (c, prefix, coll, doc, updateDoc) {
     }
   }
   c.assert(elapsedSeconds(result.data.updated_at) < 1)
-  c.assertEqual(result.data.updated_by, id)
+  c.assertEqual(result.data.updated_by, c.data.user.id)
 
   await c.put({it: 'same update again yields 204', status: 204}, getPath, updateDoc)
 
@@ -87,7 +87,7 @@ async function crudTest (c, prefix, coll, doc, updateDoc) {
     }
   }
   c.assert(elapsedSeconds(result.data.updated_at) < 1)
-  c.assertEqual(result.data.updated_by, id)
+  c.assertEqual(result.data.updated_by, c.data.user.id)
 
   await c.delete({it: 'cannot delete without auth', status: 401}, getPath, c.anonymous)
 
