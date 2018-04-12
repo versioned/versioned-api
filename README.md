@@ -12,12 +12,10 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 
 * Max 100 models per space
 
-* Contentful data types and constraints (short text, long text)
-
 * Complete Swagger with parameters and schemas for CRUD and data endpoints
   Also, distinguish responses per route?
 
-* Remove swagger-ui-2.0
+* Contentful data types and constraints (short text, long text)
 
 * Rename swagger to openapi?
 
