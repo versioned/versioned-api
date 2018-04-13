@@ -9,6 +9,8 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 * Complete Swagger with parameters and schemas for CRUD and data endpoints
   Also, distinguish responses per route?
 
+* Middleware that validates params based on swagger
+
 * Contentful data types and constraints (short text, long text)
 
 * Rename swagger to openapi?
@@ -316,3 +318,18 @@ assertTypes([{foo: 1, bar: 'baz'}], {foo: 'number', bar: 'string'})
 * [node-mongodb-native](https://github.com/mongodb/node-mongodb-native)
 * [json-schema-ref-parser](https://www.npmjs.com/package/json-schema-ref-parser)
 * [Converting your Swagger 2.0 API Definition to OpenAPI 3.0](https://blog.runscope.com/posts/tutorial-upgrading-swagger-2-api-definition-to-openapi-3)
+
+## Headless CMS - Open Source
+
+* [Directus (PHP/MySQL)](https://getdirectus.com)
+
+## Headless CMS - Services (SaaS)
+
+"A headless CMS allows you to provide content to any channel and device through an API."
+
+* [How to Choose a SaaS CMS: The 9-Point Checklist](https://www.coredna.com/blogs/how-to-choose-a-saas-cms)
+
+* [Contentful: Content Infrastructure for Digital Teams](https://www.contentful.com)
+* [Prismic: Headless API CMS for both developers and marketers](https://prismic.io)
+* [Cloud CMS: Headless CMS and Cloud Content API](https://www.cloudcms.com)
+* [Kentico Cloud](https://kenticocloud.com)
