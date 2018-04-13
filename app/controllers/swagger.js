@@ -1,5 +1,6 @@
 const {pick} = require('lib/util')
-const {jsonResponse} = require('lib/response')
+const config = require('app/config')
+const {jsonResponse} = config.modules.response
 const swagger = require('app/swagger')
 
 async function index (req, res) {

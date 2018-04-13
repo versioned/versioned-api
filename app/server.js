@@ -23,10 +23,10 @@ function setupMiddleware (app) {
   app.use(responseTime)
   app.use(serveStatic('public'))
   app.use(setCorsHeaders)
-  app.use(attachRoute(getRoutes))
+  app.use(attachRoute(getRoutes, config.logger))
   app.use(queryParser)
   app.use(bodyParser)
-  app.use(setCacheHeader)
+  app.use(setCacheHeader(config))
   app.use(auth(AUTH_CONFIG))
 }
 

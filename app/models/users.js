@@ -1,6 +1,7 @@
 const {concat, merge} = require('lib/util')
 const modelApi = require('lib/model_api')
 const config = require('app/config')
+const logger = config.logger
 const jwt = require('lib/jwt')
 const passwordHash = require('lib/password_hash')
 const DEFAULTS = require('lib/model_spec').DEFAULTS
@@ -19,7 +20,7 @@ const model = {
   }
 }
 
-const api = modelApi(model)
+const api = modelApi(model, logger)
 
 function authenticate (user, password) {
   return user && passwordHash.verify(password, user.passwordHash)

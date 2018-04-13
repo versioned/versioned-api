@@ -9,8 +9,6 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 * Complete Swagger with parameters and schemas for CRUD and data endpoints
   Also, distinguish responses per route?
 
-* grep -ir "require('app/" lib
-
 * Contentful data types and constraints (short text, long text)
 
 * Rename swagger to openapi?

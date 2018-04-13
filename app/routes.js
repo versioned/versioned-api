@@ -3,8 +3,9 @@ const swagger = require('app/controllers/swagger')
 const auth = require('app/controllers/auth')
 const sys = require('app/controllers/sys')
 const {concat} = require('lib/util')
-const modelRoutes = require('lib/model_routes')
-const dataRoutes = require('lib/data_routes')
+const config = require('app/config')
+const modelRoutes = require('lib/model_routes')(config.modules.response)
+const dataRoutes = require('app/data_routes')
 const path = require('path')
 
 const VERSION = 'v1'

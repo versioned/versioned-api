@@ -2,7 +2,8 @@ const {keyValues, merge, flatten} = require('lib/util')
 const modelApi = require('lib/model_api')
 const models = require('app/models/models')
 const modelController = require('lib/model_controller')
-const {notFound} = require('lib/response')
+const config = require('app/config')
+const {notFound} = config.modules.response
 const swaggerHandler = require('app/controllers/swagger').index
 
 const PARAMS = ['spaceId', 'model']
@@ -33,8 +34,8 @@ function dataHandler (endpoint) {
     }
     const model = await models.findOne(query)
     if (model) {
-      const api = modelApi(model.model)
-      modelController(api)[endpoint](req, res)
+      const api = modelApi(model.model, config.logger)
+      modelController(api, config.modules.response)[endpoint](req, res)
     } else {
       notFound(res)
     }

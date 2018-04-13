@@ -1,5 +1,6 @@
 const {uuid, merge} = require('lib/util')
 const modelApi = require('lib/model_api')
+const {logger} = require('app/config')
 
 const coll = 'spaces'
 const KEY_LENGTH = 6 // 16^6 ~ 1 million
@@ -45,4 +46,4 @@ const model = {
   }
 }
 
-module.exports = modelApi(model)
+module.exports = modelApi(model, logger)

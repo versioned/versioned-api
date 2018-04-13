@@ -7,7 +7,7 @@
     "start": "NODE_PATH=. node app/index.js",
     "dev": "NODE_PATH=. nodemon app/index.js",
     "lint": "eslint {test/api,app,lib}",
-    "test": "npm run lint && npm run unit-test && npm run api-test",
+    "test": "npm run lint && npm run unit-test && bin/check-deps && npm run api-test",
     "unit-test": "jest",
     "unit-test-watch": "jest --watch",
     "api-test": "./test/api/js/run",

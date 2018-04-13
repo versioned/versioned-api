@@ -1,4 +1,5 @@
-const {wrapData, jsonResponse} = require('lib/response')
+const config = require('app/config')
+const {wrapData, jsonResponse} = config.modules.response
 const mongo = require('lib/mongo')
 
 async function dbStats (req, res) {

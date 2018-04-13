@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+# The thinking here is that app code should depend on lib code but not vice versa.
+# The motivation is that lib code should be potentially reusable across apps.
+
+illegal_deps=$(grep -ir "require('app/" lib)
+
+if [[ ! -z "$illegal_deps" ]]; then
+  echo "Found illegal dependencies from lib to app:"
+  printf "$illegal_deps"
+  exit 1
+fi

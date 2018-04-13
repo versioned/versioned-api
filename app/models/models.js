@@ -6,6 +6,7 @@ const spaces = require('app/models/spaces')
 const swagger = require('app/swagger')
 const jsonSchema = require('lib/json_schema')
 const swaggerSchema = require('public/openapi-schema')
+const {logger} = require('app/config')
 
 const collPattern = getIn(spaces, ['schema', 'properties', 'coll', 'pattern'])
 
@@ -113,6 +114,6 @@ const model = {
   ]
 }
 
-module.exports = Object.assign(modelApi(model), {
+module.exports = Object.assign(modelApi(model, logger), {
   getColl
 })
