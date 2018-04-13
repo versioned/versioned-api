@@ -4,12 +4,17 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 
 ## TODO
 
-* Max 50 properties per model and max 100 models per space (PROPERTY_LIMIT, MODELS_LIMIT)
-
 * Complete Swagger with parameters and schemas for CRUD and data endpoints
   Also, distinguish responses per route?
 
-* Middleware that validates params based on swagger
+* Middleware that validates params based on swagger. This is mostly for get/list/delete routes.
+  Should also do coercion - i.e. string to integer. Use ajv for this? https://github.com/epoberezkin/ajv/blob/master/COERCION.md
+  swagger_util.parametersToSchema
+
+* Versioning and publishing
+  See useful contentful attributes related to publishing
+
+* versioned2-ui
 
 * Contentful data types and constraints (short text, long text)
 
@@ -20,10 +25,6 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
   stats optional via query param
   always add count instead
   make sure count always uses the same query as list
-
-* Versioning
-
-* versioned2-ui
 
 * Study contentful
 

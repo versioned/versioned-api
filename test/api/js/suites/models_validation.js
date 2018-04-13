@@ -1,4 +1,5 @@
-const {omit, keys, merge} = require('lib/util')
+const {omit, keys, merge, range, uuid} = require('lib/util')
+const config = require('app/config')
 
 module.exports = async function (c) {
   const spaceId = c.data.space.id
@@ -33,26 +34,60 @@ module.exports = async function (c) {
   await c.put({it: 'cannot change coll or spaceId of model', status: 204}, `/models/${id}`, {spaceId: 123, coll: 'foobar'})
 
   await c.post({it: 'cannot create article model with invalid schema - property type', status: 422}, '/models', merge(articleModel, {
-    schema: {
-      type: 'object',
-      properties: {
-        title: {type: 'foobar'},
-        body: {type: 'string'}
-      },
-      additionalProperties: false,
-      required: ['title']
+    coll: uuid(),
+    model: {
+      schema: {
+        type: 'object',
+        properties: {
+          title: {type: 'foobar'},
+          body: {type: 'string'}
+        },
+        additionalProperties: false,
+        required: ['title']
+      }
     }
   }))
 
   await c.post({it: 'cannot create article model with invalid schema - x-meta property', status: 422}, '/models', merge(articleModel, {
-    schema: {
-      type: 'object',
-      properties: {
-        title: {type: 'integer', 'x-meta': {'foobar': true}},
-        body: {type: 'string'}
-      },
-      additionalProperties: false,
-      required: ['title']
+    coll: uuid(),
+    model: {
+      schema: {
+        type: 'object',
+        properties: {
+          title: {type: 'integer', 'x-meta': {'foobar': true}},
+          body: {type: 'string'}
+        },
+        additionalProperties: false,
+        required: ['title']
+      }
+    }
+  }))
+
+  const tooManyProperties = range(0, (config.PROPERTY_LIMIT + 1)).reduce((acc, i) => {
+    acc[`property${i}`] = {type: 'string'}
+    return acc
+  }, {})
+  await c.post({it: 'cannot create article model with too many properties', status: 422}, '/models', merge(articleModel, {
+    coll: uuid(),
+    model: {
+      schema: {
+        type: 'object',
+        properties: tooManyProperties
+      }
+    }
+  }))
+
+  const limitProperties = range(0, config.PROPERTY_LIMIT).reduce((acc, i) => {
+    acc[`property${i}`] = {type: 'string'}
+    return acc
+  }, {})
+  await c.post(`can create article model with ${config.PROPERTY_LIMIT} properties`, '/models', merge(articleModel, {
+    coll: uuid(),
+    model: {
+      schema: {
+        type: 'object',
+        properties: limitProperties
+      }
     }
   }))
 }

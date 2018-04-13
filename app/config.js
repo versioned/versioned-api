@@ -10,7 +10,9 @@ const defaultConfig = {
   CACHE_EXPIRY: '5',
   MONGODB_URL: `mongodb://localhost:27017/versioned2_${NODE_ENV}`,
   JWT_SECRET: '393dabff04884cf89ce918f53924d63e',
-  JWT_EXPIRY: (3600 * 24 * 30)
+  JWT_EXPIRY: (3600 * 24 * 30),
+  PROPERTY_LIMIT: 50,
+  MODELS_LIMIT: 100
 }
 const envConfig = pick(process.env, Object.keys(defaultConfig))
 const config = merge(defaultConfig, envConfig)
