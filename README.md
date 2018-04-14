@@ -4,7 +4,14 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 
 ## TODO
 
+* Make integer_id optional
+
 * Complete Swagger with parameters and schemas for CRUD and data endpoints
+  Use versioned1-openapi-example.json as model
+  Start with id path parameter
+  Then body parameters for create/update
+  NOTE: need to modify required list based on update/create
+  Response schema should use readable
   Also, distinguish responses per route?
 
 * Middleware that validates params based on swagger. This is mostly for get/list/delete routes.

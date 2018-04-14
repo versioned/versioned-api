@@ -19,7 +19,7 @@ async function crudTest (c, prefix, coll, doc, updateDoc) {
       c.assertEqual(created[key], doc[key])
     }
   }
-  c.assert(c.isMongoId(created._id))
+  // c.assert(c.isMongoId(created.id))
   c.assert(elapsedSeconds(created.createdAt) < 1)
   c.assertEqual(created.createdBy, c.data.user.id)
   c.assert(!created.updatedAt)
@@ -130,7 +130,7 @@ module.exports = async function (c) {
   const updateArticle = {
     title: 'Title changed'
   }
-  const articlesColl = models.getColl(model)
+  const articlesColl = await models.getColl(model)
   await crudTest(c, `/data/${spaceId}`, 'articles', article, updateArticle)
 
   await c.post('create article', `/data/${spaceId}/articles`, article)

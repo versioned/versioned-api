@@ -1,4 +1,4 @@
-const {keyValues, merge, flatten} = require('lib/util')
+const {keyValues, merge, flatten, parseIfInt} = require('lib/util')
 const modelApi = require('lib/model_api')
 const models = require('app/models/models')
 const modelController = require('lib/model_controller')
@@ -29,7 +29,7 @@ function swaggerPath (prefix, options) {
 function dataHandler (endpoint) {
   return async function (req, res) {
     const query = {
-      spaceId: parseInt(req.params.spaceId),
+      spaceId: parseIfInt(req.params.spaceId),
       coll: req.params.model
     }
     const model = await models.findOne(query)
@@ -89,7 +89,7 @@ function modelRoutes (prefix, options = {}) {
 
 async function routes (prefix, options = {}) {
   if (options.spaceId) {
-    let spaceModels = await models.list({spaceId: parseInt(options.spaceId)})
+    let spaceModels = await models.list({spaceId: parseIfInt(options.spaceId)})
     if (options.models) spaceModels = spaceModels.concat(options.models)
     return [swaggerRoute(prefix, options)]
       .concat(flatten(spaceModels.map(model => modelRoutes(prefix, merge(options, {model: model.coll})))))

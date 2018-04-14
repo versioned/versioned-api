@@ -1,0 +1,2745 @@
+{
+  "openapi": "3.0.0",
+  "servers": [
+    {
+      "url": "/v1"
+    }
+  ],
+  "info": {
+    "title": "Versioned API",
+    "description": "A REST CMS API based on MongoDB",
+    "version": "0.1.0-SNAPSHOT"
+  },
+  "paths": {
+    "/diary": {
+      "get": {
+        "tags": [
+          "diary"
+        ],
+        "summary": "List diary",
+        "x-model": "diary",
+        "x-handler": "diary/api:list",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "description": "User auth header on the format\"Bearer {token}\"",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "description": "Which fields to sort by, comma separated. Prefix with - (minus) for descending. Default sort is by id desc",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "description": "Which page to fetch, defaults to 1 (for pagination)",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "per-page",
+            "description": "Number of documents to fetch (for pagination)",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "q",
+            "description": "Query - filter out which documents are returned, format is separator:key:value where separator is optional and defaults to comma (,)",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^(?:(\\W*):)?([a-zA-Z0-9._-]+):(.+)$"
+              }
+            }
+          },
+          {
+            "name": "published",
+            "description": "Whether to only fetch published docs",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of diary",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "attributes": {
+                            "type": "object",
+                            "properties": {
+                              "published_version": {
+                                "type": "integer",
+                                "minimum": 1,
+                                "x-meta": {
+                                  "versioned": false
+                                }
+                              },
+                              "_id": {
+                                "type": "string",
+                                "pattern": "^[a-z0-9]{24}$",
+                                "x-meta": {
+                                  "api_writable": false
+                                }
+                              },
+                              "publish_at": {
+                                "type": "string",
+                                "format": "date-time",
+                                "x-meta": {
+                                  "versioned": false
+                                }
+                              },
+                              "legacy_created_at": {
+                                "type": "string",
+                                "format": "date-time",
+                                "x-meta": {
+                                  "versioned": false
+                                }
+                              },
+                              "first_published_at": {
+                                "type": "string",
+                                "format": "date-time",
+                                "x-meta": {
+                                  "api_writable": false,
+                                  "versioned": false
+                                }
+                              },
+                              "type": {
+                                "type": "string",
+                                "x-meta": {
+                                  "api_writable": false
+                                }
+                              },
+                              "updated_at": {
+                                "type": "string",
+                                "format": "date-time",
+                                "x-meta": {
+                                  "api_writable": false,
+                                  "versioned": false,
+                                  "change_tracking": false
+                                }
+                              },
+                              "id": {
+                                "type": "integer",
+                                "x-meta": {
+                                  "api_writable": false
+                                }
+                              },
+                              "last_published_at": {
+                                "type": "string",
+                                "format": "date-time",
+                                "x-meta": {
+                                  "api_writable": false,
+                                  "versioned": false
+                                }
+                              },
+                              "unpublish_at": {
+                                "type": "string",
+                                "format": "date-time",
+                                "x-meta": {
+                                  "versioned": false
+                                }
+                              },
+                              "updated_by": {
+                                "type": "string",
+                                "x-meta": {
+                                  "api_writable": false,
+                                  "versioned": false,
+                                  "change_tracking": false
+                                }
+                              },
+                              "version": {
+                                "type": "integer",
+                                "minimum": 1,
+                                "x-meta": {
+                                  "api_writable": false
+                                }
+                              },
+                              "body": {
+                                "type": "string",
+                                "x-meta": {
+                                  "form_field": "textarea"
+                                }
+                              },
+                              "created_by": {
+                                "type": "string",
+                                "x-meta": {
+                                  "api_writable": false,
+                                  "versioned": false
+                                }
+                              },
+                              "version_token": {
+                                "type": "string",
+                                "x-meta": {
+                                  "api_writable": false
+                                }
+                              },
+                              "created_at": {
+                                "type": "string",
+                                "format": "date-time",
+                                "x-meta": {
+                                  "api_writable": false,
+                                  "versioned": false
+                                }
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "type",
+                              "created_at",
+                              "created_by",
+                              "version",
+                              "version_token",
+                              "body"
+                            ],
+                            "x-meta": {
+                              "admin_properties": [
+                                "body",
+                                "created_at"
+                              ],
+                              "require-read-auth": true
+                            },
+                            "additionalProperties": false
+                          }
+                        },
+                        "required": [
+                          "attributes"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "diary"
+        ],
+        "summary": "Create diary",
+        "x-model": "diary",
+        "x-handler": "diary/api:create",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "description": "User auth header on the format\"Bearer {token}\"",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "422": {
+            "description": "Validation errors"
+          }
+        },
+        "requestBody": {
+          "$ref": "#/components/requestBodies/Body"
+        }
+      }
+    },
+    "/": {
+      "get": {
+        "tags": [
+          "api docs"
+        ],
+        "summary": "Swagger API Documentation HTML page",
+        "x-handler": "home/index",
+        "x-api-prefix": false,
+        "x-auth-required": false,
+        "responses": {
+          "301": {
+            "description": "Redirect to HTML page with Swagger API docs"
+          }
+        }
+      }
+    },
+    "/diary/{id}": {
+      "get": {
+        "tags": [
+          "diary"
+        ],
+        "summary": "Get diary",
+        "x-model": "diary",
+        "x-handler": "diary/api:get",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "description": "User auth header on the format\"Bearer {token}\"",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "relationships",
+            "description": "Whether to fetch relationships for the document",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "version",
+            "description": "Which version of the document to fetch, defaults to the latest version",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "version_token",
+            "description": "Token/digest of version to fetch (for preview)",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "published",
+            "description": "Whether to only fetch published version of document and its relationships",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "attributes": {
+                          "type": "object",
+                          "properties": {
+                            "published_version": {
+                              "type": "integer",
+                              "minimum": 1,
+                              "x-meta": {
+                                "versioned": false
+                              }
+                            },
+                            "_id": {
+                              "type": "string",
+                              "pattern": "^[a-z0-9]{24}$",
+                              "x-meta": {
+                                "api_writable": false
+                              }
+                            },
+                            "publish_at": {
+                              "type": "string",
+                              "format": "date-time",
+                              "x-meta": {
+                                "versioned": false
+                              }
+                            },
+                            "legacy_created_at": {
+                              "type": "string",
+                              "format": "date-time",
+                              "x-meta": {
+                                "versioned": false
+                              }
+                            },
+                            "first_published_at": {
+                              "type": "string",
+                              "format": "date-time",
+                              "x-meta": {
+                                "api_writable": false,
+                                "versioned": false
+                              }
+                            },
+                            "type": {
+                              "type": "string",
+                              "x-meta": {
+                                "api_writable": false
+                              }
+                            },
+                            "updated_at": {
+                              "type": "string",
+                              "format": "date-time",
+                              "x-meta": {
+                                "api_writable": false,
+                                "versioned": false,
+                                "change_tracking": false
+                              }
+                            },
+                            "id": {
+                              "type": "integer",
+                              "x-meta": {
+                                "api_writable": false
+                              }
+                            },
+                            "last_published_at": {
+                              "type": "string",
+                              "format": "date-time",
+                              "x-meta": {
+                                "api_writable": false,
+                                "versioned": false
+                              }
+                            },
+                            "unpublish_at": {
+                              "type": "string",
+                              "format": "date-time",
+                              "x-meta": {
+                                "versioned": false
+                              }
+                            },
+                            "updated_by": {
+                              "type": "string",
+                              "x-meta": {
+                                "api_writable": false,
+                                "versioned": false,
+                                "change_tracking": false
+                              }
+                            },
+                            "version": {
+                              "type": "integer",
+                              "minimum": 1,
+                              "x-meta": {
+                                "api_writable": false
+                              }
+                            },
+                            "body": {
+                              "type": "string",
+                              "x-meta": {
+                                "form_field": "textarea"
+                              }
+                            },
+                            "created_by": {
+                              "type": "string",
+                              "x-meta": {
+                                "api_writable": false,
+                                "versioned": false
+                              }
+                            },
+                            "version_token": {
+                              "type": "string",
+                              "x-meta": {
+                                "api_writable": false
+                              }
+                            },
+                            "created_at": {
+                              "type": "string",
+                              "format": "date-time",
+                              "x-meta": {
+                                "api_writable": false,
+                                "versioned": false
+                              }
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "type",
+                            "created_at",
+                            "created_by",
+                            "version",
+                            "version_token",
+                            "body"
+                          ],
+                          "x-meta": {
+                            "admin_properties": [
+                              "body",
+                              "created_at"
+                            ],
+                            "require-read-auth": true
+                          },
+                          "additionalProperties": false
+                        }
+                      },
+                      "required": [
+                        "attributes"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "diary"
+        ],
+        "summary": "Update diary",
+        "x-model": "diary",
+        "x-handler": "diary/api:update",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "description": "User auth header on the format\"Bearer {token}\"",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "422": {
+            "description": "Validation errors"
+          }
+        },
+        "requestBody": {
+          "$ref": "#/components/requestBodies/Body"
+        }
+      },
+      "delete": {
+        "tags": [
+          "diary"
+        ],
+        "summary": "Delete diary",
+        "x-model": "diary",
+        "x-handler": "diary/api:delete",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "description": "User auth header on the format\"Bearer {token}\"",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/import_initial": {
+      "post": {
+        "tags": [
+          "import"
+        ],
+        "summary": "Initial bulk import",
+        "x-handler": "import-initial/create",
+        "description": "Import data, i.e. from another CMS",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "description": "User auth header on the format\"Bearer {token}\"",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful import"
+          },
+          "422": {
+            "description": "Import errors"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "model": {
+                    "enum": [
+                      "users",
+                      "changelog",
+                      "blog_posts",
+                      "diary"
+                    ]
+                  },
+                  "data": {
+                    "type": "array",
+                    "items": {
+                      "type": "object"
+                    }
+                  }
+                },
+                "required": [
+                  "model",
+                  "data"
+                ]
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
+    "/changelog/{id}": {
+      "get": {
+        "tags": [
+          "changelog"
+        ],
+        "summary": "Get changelog",
+        "x-model": "changelog",
+        "x-handler": "changelog/api:get",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "description": "User auth header on the format\"Bearer {token}\"",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "relationships",
+            "description": "Whether to fetch relationships for the document",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "version",
+            "description": "Which version of the document to fetch, defaults to the latest version",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "version_token",
+            "description": "Token/digest of version to fetch (for preview)",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "published",
+            "description": "Whether to only fetch published version of document and its relationships",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "attributes": {
+                          "type": "object",
+                          "properties": {
+                            "_id": {
+                              "type": "string",
+                              "pattern": "^[a-z0-9]{24}$",
+                              "x-meta": {
+                                "api_writable": false
+                              }
+                            },
+                            "type": {
+                              "type": "string",
+                              "x-meta": {
+                                "api_writable": false
+                              }
+                            },
+                            "id": {
+                              "type": "integer",
+                              "x-meta": {
+                                "api_writable": false
+                              }
+                            },
+                            "changes": {
+                              "type": "object"
+                            },
+                            "action": {
+                              "enum": [
+                                "create",
+                                "update",
+                                "delete"
+                              ]
+                            },
+                            "doc": {
+                              "type": "object"
+                            },
+                            "created_by": {
+                              "type": "string",
+                              "format": "email"
+                            },
+                            "created_at": {
+                              "type": "string",
+                              "format": "date-time"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "type",
+                            "action",
+                            "doc",
+                            "created_by",
+                            "created_at"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "required": [
+                        "attributes"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/import_sync/delete": {
+      "post": {
+        "tags": [
+          "import"
+        ],
+        "summary": "Sync deletes of bulk imported docs",
+        "x-handler": "import-sync/delete",
+        "description": "Delete all docs with ids that are not in set of given ids",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "description": "User auth header on the format\"Bearer {token}\"",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful sync"
+          },
+          "422": {
+            "description": "Sync errors"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "model": {
+                    "enum": [
+                      "users",
+                      "changelog",
+                      "blog_posts",
+                      "diary"
+                    ]
+                  },
+                  "ids": {
+                    "type": "array",
+                    "items": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "integer"
+                        }
+                      ]
+                    }
+                  },
+                  "id_attribute": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "model",
+                  "ids",
+                  "id_attribute"
+                ]
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
+    "/users": {
+      "get": {
+        "tags": [
+          "users"
+        ],
+        "summary": "List users",
+        "x-model": "users",
+        "x-handler": "users/api:list",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "description": "User auth header on the format\"Bearer {token}\"",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "description": "Which fields to sort by, comma separated. Prefix with - (minus) for descending. Default sort is by id desc",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "description": "Which page to fetch, defaults to 1 (for pagination)",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "per-page",
+            "description": "Number of documents to fetch (for pagination)",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "q",
+            "description": "Query - filter out which documents are returned, format is separator:key:value where separator is optional and defaults to comma (,)",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^(?:(\\W*):)?([a-zA-Z0-9._-]+):(.+)$"
+              }
+            }
+          },
+          {
+            "name": "published",
+            "description": "Whether to only fetch published docs",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of users",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "attributes": {
+                            "type": "object",
+                            "properties": {
+                              "_id": {
+                                "type": "string",
+                                "pattern": "^[a-z0-9]{24}$",
+                                "x-meta": {
+                                  "api_writable": false
+                                }
+                              },
+                              "email": {
+                                "type": "string"
+                              },
+                              "permission": {
+                                "enum": [
+                                  "read",
+                                  "write"
+                                ]
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "type": {
+                                "type": "string",
+                                "x-meta": {
+                                  "api_writable": false
+                                }
+                              },
+                              "access_token_created_at": {
+                                "type": "string",
+                                "format": "date-time",
+                                "x-meta": {
+                                  "api_writable": false
+                                }
+                              },
+                              "id": {
+                                "type": "integer",
+                                "x-meta": {
+                                  "api_writable": false
+                                }
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "type",
+                              "name",
+                              "email",
+                              "permission"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "required": [
+                          "attributes"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/changelog": {
+      "get": {
+        "tags": [
+          "changelog"
+        ],
+        "summary": "List changelog",
+        "x-model": "changelog",
+        "x-handler": "changelog/api:list",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "description": "User auth header on the format\"Bearer {token}\"",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "description": "Which fields to sort by, comma separated. Prefix with - (minus) for descending. Default sort is by id desc",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "description": "Which page to fetch, defaults to 1 (for pagination)",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "per-page",
+            "description": "Number of documents to fetch (for pagination)",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "q",
+            "description": "Query - filter out which documents are returned, format is separator:key:value where separator is optional and defaults to comma (,)",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^(?:(\\W*):)?([a-zA-Z0-9._-]+):(.+)$"
+              }
+            }
+          },
+          {
+            "name": "published",
+            "description": "Whether to only fetch published docs",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of changelog",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "attributes": {
+                            "type": "object",
+                            "properties": {
+                              "_id": {
+                                "type": "string",
+                                "pattern": "^[a-z0-9]{24}$",
+                                "x-meta": {
+                                  "api_writable": false
+                                }
+                              },
+                              "type": {
+                                "type": "string",
+                                "x-meta": {
+                                  "api_writable": false
+                                }
+                              },
+                              "id": {
+                                "type": "integer",
+                                "x-meta": {
+                                  "api_writable": false
+                                }
+                              },
+                              "changes": {
+                                "type": "object"
+                              },
+                              "action": {
+                                "enum": [
+                                  "create",
+                                  "update",
+                                  "delete"
+                                ]
+                              },
+                              "doc": {
+                                "type": "object"
+                              },
+                              "created_by": {
+                                "type": "string",
+                                "format": "email"
+                              },
+                              "created_at": {
+                                "type": "string",
+                                "format": "date-time"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "type",
+                              "action",
+                              "doc",
+                              "created_by",
+                              "created_at"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "required": [
+                          "attributes"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/swagger.json": {
+      "get": {
+        "tags": [
+          "api docs"
+        ],
+        "summary": "Swagger API JSON specification",
+        "x-handler": "swagger/index",
+        "x-auth-required": false,
+        "responses": {
+          "200": {
+            "description": "Swagger JSON API specification"
+          }
+        }
+      }
+    },
+    "/users/{id}": {
+      "get": {
+        "tags": [
+          "users"
+        ],
+        "summary": "Get users",
+        "x-model": "users",
+        "x-handler": "users/api:get",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "description": "User auth header on the format\"Bearer {token}\"",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "relationships",
+            "description": "Whether to fetch relationships for the document",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "version",
+            "description": "Which version of the document to fetch, defaults to the latest version",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "version_token",
+            "description": "Token/digest of version to fetch (for preview)",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "published",
+            "description": "Whether to only fetch published version of document and its relationships",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "attributes": {
+                          "type": "object",
+                          "properties": {
+                            "_id": {
+                              "type": "string",
+                              "pattern": "^[a-z0-9]{24}$",
+                              "x-meta": {
+                                "api_writable": false
+                              }
+                            },
+                            "email": {
+                              "type": "string"
+                            },
+                            "permission": {
+                              "enum": [
+                                "read",
+                                "write"
+                              ]
+                            },
+                            "name": {
+                              "type": "string"
+                            },
+                            "type": {
+                              "type": "string",
+                              "x-meta": {
+                                "api_writable": false
+                              }
+                            },
+                            "access_token_created_at": {
+                              "type": "string",
+                              "format": "date-time",
+                              "x-meta": {
+                                "api_writable": false
+                              }
+                            },
+                            "id": {
+                              "type": "integer",
+                              "x-meta": {
+                                "api_writable": false
+                              }
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "type",
+                            "name",
+                            "email",
+                            "permission"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "required": [
+                        "attributes"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/login": {
+      "post": {
+        "tags": [
+          "login"
+        ],
+        "summary": "Login",
+        "x-auth-required": false,
+        "x-handler": "sessions/create",
+        "description": "Log in user with email/password and get token",
+        "responses": {
+          "200": {
+            "description": "Successful login"
+          },
+          "401": {
+            "description": "Failed login"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string"
+                  },
+                  "password": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "email",
+                  "password"
+                ]
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
+    "/blog_posts/{id}": {
+      "get": {
+        "tags": [
+          "blog_posts"
+        ],
+        "summary": "Get blog_posts",
+        "x-model": "blog_posts",
+        "x-handler": "blog_posts/api:get",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "description": "User auth header on the format\"Bearer {token}\"",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "relationships",
+            "description": "Whether to fetch relationships for the document",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "version",
+            "description": "Which version of the document to fetch, defaults to the latest version",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "version_token",
+            "description": "Token/digest of version to fetch (for preview)",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "published",
+            "description": "Whether to only fetch published version of document and its relationships",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "attributes": {
+                          "type": "object",
+                          "properties": {
+                            "published_version": {
+                              "type": "integer",
+                              "minimum": 1,
+                              "x-meta": {
+                                "versioned": false
+                              }
+                            },
+                            "_id": {
+                              "type": "string",
+                              "pattern": "^[a-z0-9]{24}$",
+                              "x-meta": {
+                                "api_writable": false
+                              }
+                            },
+                            "publish_at": {
+                              "type": "string",
+                              "format": "date-time",
+                              "x-meta": {
+                                "versioned": false
+                              }
+                            },
+                            "legacy_created_at": {
+                              "type": "string",
+                              "format": "date-time",
+                              "x-meta": {
+                                "versioned": false
+                              }
+                            },
+                            "first_published_at": {
+                              "type": "string",
+                              "format": "date-time",
+                              "x-meta": {
+                                "api_writable": false,
+                                "versioned": false
+                              }
+                            },
+                            "type": {
+                              "type": "string",
+                              "x-meta": {
+                                "api_writable": false
+                              }
+                            },
+                            "updated_at": {
+                              "type": "string",
+                              "format": "date-time",
+                              "x-meta": {
+                                "api_writable": false,
+                                "versioned": false,
+                                "change_tracking": false
+                              }
+                            },
+                            "id": {
+                              "type": "integer",
+                              "x-meta": {
+                                "api_writable": false
+                              }
+                            },
+                            "comments_count": {
+                              "type": "integer"
+                            },
+                            "last_published_at": {
+                              "type": "string",
+                              "format": "date-time",
+                              "x-meta": {
+                                "api_writable": false,
+                                "versioned": false
+                              }
+                            },
+                            "unpublish_at": {
+                              "type": "string",
+                              "format": "date-time",
+                              "x-meta": {
+                                "versioned": false
+                              }
+                            },
+                            "updated_by": {
+                              "type": "string",
+                              "x-meta": {
+                                "api_writable": false,
+                                "versioned": false,
+                                "change_tracking": false
+                              }
+                            },
+                            "version": {
+                              "type": "integer",
+                              "minimum": 1,
+                              "x-meta": {
+                                "api_writable": false
+                              }
+                            },
+                            "body": {
+                              "type": "string",
+                              "x-meta": {
+                                "form_field": "textarea"
+                              }
+                            },
+                            "created_by": {
+                              "type": "string",
+                              "x-meta": {
+                                "api_writable": false,
+                                "versioned": false
+                              }
+                            },
+                            "version_token": {
+                              "type": "string",
+                              "x-meta": {
+                                "api_writable": false
+                              }
+                            },
+                            "subject": {
+                              "type": "string"
+                            },
+                            "created_at": {
+                              "type": "string",
+                              "format": "date-time",
+                              "x-meta": {
+                                "api_writable": false,
+                                "versioned": false
+                              }
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "type",
+                            "created_at",
+                            "created_by",
+                            "version",
+                            "version_token",
+                            "subject",
+                            "body"
+                          ],
+                          "x-meta": {
+                            "admin_properties": [
+                              "subject",
+                              "body",
+                              "created_at",
+                              "version",
+                              "published_version"
+                            ]
+                          },
+                          "additionalProperties": false
+                        }
+                      },
+                      "required": [
+                        "attributes"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "blog_posts"
+        ],
+        "summary": "Update blog_posts",
+        "x-model": "blog_posts",
+        "x-handler": "blog_posts/api:update",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "description": "User auth header on the format\"Bearer {token}\"",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "422": {
+            "description": "Validation errors"
+          }
+        },
+        "requestBody": {
+          "$ref": "#/components/requestBodies/Body2"
+        }
+      },
+      "delete": {
+        "tags": [
+          "blog_posts"
+        ],
+        "summary": "Delete blog_posts",
+        "x-model": "blog_posts",
+        "x-handler": "blog_posts/api:delete",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "description": "User auth header on the format\"Bearer {token}\"",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/import_sync/upsert": {
+      "post": {
+        "tags": [
+          "import"
+        ],
+        "summary": "Sync updates/inserts of bulk imported docs",
+        "x-handler": "import-sync/upsert",
+        "description": "Insert all docs that are new and update existing ones",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "description": "User auth header on the format\"Bearer {token}\"",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful sync"
+          },
+          "422": {
+            "description": "Sync errors"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "model": {
+                    "enum": [
+                      "users",
+                      "changelog",
+                      "blog_posts",
+                      "diary"
+                    ]
+                  },
+                  "data": {
+                    "type": "array",
+                    "items": {
+                      "type": "object"
+                    }
+                  },
+                  "id_attribute": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "model",
+                  "data",
+                  "id_attribute"
+                ]
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
+    "/blog_posts": {
+      "get": {
+        "tags": [
+          "blog_posts"
+        ],
+        "summary": "List blog_posts",
+        "x-model": "blog_posts",
+        "x-handler": "blog_posts/api:list",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "description": "User auth header on the format\"Bearer {token}\"",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "description": "Which fields to sort by, comma separated. Prefix with - (minus) for descending. Default sort is by id desc",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "description": "Which page to fetch, defaults to 1 (for pagination)",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "per-page",
+            "description": "Number of documents to fetch (for pagination)",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "q",
+            "description": "Query - filter out which documents are returned, format is separator:key:value where separator is optional and defaults to comma (,)",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^(?:(\\W*):)?([a-zA-Z0-9._-]+):(.+)$"
+              }
+            }
+          },
+          {
+            "name": "published",
+            "description": "Whether to only fetch published docs",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of blog_posts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "attributes": {
+                            "type": "object",
+                            "properties": {
+                              "published_version": {
+                                "type": "integer",
+                                "minimum": 1,
+                                "x-meta": {
+                                  "versioned": false
+                                }
+                              },
+                              "_id": {
+                                "type": "string",
+                                "pattern": "^[a-z0-9]{24}$",
+                                "x-meta": {
+                                  "api_writable": false
+                                }
+                              },
+                              "publish_at": {
+                                "type": "string",
+                                "format": "date-time",
+                                "x-meta": {
+                                  "versioned": false
+                                }
+                              },
+                              "legacy_created_at": {
+                                "type": "string",
+                                "format": "date-time",
+                                "x-meta": {
+                                  "versioned": false
+                                }
+                              },
+                              "first_published_at": {
+                                "type": "string",
+                                "format": "date-time",
+                                "x-meta": {
+                                  "api_writable": false,
+                                  "versioned": false
+                                }
+                              },
+                              "type": {
+                                "type": "string",
+                                "x-meta": {
+                                  "api_writable": false
+                                }
+                              },
+                              "updated_at": {
+                                "type": "string",
+                                "format": "date-time",
+                                "x-meta": {
+                                  "api_writable": false,
+                                  "versioned": false,
+                                  "change_tracking": false
+                                }
+                              },
+                              "id": {
+                                "type": "integer",
+                                "x-meta": {
+                                  "api_writable": false
+                                }
+                              },
+                              "comments_count": {
+                                "type": "integer"
+                              },
+                              "last_published_at": {
+                                "type": "string",
+                                "format": "date-time",
+                                "x-meta": {
+                                  "api_writable": false,
+                                  "versioned": false
+                                }
+                              },
+                              "unpublish_at": {
+                                "type": "string",
+                                "format": "date-time",
+                                "x-meta": {
+                                  "versioned": false
+                                }
+                              },
+                              "updated_by": {
+                                "type": "string",
+                                "x-meta": {
+                                  "api_writable": false,
+                                  "versioned": false,
+                                  "change_tracking": false
+                                }
+                              },
+                              "version": {
+                                "type": "integer",
+                                "minimum": 1,
+                                "x-meta": {
+                                  "api_writable": false
+                                }
+                              },
+                              "body": {
+                                "type": "string",
+                                "x-meta": {
+                                  "form_field": "textarea"
+                                }
+                              },
+                              "created_by": {
+                                "type": "string",
+                                "x-meta": {
+                                  "api_writable": false,
+                                  "versioned": false
+                                }
+                              },
+                              "version_token": {
+                                "type": "string",
+                                "x-meta": {
+                                  "api_writable": false
+                                }
+                              },
+                              "subject": {
+                                "type": "string"
+                              },
+                              "created_at": {
+                                "type": "string",
+                                "format": "date-time",
+                                "x-meta": {
+                                  "api_writable": false,
+                                  "versioned": false
+                                }
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "type",
+                              "created_at",
+                              "created_by",
+                              "version",
+                              "version_token",
+                              "subject",
+                              "body"
+                            ],
+                            "x-meta": {
+                              "admin_properties": [
+                                "subject",
+                                "body",
+                                "created_at",
+                                "version",
+                                "published_version"
+                              ]
+                            },
+                            "additionalProperties": false
+                          }
+                        },
+                        "required": [
+                          "attributes"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "blog_posts"
+        ],
+        "summary": "Create blog_posts",
+        "x-model": "blog_posts",
+        "x-handler": "blog_posts/api:create",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "description": "User auth header on the format\"Bearer {token}\"",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "422": {
+            "description": "Validation errors"
+          }
+        },
+        "requestBody": {
+          "$ref": "#/components/requestBodies/Body2"
+        }
+      }
+    }
+  },
+  "components": {
+    "parameters": {
+      "auth": {
+        "name": "Authorization",
+        "description": "User auth header on the format\"Bearer {token}\"",
+        "in": "header",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      }
+    },
+    "requestBodies": {
+      "Body": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "attributes": {
+                      "type": "object",
+                      "properties": {
+                        "published_version": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "x-meta": {
+                            "versioned": false
+                          }
+                        },
+                        "publish_at": {
+                          "type": "string",
+                          "format": "date-time",
+                          "x-meta": {
+                            "versioned": false
+                          }
+                        },
+                        "legacy_created_at": {
+                          "type": "string",
+                          "format": "date-time",
+                          "x-meta": {
+                            "versioned": false
+                          }
+                        },
+                        "unpublish_at": {
+                          "type": "string",
+                          "format": "date-time",
+                          "x-meta": {
+                            "versioned": false
+                          }
+                        },
+                        "body": {
+                          "type": "string",
+                          "x-meta": {
+                            "form_field": "textarea"
+                          }
+                        }
+                      },
+                      "required": [
+                        "body"
+                      ],
+                      "x-meta": {
+                        "admin_properties": [
+                          "body",
+                          "created_at"
+                        ],
+                        "require-read-auth": true
+                      },
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "attributes"
+                  ]
+                }
+              },
+              "required": [
+                "data"
+              ]
+            }
+          }
+        },
+        "required": true
+      },
+      "Body2": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "attributes": {
+                      "type": "object",
+                      "properties": {
+                        "published_version": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "x-meta": {
+                            "versioned": false
+                          }
+                        },
+                        "publish_at": {
+                          "type": "string",
+                          "format": "date-time",
+                          "x-meta": {
+                            "versioned": false
+                          }
+                        },
+                        "legacy_created_at": {
+                          "type": "string",
+                          "format": "date-time",
+                          "x-meta": {
+                            "versioned": false
+                          }
+                        },
+                        "comments_count": {
+                          "type": "integer"
+                        },
+                        "unpublish_at": {
+                          "type": "string",
+                          "format": "date-time",
+                          "x-meta": {
+                            "versioned": false
+                          }
+                        },
+                        "body": {
+                          "type": "string",
+                          "x-meta": {
+                            "form_field": "textarea"
+                          }
+                        },
+                        "subject": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "subject",
+                        "body"
+                      ],
+                      "x-meta": {
+                        "admin_properties": [
+                          "subject",
+                          "body",
+                          "created_at",
+                          "version",
+                          "published_version"
+                        ]
+                      },
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "attributes"
+                  ]
+                }
+              },
+              "required": [
+                "data"
+              ]
+            }
+          }
+        },
+        "required": true
+      }
+    },
+    "schemas": {
+      "users_write": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "permission": {
+            "enum": [
+              "read",
+              "write"
+            ]
+          },
+          "password": {
+            "type": "string",
+            "x-meta": {
+              "api_readable": false
+            }
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "email",
+          "password",
+          "permission"
+        ],
+        "additionalProperties": false
+      },
+      "users_read": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "pattern": "^[a-z0-9]{24}$",
+            "x-meta": {
+              "api_writable": false
+            }
+          },
+          "email": {
+            "type": "string"
+          },
+          "permission": {
+            "enum": [
+              "read",
+              "write"
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "x-meta": {
+              "api_writable": false
+            }
+          },
+          "access_token_created_at": {
+            "type": "string",
+            "format": "date-time",
+            "x-meta": {
+              "api_writable": false
+            }
+          },
+          "id": {
+            "type": "integer",
+            "x-meta": {
+              "api_writable": false
+            }
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "name",
+          "email",
+          "permission"
+        ],
+        "additionalProperties": false
+      },
+      "changelog_write": {
+        "type": "object",
+        "properties": {
+          "changes": {
+            "type": "object"
+          },
+          "action": {
+            "enum": [
+              "create",
+              "update",
+              "delete"
+            ]
+          },
+          "doc": {
+            "type": "object"
+          },
+          "created_by": {
+            "type": "string",
+            "format": "email"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "action",
+          "doc",
+          "created_by",
+          "created_at"
+        ],
+        "additionalProperties": false
+      },
+      "changelog_read": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "pattern": "^[a-z0-9]{24}$",
+            "x-meta": {
+              "api_writable": false
+            }
+          },
+          "type": {
+            "type": "string",
+            "x-meta": {
+              "api_writable": false
+            }
+          },
+          "id": {
+            "type": "integer",
+            "x-meta": {
+              "api_writable": false
+            }
+          },
+          "changes": {
+            "type": "object"
+          },
+          "action": {
+            "enum": [
+              "create",
+              "update",
+              "delete"
+            ]
+          },
+          "doc": {
+            "type": "object"
+          },
+          "created_by": {
+            "type": "string",
+            "format": "email"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "action",
+          "doc",
+          "created_by",
+          "created_at"
+        ],
+        "additionalProperties": false
+      },
+      "blog_posts_write": {
+        "type": "object",
+        "properties": {
+          "published_version": {
+            "type": "integer",
+            "minimum": 1,
+            "x-meta": {
+              "versioned": false
+            }
+          },
+          "publish_at": {
+            "type": "string",
+            "format": "date-time",
+            "x-meta": {
+              "versioned": false
+            }
+          },
+          "legacy_created_at": {
+            "type": "string",
+            "format": "date-time",
+            "x-meta": {
+              "versioned": false
+            }
+          },
+          "comments_count": {
+            "type": "integer"
+          },
+          "unpublish_at": {
+            "type": "string",
+            "format": "date-time",
+            "x-meta": {
+              "versioned": false
+            }
+          },
+          "body": {
+            "type": "string",
+            "x-meta": {
+              "form_field": "textarea"
+            }
+          },
+          "subject": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "subject",
+          "body"
+        ],
+        "x-meta": {
+          "admin_properties": [
+            "subject",
+            "body",
+            "created_at",
+            "version",
+            "published_version"
+          ]
+        },
+        "additionalProperties": false
+      },
+      "blog_posts_read": {
+        "type": "object",
+        "properties": {
+          "published_version": {
+            "type": "integer",
+            "minimum": 1,
+            "x-meta": {
+              "versioned": false
+            }
+          },
+          "_id": {
+            "type": "string",
+            "pattern": "^[a-z0-9]{24}$",
+            "x-meta": {
+              "api_writable": false
+            }
+          },
+          "publish_at": {
+            "type": "string",
+            "format": "date-time",
+            "x-meta": {
+              "versioned": false
+            }
+          },
+          "legacy_created_at": {
+            "type": "string",
+            "format": "date-time",
+            "x-meta": {
+              "versioned": false
+            }
+          },
+          "first_published_at": {
+            "type": "string",
+            "format": "date-time",
+            "x-meta": {
+              "api_writable": false,
+              "versioned": false
+            }
+          },
+          "type": {
+            "type": "string",
+            "x-meta": {
+              "api_writable": false
+            }
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "x-meta": {
+              "api_writable": false,
+              "versioned": false,
+              "change_tracking": false
+            }
+          },
+          "id": {
+            "type": "integer",
+            "x-meta": {
+              "api_writable": false
+            }
+          },
+          "comments_count": {
+            "type": "integer"
+          },
+          "last_published_at": {
+            "type": "string",
+            "format": "date-time",
+            "x-meta": {
+              "api_writable": false,
+              "versioned": false
+            }
+          },
+          "unpublish_at": {
+            "type": "string",
+            "format": "date-time",
+            "x-meta": {
+              "versioned": false
+            }
+          },
+          "updated_by": {
+            "type": "string",
+            "x-meta": {
+              "api_writable": false,
+              "versioned": false,
+              "change_tracking": false
+            }
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1,
+            "x-meta": {
+              "api_writable": false
+            }
+          },
+          "body": {
+            "type": "string",
+            "x-meta": {
+              "form_field": "textarea"
+            }
+          },
+          "created_by": {
+            "type": "string",
+            "x-meta": {
+              "api_writable": false,
+              "versioned": false
+            }
+          },
+          "version_token": {
+            "type": "string",
+            "x-meta": {
+              "api_writable": false
+            }
+          },
+          "subject": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "x-meta": {
+              "api_writable": false,
+              "versioned": false
+            }
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "created_at",
+          "created_by",
+          "version",
+          "version_token",
+          "subject",
+          "body"
+        ],
+        "x-meta": {
+          "admin_properties": [
+            "subject",
+            "body",
+            "created_at",
+            "version",
+            "published_version"
+          ]
+        },
+        "additionalProperties": false
+      },
+      "diary_write": {
+        "type": "object",
+        "properties": {
+          "published_version": {
+            "type": "integer",
+            "minimum": 1,
+            "x-meta": {
+              "versioned": false
+            }
+          },
+          "publish_at": {
+            "type": "string",
+            "format": "date-time",
+            "x-meta": {
+              "versioned": false
+            }
+          },
+          "legacy_created_at": {
+            "type": "string",
+            "format": "date-time",
+            "x-meta": {
+              "versioned": false
+            }
+          },
+          "unpublish_at": {
+            "type": "string",
+            "format": "date-time",
+            "x-meta": {
+              "versioned": false
+            }
+          },
+          "body": {
+            "type": "string",
+            "x-meta": {
+              "form_field": "textarea"
+            }
+          }
+        },
+        "required": [
+          "body"
+        ],
+        "x-meta": {
+          "admin_properties": [
+            "body",
+            "created_at"
+          ],
+          "require-read-auth": true
+        },
+        "additionalProperties": false
+      },
+      "diary_read": {
+        "type": "object",
+        "properties": {
+          "published_version": {
+            "type": "integer",
+            "minimum": 1,
+            "x-meta": {
+              "versioned": false
+            }
+          },
+          "_id": {
+            "type": "string",
+            "pattern": "^[a-z0-9]{24}$",
+            "x-meta": {
+              "api_writable": false
+            }
+          },
+          "publish_at": {
+            "type": "string",
+            "format": "date-time",
+            "x-meta": {
+              "versioned": false
+            }
+          },
+          "legacy_created_at": {
+            "type": "string",
+            "format": "date-time",
+            "x-meta": {
+              "versioned": false
+            }
+          },
+          "first_published_at": {
+            "type": "string",
+            "format": "date-time",
+            "x-meta": {
+              "api_writable": false,
+              "versioned": false
+            }
+          },
+          "type": {
+            "type": "string",
+            "x-meta": {
+              "api_writable": false
+            }
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "x-meta": {
+              "api_writable": false,
+              "versioned": false,
+              "change_tracking": false
+            }
+          },
+          "id": {
+            "type": "integer",
+            "x-meta": {
+              "api_writable": false
+            }
+          },
+          "last_published_at": {
+            "type": "string",
+            "format": "date-time",
+            "x-meta": {
+              "api_writable": false,
+              "versioned": false
+            }
+          },
+          "unpublish_at": {
+            "type": "string",
+            "format": "date-time",
+            "x-meta": {
+              "versioned": false
+            }
+          },
+          "updated_by": {
+            "type": "string",
+            "x-meta": {
+              "api_writable": false,
+              "versioned": false,
+              "change_tracking": false
+            }
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1,
+            "x-meta": {
+              "api_writable": false
+            }
+          },
+          "body": {
+            "type": "string",
+            "x-meta": {
+              "form_field": "textarea"
+            }
+          },
+          "created_by": {
+            "type": "string",
+            "x-meta": {
+              "api_writable": false,
+              "versioned": false
+            }
+          },
+          "version_token": {
+            "type": "string",
+            "x-meta": {
+              "api_writable": false
+            }
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "x-meta": {
+              "api_writable": false,
+              "versioned": false
+            }
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "created_at",
+          "created_by",
+          "version",
+          "version_token",
+          "body"
+        ],
+        "x-meta": {
+          "admin_properties": [
+            "body",
+            "created_at"
+          ],
+          "require-read-auth": true
+        },
+        "additionalProperties": false
+      }
+    }
+  }
+}

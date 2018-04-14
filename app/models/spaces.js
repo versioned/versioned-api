@@ -3,7 +3,7 @@ const modelApi = require('lib/model_api')
 const {logger} = require('app/config')
 
 const coll = 'spaces'
-const KEY_LENGTH = 6 // 16^6 ~ 1 million
+const KEY_LENGTH = 8 // 16^8 ~ 1 billion
 const KEY_PREFIX = 's'
 
 async function findAvailableKey () {

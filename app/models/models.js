@@ -1,4 +1,4 @@
-const {setIn, getIn, keys} = require('lib/util')
+const {validInt, setIn, getIn, keys} = require('lib/util')
 const mongo = require('lib/mongo')
 const modelApi = require('lib/model_api')
 const modelSchema = require('lib/model_spec_schema')
@@ -16,9 +16,10 @@ function validationError (message) {
   return {status: 422, errors: [{type: 'validation', message}]}
 }
 
-function getColl (model) {
-  if (model.spaceId && model.coll) {
-    const prefix = `s${model.spaceId}`
+async function getColl (model) {
+  const space = model.spaceId && (await spaces.findOne(model.spaceId))
+  if (space && model.coll) {
+    const prefix = validInt(model.spaceId) ? `s${model.spaceId}` : space.key
     return [prefix, model.coll].join('_')
   } else {
     return undefined
@@ -26,7 +27,7 @@ function getColl (model) {
 }
 
 async function validateSpace (doc, options) {
-  if (doc.spaceId && !(await spaces.findOne({id: doc.spaceId}))) {
+  if (doc.spaceId && !(await spaces.findOne(doc.spaceId))) {
     throw validationError(`space '${doc.spaceId}' does not exist`)
   } else {
     return doc
@@ -34,7 +35,7 @@ async function validateSpace (doc, options) {
 }
 
 async function setColl (doc, options) {
-  const coll = getColl(doc)
+  const coll = await getColl(doc)
   if (coll) {
     return setIn(doc, ['model', 'coll'], coll)
   } else {
@@ -85,7 +86,7 @@ async function validateCollAvailable (doc, options) {
 }
 
 async function deleteColl (doc, options) {
-  const coll = getColl(doc)
+  const coll = getIn(doc, ['model', 'coll'])
   const colls = await mongo.getColls()
   if (colls.includes(coll)) {
     await mongo.db().collection(coll).drop()
@@ -101,7 +102,7 @@ const model = {
     type: 'object',
     properties: {
       title: {type: 'string'},
-      spaceId: {type: 'integer', 'x-meta': {update: false, index: true}},
+      spaceId: {type: 'string', 'x-meta': {update: false, index: true}},
       coll: {type: 'string', pattern: collPattern, 'x-meta': {update: false, index: true}},
       model: modelSchema
     },

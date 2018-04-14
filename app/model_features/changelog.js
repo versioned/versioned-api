@@ -1,13 +1,15 @@
-const {getIn} = require('lib/util')
 const changelog = require('app/models/changelog')
 const {changes} = require('lib/model_api')
+const {readableDoc} = require('lib/model_access')
+const modelMeta = require('lib/model_meta')
 
 async function changelogCallback (doc, options) {
+  const users = require('app/models/users')
   await changelog.create({
     action: options.action,
-    doc,
+    doc: readableDoc(options.model, doc),
     changes: changes(options.existingDoc, doc),
-    createdBy: getIn(options, ['user', 'id']),
+    createdBy: modelMeta.getId(users.model, options.user),
     createdAt: new Date()
   }, options)
   return doc
