@@ -67,7 +67,7 @@ async function validateModelsLimit (doc, options) {
 async function validateSwagger (doc, options) {
   if (doc.model && doc.spaceId) {
     let systemSwagger = await swagger()
-    let spaceSwagger = await swagger({spaceId: doc.spaceId, models: [doc.model]})
+    let spaceSwagger = await swagger({spaceId: doc.spaceId, models: [doc]})
     for (let swagger of [systemSwagger, spaceSwagger]) {
       const errors = jsonSchema.validate(swaggerSchema, swagger)
       if (errors) throw errors

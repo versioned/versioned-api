@@ -22,7 +22,7 @@ function initEnv () {
 function suites () {
   const suitesPath = path.join(__dirname, '/suites')
   const allSuites = fs.readdirSync(suitesPath).map(filename => path.parse(filename).name)
-  const setup = allSuites.includes('setup') ? ['setup'] : []
+  const setup = (process.env['SETUP'] !== '0' && allSuites.includes('setup')) ? ['setup'] : []
   const allSuitesWithoutSetup = allSuites.filter(s => s !== 'setup').sort()
   const customSuites = process.env.SUITES && process.env.SUITES.split(',')
   return concat(setup, (customSuites || allSuitesWithoutSetup))

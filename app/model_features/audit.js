@@ -3,7 +3,6 @@ const modelMeta = require('lib/model_meta')
 
 function auditCreateCallback (doc, options) {
   const users = require('app/models/users')
-  console.log('pm debug audit callback', users.model, modelMeta.idProperty(users.model), options.user, modelMeta.getId(users.model, options.user))
   return merge(doc, {
     createdAt: new Date(),
     createdBy: modelMeta.getId(users.model, options.user)

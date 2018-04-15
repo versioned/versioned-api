@@ -4,8 +4,6 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 
 ## TODO
 
-* Make integer_id optional
-
 * Complete Swagger with parameters and schemas for CRUD and data endpoints
   Use versioned1-openapi-example.json as model
   Start with id path parameter
@@ -15,6 +13,7 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
   Also, distinguish responses per route?
 
 * Middleware that validates params based on swagger. This is mostly for get/list/delete routes.
+  Also - validate path params
   Should also do coercion - i.e. string to integer. Use ajv for this? https://github.com/epoberezkin/ajv/blob/master/COERCION.md
   swagger_util.parametersToSchema
 
@@ -114,12 +113,13 @@ Create Space:
 
 ```
 http POST $BASE_URL/spaces Authorization:"Bearer $TOKEN" name="foobar"
+export SPACE_ID=...
 ```
 
 Create Model in Space:
 
 ```
-echo '{"title": "Foobar", "spaceId": 1, "coll": "foobar", "model": {"schema": {"type": "object", "properties": {"title": {"type": "string"}}}}}' | http POST $BASE_URL/models Authorization:"Bearer $TOKEN"
+echo "{\"title\": \"Foobar\", \"spaceId\": \"${SPACE_ID}\", \"coll\": \"foobar\", \"model\": {\"schema\": {\"type\": \"object\", \"properties\": {\"title\": {\"type\": \"string\"}}}}}" | http POST $BASE_URL/models Authorization:"Bearer $TOKEN"
 ```
 
 ## Create Admin User from JavaScript
