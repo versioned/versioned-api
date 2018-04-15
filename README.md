@@ -5,17 +5,19 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 ## TODO
 
 * Complete Swagger with parameters and schemas for CRUD and data endpoints
-  Use versioned1-openapi-example.json as model
-  Start with id path parameter
-  Then body parameters for create/update
-  NOTE: need to modify required list based on update/create
-  Response schema should use readable
-  Also, distinguish responses per route?
+  list endpoint parameters
+  swagger suite API test request/response schemas (update/create etc.)
 
 * Middleware that validates params based on swagger. This is mostly for get/list/delete routes.
   Also - validate path params
   Should also do coercion - i.e. string to integer. Use ajv for this? https://github.com/epoberezkin/ajv/blob/master/COERCION.md
   swagger_util.parametersToSchema
+
+* Put space_id in header instead of in path?
+
+* Readable schema should have id instead of "underscore_id"
+
+* compact([]) should return []. Just make sure objects compacts out empty arrays
 
 * Versioning and publishing
   See useful contentful attributes related to publishing
@@ -119,7 +121,7 @@ export SPACE_ID=...
 Create Model in Space:
 
 ```
-echo "{\"title\": \"Foobar\", \"spaceId\": \"${SPACE_ID}\", \"coll\": \"foobar\", \"model\": {\"schema\": {\"type\": \"object\", \"properties\": {\"title\": {\"type\": \"string\"}}}}}" | http POST $BASE_URL/models Authorization:"Bearer $TOKEN"
+echo "{\"title\": \"Foobar\", \"spaceId\": \"${SPACE_ID}\", \"coll\": \"foobar\", \"model\": {\"schema\": {\"type\": \"object\", \"properties\": {\"title\": {\"type\": \"string\"}, \"key\": {\"type\": \"string\", \"x-meta\": {\"update\": false}}}}}}" | http POST $BASE_URL/models Authorization:"Bearer $TOKEN"
 ```
 
 ## Create Admin User from JavaScript
@@ -326,6 +328,7 @@ assertTypes([{foo: 1, bar: 'baz'}], {foo: 'number', bar: 'string'})
 * [node-mongodb-native](https://github.com/mongodb/node-mongodb-native)
 * [json-schema-ref-parser](https://www.npmjs.com/package/json-schema-ref-parser)
 * [Converting your Swagger 2.0 API Definition to OpenAPI 3.0](https://blog.runscope.com/posts/tutorial-upgrading-swagger-2-api-definition-to-openapi-3)
+* [OpenAPI - Add support for patternProperties in schemas](https://github.com/OAI/OpenAPI-Specification/issues/687)
 
 ## Headless CMS - Open Source
 

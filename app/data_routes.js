@@ -6,6 +6,7 @@ const config = require('app/config')
 const {notFound} = config.modules.response
 const swaggerHandler = require('app/controllers/swagger').index
 const {idType} = require('lib/model_meta')
+const {requestSchema, responseSchema} = require('lib/model_access')
 
 const PARAMS = {
   spaceId: ['spaceId'],
@@ -108,7 +109,9 @@ function modelRoutes (prefix, options = {}) {
       path: route.path(prefix, options),
       handler: dataHandler(endpoint),
       summary,
-      parameters: parameters(options.model, endpoint)
+      parameters: parameters(options.model, endpoint),
+      requestSchema: requestSchema(getIn(options, ['api', 'model']), endpoint),
+      responseSchema: responseSchema(getIn(options, ['api', 'model']), endpoint)
     })])
   }, [])
 }
@@ -118,7 +121,10 @@ async function routes (prefix, options = {}) {
     let spaceModels = await models.list({spaceId: parseIfInt(options.spaceId)})
     if (options.models) spaceModels = spaceModels.concat(options.models)
     return [swaggerRoute(prefix, options)]
-      .concat(flatten(spaceModels.map(model => modelRoutes(prefix, merge(options, {model})))))
+      .concat(flatten(spaceModels.map(model => {
+        const api = modelApi(model.model)
+        return modelRoutes(prefix, merge(options, {model, api}))
+      })))
   } else {
     return [swaggerRoute(prefix, options)].concat(modelRoutes(prefix, options))
   }

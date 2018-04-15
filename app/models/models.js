@@ -1,4 +1,4 @@
-const {validInt, setIn, getIn, keys} = require('lib/util')
+const {compact, validInt, setIn, getIn, values, keys} = require('lib/util')
 const mongo = require('lib/mongo')
 const modelApi = require('lib/model_api')
 const modelSchema = require('lib/model_spec_schema')
@@ -8,6 +8,7 @@ const jsonSchema = require('lib/json_schema')
 const swaggerSchema = require('public/openapi-schema')
 const config = require('app/config')
 const logger = config.logger
+const {withoutRefs} = require('lib/json_schema')
 
 const coll = 'models'
 const collPattern = getIn(spaces, ['schema', 'properties', 'coll', 'pattern'])
@@ -64,6 +65,32 @@ async function validateModelsLimit (doc, options) {
   return doc
 }
 
+const X_META_SCHEMA = {
+  type: 'object',
+  properties: {
+    id: {type: 'boolean'},
+    readable: {type: 'boolean'},
+    writable: {type: 'boolean'},
+    update: {type: 'boolean'},
+    versioned: {type: 'boolean'},
+    index: {type: ['boolean', 'integer']},
+    unique: {type: 'boolean'}
+  },
+  additionalProperties: false
+}
+
+// NOTE: Using this special case validation instead of patternProperties since
+// patternProperties is not supported by OpenAPI
+async function validateXMeta (doc, options) {
+  const properties = getIn(doc, ['model', 'schema', 'properties'])
+  const xMetaList = compact(values(properties).map(p => p['x-meta'])) || []
+  for (let xMeta of xMetaList) {
+    const errors = jsonSchema.validate(X_META_SCHEMA, xMeta)
+    if (errors) throw errors
+  }
+  return doc
+}
+
 async function validateSwagger (doc, options) {
   if (doc.model && doc.spaceId) {
     let systemSwagger = await swagger()
@@ -97,14 +124,12 @@ async function deleteColl (doc, options) {
 const model = {
   coll,
   schema: {
-    // Need definitions here in the root for $ref to resolve
-    definitions: modelSchema.definitions,
     type: 'object',
     properties: {
       title: {type: 'string'},
       spaceId: {type: 'string', 'x-meta': {update: false, index: true}},
       coll: {type: 'string', pattern: collPattern, 'x-meta': {update: false, index: true}},
-      model: modelSchema
+      model: withoutRefs(modelSchema)
     },
     required: ['title', 'spaceId', 'coll', 'model'],
     additionalProperties: false
@@ -112,7 +137,7 @@ const model = {
   callbacks: {
     save: {
       before_validation: [validateSpace, setColl, validateModel, validatePropertiesLimit],
-      after_validation: [validateSwagger]
+      after_validation: [validateXMeta, validateSwagger]
     },
     create: {
       before_validation: [validateCollAvailable, validateModelsLimit]
