@@ -10,6 +10,7 @@ const setCorsHeaders = require('lib/middleware/cors').setCorsHeaders
 const attachRoute = require('lib/middleware/route').attachRoute
 const queryParser = require('lib/middleware/query').queryParser
 const bodyParser = require('lib/middleware/body').bodyParser
+const validateParams = require('lib/middleware/validate_params').validateParams
 const setCacheHeader = require('lib/middleware/cache').setCacheHeader
 const auth = require('lib/middleware/auth').auth
 const users = require('app/models/users')
@@ -28,6 +29,7 @@ function setupMiddleware (app) {
   app.use(attachRoute(getRoutes, config.logger))
   app.use(queryParser)
   app.use(bodyParser)
+  app.use(validateParams)
   app.use(setCacheHeader(config))
   app.use(auth(AUTH_CONFIG))
 }

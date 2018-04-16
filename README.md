@@ -4,40 +4,34 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 
 ## TODO
 
-* Complete Swagger with parameters and schemas for CRUD and data endpoints
-  api test list endpoint parameters
-  swagger suite API test request/response schemas (update/create etc.)
-
-* Validation of list params. Which fields can you query by and which can you sort by?
-  Only query indexes fields if the collection is large?
-
-* Middleware that validates params based on swagger. This is mostly for get/list/delete routes.
-  Also - validate path params
-  Should also do coercion - i.e. string to integer. Use ajv for this? https://github.com/epoberezkin/ajv/blob/master/COERCION.md
-  swagger_util.parametersToSchema
-
-* Put space_id in header instead of in path?
-
-* compact([]) should return []. Just make sure objects compacts out empty arrays
+* compact([]) should return [] and compact({}) return {}. Just make sure objects compacts out empty
 
 * Versioning and publishing
   See useful contentful attributes related to publishing
 
 * versioned2-ui
 
+* Relationships
+
+* Try always throwing Error objects
+  Better error logging from middleware
+
+* swagger suite API test request/response schemas (update/create etc.)
+
+* api test list endpoint parameters. Validation of list params. Which fields can you query by and which can you sort by? Only query indexes fields if the collection is large?
+
+* Put space_id in header instead of in path?
+
 * Contentful data types and constraints (short text, long text)
 
 * Rename swagger to openapi?
 
-* list endpoint
-  swagger parameters
+* list endpoint improvements
   stats optional via query param
   always add count instead
   make sure count always uses the same query as list
 
 * Study contentful
-
-* Relationships
 
 * Multi tenant: accounts model (users.account_id)
 * Multi tenant: spaces model with (account_id, name, key)
