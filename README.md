@@ -5,8 +5,11 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 ## TODO
 
 * Complete Swagger with parameters and schemas for CRUD and data endpoints
-  list endpoint parameters
+  api test list endpoint parameters
   swagger suite API test request/response schemas (update/create etc.)
+
+* Validation of list params. Which fields can you query by and which can you sort by?
+  Only query indexes fields if the collection is large?
 
 * Middleware that validates params based on swagger. This is mostly for get/list/delete routes.
   Also - validate path params
@@ -14,8 +17,6 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
   swagger_util.parametersToSchema
 
 * Put space_id in header instead of in path?
-
-* Readable schema should have id instead of "underscore_id"
 
 * compact([]) should return []. Just make sure objects compacts out empty arrays
 
