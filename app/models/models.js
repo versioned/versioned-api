@@ -83,7 +83,7 @@ const X_META_SCHEMA = {
 // patternProperties is not supported by OpenAPI
 async function validateXMeta (doc, options) {
   const properties = getIn(doc, ['model', 'schema', 'properties'])
-  const xMetaList = compact(values(properties).map(p => p['x-meta'])) || []
+  const xMetaList = compact(values(properties).map(p => p['x-meta']))
   for (let xMeta of xMetaList) {
     const errors = jsonSchema.validate(X_META_SCHEMA, xMeta)
     if (errors) throw errors
