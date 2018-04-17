@@ -1,6 +1,7 @@
-const {compact, validInt, setIn, getIn, values, keys} = require('lib/util')
+const {concat, compact, validInt, setIn, getIn, values, keys} = require('lib/util')
 const mongo = require('lib/mongo')
 const modelApi = require('lib/model_api')
+const modelSpec = require('lib/model_spec')
 const modelSchema = require('lib/model_spec_schema')
 const spaces = require('app/models/spaces')
 const swagger = require('app/swagger')
@@ -39,6 +40,15 @@ async function setColl (doc, options) {
   const coll = await getColl(doc)
   if (coll) {
     return setIn(doc, ['model', 'coll'], coll)
+  } else {
+    return doc
+  }
+}
+
+async function setFeatures (doc, options) {
+  if (doc.features) {
+    const features = concat(modelSpec.DEFAULTS.features, doc.features)
+    return setIn(doc, ['model', 'features'], features)
   } else {
     return doc
   }
@@ -129,6 +139,7 @@ const model = {
       title: {type: 'string'},
       spaceId: {type: 'string', 'x-meta': {update: false, index: true}},
       coll: {type: 'string', pattern: collPattern, 'x-meta': {update: false, index: true}},
+      features: {type: 'array', items: {enum: ['published']}},
       model: withoutRefs(modelSchema)
     },
     required: ['title', 'spaceId', 'coll', 'model'],
@@ -136,7 +147,7 @@ const model = {
   },
   callbacks: {
     save: {
-      before_validation: [validateSpace, setColl, validateModel, validatePropertiesLimit],
+      before_validation: [validateSpace, setColl, setFeatures, validateModel, validatePropertiesLimit],
       after_validation: [validateXMeta, validateSwagger]
     },
     create: {

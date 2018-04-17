@@ -4,10 +4,12 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 
 ## TODO
 
-* compact([]) should return [] and compact({}) return {}. Just make sure objects compacts out empty
-
 * Versioning and publishing
-  See useful contentful attributes related to publishing
+  Built in models should not have published feature
+  Add API test models_published.js with features: ['audit', 'published', 'changelog']
+  Published feature should not assume audit feature
+
+* models.model should have update: false? You can do this by introducing models.schema and a setSchema callback (or have a setModel callback for coll, features, schema etc.)
 
 * versioned2-ui
 
