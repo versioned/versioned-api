@@ -11,7 +11,8 @@
     "unit-test": "jest",
     "unit-test-watch": "jest --watch",
     "api-test": "./test/api/js/run",
-    "line-count": "find {app,lib} -iname '*.js'| xargs wc -l"
+    "line-count": "find {app,lib} -iname '*.js'| grep -v test | xargs wc -l",
+    "line-count-test": "find {app,lib,test} -iname '*.js'| grep test |xargs wc -l"
   },
   "author": "Peter Marklund",
   "license": "ISC",

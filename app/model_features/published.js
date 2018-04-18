@@ -2,6 +2,8 @@ const {uuid, notEmpty, keys, pick, filter, getIn, merge, compact} = require('lib
 const {changes} = require('lib/model_api')
 const modelMeta = require('lib/model_meta')
 const modelApi = require('lib/model_api')
+const config = require('app/config')
+const logger = config.logger
 
 const VERSION_TOKEN_LENGTH = 10
 
@@ -23,7 +25,7 @@ function versionedModel (model) {
         options: {unique: true}
       },
       {
-        keys: {id: 1, version_token: 1},
+        keys: {id: 1, versionToken: 1},
         options: {unique: true}
       }
     ]
@@ -56,7 +58,7 @@ function versionedChanges (model, existingDoc, doc) {
 
 function shouldIncrementVersion (model, existingDoc, doc) {
   return notEmpty(versionedChanges(model, existingDoc, doc)) &&
-    (!existingDoc.version || (doc.publishedVersion && doc.publishedVersion >= existingDoc.version))
+    getIn(existingDoc, ['publishedVersion']) && existingDoc.publishedVersion >= existingDoc.version
 }
 
 function newVersion (model, existingDoc, doc) {
@@ -101,7 +103,7 @@ async function updateVersion (doc, options) {
   const {model, existingDoc} = options
   if (doc.version === getIn(existingDoc, ['version'])) {
     const updatedDoc = versionedDoc(model, doc)
-    await modelApi(versionedModel(model)).update(versionQuery(doc), updatedDoc)
+    await modelApi(versionedModel(model), logger).update(versionQuery(doc), updatedDoc)
   }
   return doc
 }
@@ -109,13 +111,13 @@ async function updateVersion (doc, options) {
 async function createVersion (doc, options) {
   const {model, existingDoc} = options
   if (!existingDoc || doc.version > existingDoc.version) {
-    await modelApi(versionedModel(model)).create(versionedDoc(model, doc))
+    await modelApi(versionedModel(model), logger).create(versionedDoc(model, doc))
   }
   return doc
 }
 
 async function removeVersion (doc, options) {
-  await modelApi(versionedModel(options.model)).delete(versionQuery(doc))
+  await modelApi(versionedModel(options.model), logger).delete(versionQuery(doc))
   return doc
 }
 

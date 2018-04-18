@@ -9,6 +9,16 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
   Add API test models_published.js with features: ['audit', 'published', 'changelog']
   Published feature should not assume audit feature
 
+* list/get before/after callbacks?
+  Update schema: update/create - ['before_validation', 'after_validation', 'after_save']
+    other: ['before', 'after']
+
+* The get endpoint should support published=1 param
+
+* The get endpoint should support versions=1 param
+
+* The list endpoint should support published=1 param
+
 * models.model should have update: false? You can do this by introducing models.schema and a setSchema callback (or have a setModel callback for coll, features, schema etc.)
 
 * versioned2-ui
