@@ -33,7 +33,7 @@ function versionedModel (model) {
 }
 
 function isVersionedProperty (property) {
-  return getIn(property, ['x-meta', 'writable']) !== false
+  return getIn(property, ['x-meta', 'versioned']) !== false
 }
 
 function versionedProperties (model) {
@@ -57,8 +57,10 @@ function versionedChanges (model, existingDoc, doc) {
 }
 
 function shouldIncrementVersion (model, existingDoc, doc) {
-  return notEmpty(versionedChanges(model, existingDoc, doc)) &&
+  const shouldIncrement = notEmpty(versionedChanges(model, existingDoc, doc)) &&
     getIn(existingDoc, ['publishedVersion']) && existingDoc.publishedVersion >= existingDoc.version
+  logger.verbose('published: shouldIncrementVersion and versionedChanges', shouldIncrement, versionedChanges(model, existingDoc, doc))
+  return shouldIncrement
 }
 
 function newVersion (model, existingDoc, doc) {

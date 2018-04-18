@@ -83,9 +83,21 @@ module.exports = async function (c) {
   // list items -> version=2
   // list published items -> version=1
 
-  // update item
-  // Check version=2 and publishedVersion=1
+  result = await c.put('update again', `/data/${spaceId}/items/${id}`, {title: 'foobar3'})
+  c.assertEqual(result.data.title, 'foobar3')
+  c.assertEqual(result.data.version, 2)
+  c.assertEqual(result.data.publishedVersion, 1)
 
-  // publish item
-  // Check version=2 and publishedVersion=2
+  result = await c.put('publish item', `/data/${spaceId}/items/${id}`, {publishedVersion: 2})
+  c.assertEqual(result.data.title, 'foobar3')
+  c.assertEqual(result.data.version, 2)
+  c.assertEqual(result.data.publishedVersion, 2)
+
+  result = await c.put('rollback item', `/data/${spaceId}/items/${id}`, {publishedVersion: 1})
+  c.assertEqual(result.data.version, 2)
+  c.assertEqual(result.data.publishedVersion, 1)
+
+  result = await c.put('unpublish item', `/data/${spaceId}/items/${id}`, {publishedVersion: null})
+  c.assertEqual(result.data.version, 2)
+  c.assert(!result.data.publishedVersion)
 }
