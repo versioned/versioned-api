@@ -7,6 +7,7 @@ const config = require('app/config')
 const modelRoutes = require('lib/model_routes')(config.modules.response)
 const dataRoutes = require('app/data_routes')
 const path = require('path')
+const router = require('lib/router')
 
 const VERSION = 'v1'
 const PREFIX = `/${VERSION}`
@@ -51,8 +52,22 @@ async function getRoutes (options = {}) {
   return concat((await dataRoutes(DATA_PREFIX, options)), systemRoutes)
 }
 
+function parseSpaceId (req) {
+  const SPACE_ID_PATTERN = new RegExp(`${DATA_PREFIX}/([a-f0-9]{24})/`)
+  const match = req.url.match(SPACE_ID_PATTERN)
+  return match && match[1]
+}
+
+async function lookupRoute (req) {
+  const spaceId = parseSpaceId(req)
+  const routesByMethod = router.groupByMethod(await getRoutes({spaceId}))
+  const match = await router.lookupRoute(routesByMethod, req)
+  return match
+}
+
 module.exports = {
   VERSION,
   PREFIX,
-  getRoutes
+  getRoutes,
+  lookupRoute
 }
