@@ -4,7 +4,8 @@ const {jsonResponse} = config.modules.response
 const swagger = require('app/swagger')
 
 async function index (req, res) {
-  const body = await swagger(pick(req.params, ['spaceId']))
+  const options = pick(req.params, ['spaceId'])
+  const body = await swagger(options)
   jsonResponse(req, res, body)
 }
 

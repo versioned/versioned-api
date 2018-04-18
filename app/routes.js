@@ -48,7 +48,7 @@ const systemRoutes = [
 ].concat(modelRoutes.requireDir(MODELS_DIR, VERSION))
 
 async function getRoutes (options = {}) {
-  return concat(systemRoutes, (await dataRoutes(DATA_PREFIX, options)))
+  return concat((await dataRoutes(DATA_PREFIX, options)), systemRoutes)
 }
 
 module.exports = {

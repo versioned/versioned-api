@@ -1,11 +1,14 @@
 const swaggerUtil = require('lib/swagger_util')
 const config = require('app/config')
+const spaces = require('app/models/spaces')
 
 async function swagger (options = {}) {
   const routesModule = require('app/routes')
   const routes = await routesModule.getRoutes(options)
+  const space = options.spaceId && (await spaces.get(options.spaceId))
+  const title = space ? `${config.TITLE} - space: ${space.name}` : config.TITLE
   const swaggerOptions = {
-    title: config.TITLE,
+    title,
     description: config.DESCRIPTION,
     version: routesModule.VERSION,
     basePath: undefined

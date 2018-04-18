@@ -1,4 +1,4 @@
-const {uuid, notEmpty, keys, pick, filter, getIn, merge, compact} = require('lib/util')
+const {concat, uuid, notEmpty, keys, pick, filter, getIn, merge, compact} = require('lib/util')
 const {changes} = require('lib/model_api')
 const modelMeta = require('lib/model_meta')
 const modelApi = require('lib/model_api')
@@ -6,6 +6,29 @@ const config = require('app/config')
 const logger = config.logger
 
 const VERSION_TOKEN_LENGTH = 10
+
+function parameters (route) {
+  if (['list', 'get'].includes(route.action)) {
+    return [
+      {
+        name: 'published',
+        in: 'query',
+        required: false,
+        schema: {
+          type: 'boolean'
+        }
+      }
+    ]
+  } else {
+    return []
+  }
+}
+
+function addRouteParameters (route) {
+  return merge(route, {
+    parameters: concat(route.parameters, parameters(route))
+  })
+}
 
 function versionedModel (model) {
   return {
@@ -18,8 +41,6 @@ function versionedModel (model) {
       }
     },
     features: [],
-    callbacks: {
-    },
     indexes: [
       {
         keys: {id: 1, version: 1},
@@ -175,6 +196,9 @@ const model = {
     },
     delete: {
       after: [removeVersion]
+    },
+    routeCreate: {
+      after: [addRouteParameters]
     }
   }
 }

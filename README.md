@@ -4,6 +4,9 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 
 ## TODO
 
+* route middleware should take lookupRoute as parameter
+  The spaceId parsing should use PREFIX
+
 * Versioning and publishing
   Built in models should not have published feature
   Add API test models_published.js with features: ['audit', 'published', 'changelog']
@@ -20,6 +23,8 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 * The list endpoint should support published=1 param
 
 * models.model should have update: false? You can do this by introducing models.schema and a setSchema callback (or have a setModel callback for coll, features, schema etc.)
+
+* Move spaceId from path to header?
 
 * versioned2-ui
 
@@ -121,14 +126,27 @@ http GET $BASE_URL/users Authorization:"Bearer $TOKEN"
 Create Space:
 
 ```
-http POST $BASE_URL/spaces Authorization:"Bearer $TOKEN" name="foobar"
+http POST $BASE_URL/spaces Authorization:"Bearer $TOKEN" name="My Content"
 export SPACE_ID=...
 ```
 
-Create Model in Space:
+Create Published Model in Space:
 
 ```
-echo "{\"title\": \"Foobar\", \"spaceId\": \"${SPACE_ID}\", \"coll\": \"foobar\", \"model\": {\"schema\": {\"type\": \"object\", \"properties\": {\"title\": {\"type\": \"string\"}, \"key\": {\"type\": \"string\", \"x-meta\": {\"update\": false}}}}}}" | http POST $BASE_URL/models Authorization:"Bearer $TOKEN"
+echo "{\"title\": \"Published Items\", \"spaceId\": \"${SPACE_ID}\", \"coll\": \"items\", \"features\": [\"published\"], \"model\": {\"schema\": {\"type\": \"object\", \"properties\": {\"title\": {\"type\": \"string\"}, \"key\": {\"type\": \"string\", \"x-meta\": {\"update\": false}}}}}}" | http POST $BASE_URL/models Authorization:"Bearer $TOKEN"
+```
+
+Create some content for that model:
+
+```
+http POST $BASE_URL/data/5ad73afec6d5f37d3d593ac1/items Authorization:"Bearer $TOKEN" title="My first item"
+```
+
+List content:
+
+```
+http $BASE_URL/data/5ad73afec6d5f37d3d593ac1/items Authorization:"Bearer $TOKEN"
+http "$BASE_URL/data/5ad73afec6d5f37d3d593ac1/items?published=1" Authorization:"Bearer $TOKEN"
 ```
 
 ## Create Admin User from JavaScript

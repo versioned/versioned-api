@@ -1,4 +1,4 @@
-const {concat, getIn, keys, keyValues, merge, flatten, parseIfInt} = require('lib/util')
+const {concat, getIn, keys, keyValues, merge} = require('lib/util')
 const modelApi = require('lib/model_api')
 const models = require('app/models/models')
 const modelController = require('lib/model_controller')
@@ -9,7 +9,7 @@ const {idType} = require('lib/model_meta')
 const {requestSchema, responseSchema} = require('lib/model_access')
 
 const PARAMS = {
-  spaceId: ['spaceId'],
+  // spaceId: ['spaceId'],
   model: ['model', 'coll']
 }
 
@@ -19,7 +19,7 @@ function withParams (path, options = {}) {
   }, path)
 }
 
-function spaceIdParameter (model) {
+function spaceIdParameter () {
   return {
     name: 'spaceId',
     in: 'path',
@@ -53,7 +53,7 @@ function idParameter (model) {
 }
 
 function parameters (model, endpoint) {
-  const listParameters = [spaceIdParameter(model), modelParameter(model)]
+  const listParameters = model ? [spaceIdParameter()] : [spaceIdParameter(), modelParameter(model)]
   const getParameters = concat(listParameters, idParameter(model))
   return {
     list: listParameters,
@@ -76,13 +76,14 @@ function swaggerPath (prefix, options) {
   return withParams(`/${prefix}/:spaceId/swagger.json`, options)
 }
 
-function dataHandler (endpoint) {
-  return async function (req, res) {
+function dataHandler (coll, endpoint) {
+  async function _dataHandler (req, res) {
     const query = {
-      spaceId: parseIfInt(req.params.spaceId),
-      coll: req.params.model
+      spaceId: req.params.spaceId,
+      coll
     }
     const model = await models.findOne(query)
+    console.log('pm debug dataHandler', query, model)
     if (model) {
       const api = modelApi(model.model, config.logger)
       modelController(api, config.modules.response)[endpoint](req, res)
@@ -90,6 +91,7 @@ function dataHandler (endpoint) {
       notFound(res)
     }
   }
+  return _dataHandler
 }
 
 function swaggerRoute (prefix, options) {
@@ -98,7 +100,8 @@ function swaggerRoute (prefix, options) {
     tags: ['data'],
     method: 'get',
     path: swaggerPath(prefix),
-    handler: swaggerHandler
+    handler: swaggerHandler,
+    parameters: [spaceIdParameter()]
   }
 }
 
@@ -125,32 +128,42 @@ const ROUTES = {
   }
 }
 
-function modelRoutes (prefix, options = {}) {
-  return keyValues(ROUTES).reduce((acc, [endpoint, route]) => {
+async function modelRoutes (prefix, options = {}) {
+  const modelCallbacks = require('lib/model_callbacks')(config.logger)
+  const routes = []
+  for (let [endpoint, route] of keyValues(ROUTES)) {
     const summary = options.model ? `${endpoint} ${options.model.coll} data` : `${endpoint} data`
-    return acc.concat([merge(route, {
+    route = merge(route, {
+      action: endpoint,
       tags: ['data'],
       path: route.path(prefix, options),
-      handler: dataHandler(endpoint),
+      handler: dataHandler(options.model.coll, endpoint),
       summary,
       parameters: parameters(options.model, endpoint),
       requestSchema: requestSchema(getIn(options, ['api', 'model']), endpoint),
       responseSchema: responseSchema(getIn(options, ['api', 'model']), endpoint)
-    })])
-  }, [])
+    })
+    if (options.api) {
+      route = await modelCallbacks(options.api.model, route, 'after', 'routeCreate')
+    }
+    routes.push(route)
+  }
+  return routes
 }
 
 async function routes (prefix, options = {}) {
   if (options.spaceId) {
-    let spaceModels = await models.list({spaceId: parseIfInt(options.spaceId)})
+    let spaceModels = await models.list({spaceId: options.spaceId})
     if (options.models) spaceModels = spaceModels.concat(options.models)
-    return [swaggerRoute(prefix, options)]
-      .concat(flatten(spaceModels.map(model => {
-        const api = modelApi(model.model)
-        return modelRoutes(prefix, merge(options, {model, api}))
-      })))
+    let result = [swaggerRoute(prefix, options)]
+    for (let model of spaceModels) {
+      const api = modelApi(model.model)
+      const routes = await modelRoutes(prefix, merge(options, {model, api}))
+      result = result.concat(routes)
+    }
+    return result
   } else {
-    return [swaggerRoute(prefix, options)].concat(modelRoutes(prefix, options))
+    return [swaggerRoute(prefix, options)]
   }
 }
 
