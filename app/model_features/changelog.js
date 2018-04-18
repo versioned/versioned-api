@@ -21,7 +21,7 @@ const model = {
       after_save: [changelogCallback]
     },
     delete: {
-      after_delete: [changelogCallback]
+      after: [changelogCallback]
     }
   }
 }

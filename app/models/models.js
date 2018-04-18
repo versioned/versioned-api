@@ -154,7 +154,7 @@ const model = {
       before_validation: [validateCollAvailable, validateModelsLimit]
     },
     delete: {
-      after_delete: [deleteColl]
+      after: [deleteColl]
     }
   },
   indexes: [

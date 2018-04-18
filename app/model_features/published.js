@@ -173,7 +173,7 @@ const model = {
       after_save: [updateVersion, createVersion]
     },
     delete: {
-      after_delete: [removeVersion]
+      after: [removeVersion]
     }
   }
 }
