@@ -41,7 +41,7 @@ const model = {
   },
   callbacks: {
     create: {
-      before_validation: [setKeyCallback]
+      beforeValidation: [setKeyCallback]
     }
   }
 }

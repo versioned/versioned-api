@@ -30,10 +30,10 @@ const model = {
   },
   callbacks: {
     create: {
-      before_validation: [auditCreateCallback]
+      beforeValidation: [auditCreateCallback]
     },
     update: {
-      before_validation: [auditUpdateCallback]
+      beforeValidation: [auditUpdateCallback]
     }
   }
 }

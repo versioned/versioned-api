@@ -1,4 +1,4 @@
-const {getIn, keys, keyValues, merge, flatten, parseIfInt} = require('lib/util')
+const {concat, getIn, keys, keyValues, merge, flatten, parseIfInt} = require('lib/util')
 const modelApi = require('lib/model_api')
 const models = require('app/models/models')
 const modelController = require('lib/model_controller')
@@ -19,6 +19,28 @@ function withParams (path, options = {}) {
   }, path)
 }
 
+function spaceIdParameter (model) {
+  return {
+    name: 'spaceId',
+    in: 'path',
+    required: true,
+    schema: {
+      type: 'string'
+    }
+  }
+}
+
+function modelParameter (model) {
+  return {
+    name: 'model',
+    in: 'path',
+    required: true,
+    schema: {
+      type: 'string'
+    }
+  }
+}
+
 function idParameter (model) {
   return {
     name: 'id',
@@ -31,12 +53,14 @@ function idParameter (model) {
 }
 
 function parameters (model, endpoint) {
+  const listParameters = [spaceIdParameter(model), modelParameter(model)]
+  const getParameters = concat(listParameters, idParameter(model))
   return {
-    list: [],
-    get: [idParameter(model)],
-    create: [],
-    update: [idParameter(model)],
-    delete: [idParameter(model)]
+    list: listParameters,
+    get: getParameters,
+    create: listParameters,
+    update: getParameters,
+    delete: getParameters
   }[endpoint]
 }
 

@@ -23,7 +23,7 @@ const model = {
   },
   callbacks: {
     save: {
-      before_validation: [setPasswordHashCallback]
+      beforeValidation: [setPasswordHashCallback]
     }
   }
 }

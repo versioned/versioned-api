@@ -18,7 +18,8 @@ function versionedModel (model) {
       }
     },
     features: [],
-    callbacks: {},
+    callbacks: {
+    },
     indexes: [
       {
         keys: {id: 1, version: 1},
@@ -169,8 +170,8 @@ const model = {
   },
   callbacks: {
     save: {
-      before_validation: [setVersion, adjustPublishedVersion, setPublishAudit],
-      after_save: [updateVersion, createVersion]
+      beforeValidation: [setVersion, adjustPublishedVersion, setPublishAudit],
+      afterSave: [updateVersion, createVersion]
     },
     delete: {
       after: [removeVersion]

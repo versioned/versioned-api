@@ -23,7 +23,7 @@ const model = {
   },
   callbacks: {
     create: {
-      before_validation: [setIdCallback]
+      beforeValidation: [setIdCallback]
     }
   }
 }

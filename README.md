@@ -10,7 +10,7 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
   Published feature should not assume audit feature
 
 * list/get before/after callbacks?
-  Update schema: update/create - ['before_validation', 'after_validation', 'after_save']
+  Update schema: update/create - ['beforeValidation', 'afterValidation', 'afterSave']
     other: ['before', 'after']
 
 * The get endpoint should support published=1 param

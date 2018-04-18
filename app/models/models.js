@@ -147,11 +147,11 @@ const model = {
   },
   callbacks: {
     save: {
-      before_validation: [validateSpace, setColl, setFeatures, validateModel, validatePropertiesLimit],
-      after_validation: [validateXMeta, validateSwagger]
+      beforeValidation: [validateSpace, setColl, setFeatures, validateModel, validatePropertiesLimit],
+      afterValidation: [validateXMeta, validateSwagger]
     },
     create: {
-      before_validation: [validateCollAvailable, validateModelsLimit]
+      beforeValidation: [validateCollAvailable, validateModelsLimit]
     },
     delete: {
       after: [deleteColl]

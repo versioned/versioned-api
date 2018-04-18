@@ -18,7 +18,7 @@ async function changelogCallback (doc, options) {
 const model = {
   callbacks: {
     save: {
-      after_save: [changelogCallback]
+      afterSave: [changelogCallback]
     },
     delete: {
       after: [changelogCallback]
