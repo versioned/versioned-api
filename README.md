@@ -4,13 +4,14 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 
 ## TODO
 
-* route middleware should take lookupRoute as parameter
-  The spaceId parsing should use PREFIX
+* Add published query param to models_published API test
 
 * Versioning and publishing
   Built in models should not have published feature
   Add API test models_published.js with features: ['audit', 'published', 'changelog']
   Published feature should not assume audit feature
+
+* Documentation index page with links to main swagger and data swagger per space
 
 * list/get before/after callbacks?
   Update schema: update/create - ['beforeValidation', 'afterValidation', 'afterSave']

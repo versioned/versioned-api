@@ -4,8 +4,8 @@ const {elapsedSeconds} = require('lib/date_util')
 async function crudTest (c, prefix, coll, doc, updateDoc) {
   const listPath = `${prefix}/${coll}`
 
-  let result = await c.get('can list docs', listPath)
-  const countBefore = result.body.stats.count
+  let result = await c.get('can list docs', `${listPath}?dbStats=1`)
+  const countBefore = result.body.dbStats.count
   c.assertEqual(result.data.length, countBefore)
 
   await c.post({it: `cannot create without auth`, status: 401}, listPath, doc, c.anonymous)
@@ -41,7 +41,7 @@ async function crudTest (c, prefix, coll, doc, updateDoc) {
 
   await c.get({it: 'cannot list without auth', status: 401}, listPath, c.anonymous)
 
-  result = await c.get('can list docs', listPath)
+  result = await c.get('can list docs', `${listPath}?dbStats=1`)
   c.assertEqual(result.data[0].id, id)
   c.assertEqual(result.data[0].createdAt, created.createdAt)
   c.assertEqual(result.data[0].createdBy, created.createdBy)
@@ -50,7 +50,7 @@ async function crudTest (c, prefix, coll, doc, updateDoc) {
       c.assertEqual(result.data[0][key], doc[key])
     }
   }
-  const countAfter = result.body.stats.count
+  const countAfter = result.body.dbStats.count
   c.assertEqual(countAfter, countBefore + 1)
   c.assertEqual(result.data.length, countAfter)
 

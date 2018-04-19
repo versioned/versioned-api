@@ -1,4 +1,4 @@
-const {concat, uuid, notEmpty, keys, pick, filter, getIn, merge, compact} = require('lib/util')
+const {deepMerge, concat, uuid, notEmpty, keys, pick, filter, getIn, merge, compact} = require('lib/util')
 const {changes} = require('lib/model_api')
 const modelMeta = require('lib/model_meta')
 const modelApi = require('lib/model_api')
@@ -114,6 +114,22 @@ function versionQuery (doc) {
   return {id: doc._id, version: doc.version}
 }
 
+// ///////////////////////////////////////
+// CALLBACKS
+// ///////////////////////////////////////
+
+function addPublishedQuery (doc, options) {
+  if (getIn(options, ['queryParams', 'published'])) {
+    return deepMerge(doc, {
+      query: {
+        publishedVersion: {$ne: null}
+      }
+    })
+  } else {
+    return doc
+  }
+}
+
 function setVersion (doc, options) {
   const version = newVersion(options.model, options.existingDoc, doc)
   const versionToken = newVersionToken(options.model, options.existingDoc, doc)
@@ -190,6 +206,12 @@ const model = {
     required: ['version', 'versionToken']
   },
   callbacks: {
+    list: {
+      before: [addPublishedQuery]
+    },
+    get: {
+      before: [addPublishedQuery]
+    },
     save: {
       beforeValidation: [setVersion, adjustPublishedVersion, setPublishAudit],
       afterSave: [updateVersion, createVersion]

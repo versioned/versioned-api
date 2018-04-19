@@ -7,6 +7,7 @@ const {notFound} = config.modules.response
 const swaggerHandler = require('app/controllers/swagger').index
 const {idType} = require('lib/model_meta')
 const {requestSchema, responseSchema} = require('lib/model_access')
+const {LIST_PARAMETERS} = require('lib/model_routes')
 
 const PARAMS = {
   // spaceId: ['spaceId'],
@@ -30,17 +31,6 @@ function spaceIdParameter () {
   }
 }
 
-function modelParameter (model) {
-  return {
-    name: 'model',
-    in: 'path',
-    required: true,
-    schema: {
-      type: 'string'
-    }
-  }
-}
-
 function idParameter (model) {
   return {
     name: 'id',
@@ -53,7 +43,7 @@ function idParameter (model) {
 }
 
 function parameters (model, endpoint) {
-  const listParameters = model ? [spaceIdParameter()] : [spaceIdParameter(), modelParameter(model)]
+  const listParameters = concat(LIST_PARAMETERS, [spaceIdParameter()])
   const getParameters = concat(listParameters, idParameter(model))
   return {
     list: listParameters,
@@ -83,7 +73,6 @@ function dataHandler (coll, endpoint) {
       coll
     }
     const model = await models.findOne(query)
-    console.log('pm debug dataHandler', query, model)
     if (model) {
       const api = modelApi(model.model, config.logger)
       modelController(api, config.modules.response)[endpoint](req, res)
