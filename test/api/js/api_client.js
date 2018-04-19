@@ -5,6 +5,7 @@ const axios = require('axios').create({validateStatus: (status) => status < 500}
 const _assert = require('assert')
 const {uuid, pick, merge, array} = require('lib/util')
 const {isMongoId} = require('lib/mongo')
+const {elapsedSeconds} = require('lib/date_util')
 
 const anonymous = {headers: {authorization: null}}
 
@@ -113,6 +114,10 @@ function client ({BASE_URL}) {
     }
   }
 
+  function assertRecent (actual, msg) {
+    assert(actual && elapsedSeconds(actual) < 1, msg)
+  }
+
   async function login (user) {
     let result = await post('log in', `/login`, pick(user, ['email', 'password']))
     return {authorization: `Bearer ${result.data.token}`}
@@ -194,6 +199,7 @@ function client ({BASE_URL}) {
     anonymous,
     logRequests,
     assert,
+    assertRecent,
     assertEqual,
     isMongoId,
     uuid,

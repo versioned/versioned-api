@@ -1,4 +1,4 @@
-const {deepMerge, concat, uuid, notEmpty, keys, pick, filter, getIn, merge, compact} = require('lib/util')
+const {omit, empty, not, isArray, array, groupBy, property, deepMerge, concat, uuid, notEmpty, keys, pick, filter, getIn, merge, compact} = require('lib/util')
 const {changes} = require('lib/model_api')
 const modelMeta = require('lib/model_meta')
 const modelApi = require('lib/model_api')
@@ -62,17 +62,17 @@ function versionedProperties (model) {
   return keys(filter(modelMeta.properties(model), isVersionedProperty))
 }
 
-// function unversionedProperties (model) {
-//   return keys(filter(modelMeta.properties(model), not(isVersionedProperty)))
-// }
+function unversionedProperties (model) {
+  return keys(filter(modelMeta.properties(model), not(isVersionedProperty)))
+}
 
-// function mergeVersion (model, doc, versionDoc) {
-//   if (doc.version !== versionDoc.version) {
-//     return merge(versionDoc, pick(doc, unversionedProperties(model)))
-//   } else {
-//     return doc
-//   }
-// }
+function mergeVersion (model, doc, versionDoc) {
+  if (doc.version !== versionDoc.version) {
+    return [versionDoc, pick(doc, unversionedProperties(model)), {id: undefined, _id: doc._id}].reduce(merge)
+  } else {
+    return doc
+  }
+}
 
 function versionedChanges (model, existingDoc, doc) {
   return pick(changes(existingDoc, doc), versionedProperties(model))
@@ -128,6 +128,19 @@ function addPublishedQuery (doc, options) {
   } else {
     return doc
   }
+}
+
+async function mergePublishedDocs (doc, options) {
+  if (empty(doc) || !getIn(options, ['queryParams', 'published'])) return doc
+  const {model} = options
+  const publishedIds = array(doc).filter(d => d.publishedVersion !== d.version).map(d => ({id: d._id, version: d.publishedVersion}))
+  if (empty(publishedIds)) return doc
+  const publishedQuery = {$or: publishedIds}
+  const publishedDocs = groupBy((await modelApi(versionedModel(model), logger).list(publishedQuery)), property('id'))
+  const result = array(doc).map(d => {
+    return mergeVersion(model, d, publishedDocs[d._id][0])
+  })
+  return isArray(doc) ? result : result[0]
 }
 
 function setVersion (doc, options) {
@@ -207,10 +220,12 @@ const model = {
   },
   callbacks: {
     list: {
-      before: [addPublishedQuery]
+      before: [addPublishedQuery],
+      after: [mergePublishedDocs]
     },
     get: {
-      before: [addPublishedQuery]
+      before: [addPublishedQuery],
+      after: [mergePublishedDocs]
     },
     save: {
       beforeValidation: [setVersion, adjustPublishedVersion, setPublishAudit],
