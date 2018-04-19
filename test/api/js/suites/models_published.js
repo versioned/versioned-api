@@ -123,20 +123,44 @@ module.exports = async function (c) {
   c.assertEqual(result.data.version, 2)
   c.assertEqual(result.data.publishedVersion, 2)
 
-  // TODO: get item -> version=2
-  // TODO: get published item -> version=2
+  result = await c.get('get item', `/data/${spaceId}/items/${id}`)
+  c.assertEqual(result.data.id, id)
+  c.assertEqual(result.data.title, 'foobar3')
+  c.assertEqual(result.data.version, 2)
+  c.assertEqual(result.data.publishedVersion, 2)
+
+  result = await c.get('get published item', `/data/${spaceId}/items/${id}?published=1`)
+  c.assertEqual(result.data.id, id)
+  c.assertEqual(result.data.title, 'foobar3')
+  c.assertEqual(result.data.version, 2)
+  c.assertEqual(result.data.publishedVersion, 2)
 
   result = await c.put('rollback item', `/data/${spaceId}/items/${id}`, {publishedVersion: 1})
+  c.assertEqual(result.data.id, id)
   c.assertEqual(result.data.version, 2)
   c.assertEqual(result.data.publishedVersion, 1)
 
-  // TODO: get item -> version=2
-  // TODO: get published item -> version=1
+  result = await c.get('get item', `/data/${spaceId}/items/${id}`)
+  c.assertEqual(result.data.id, id)
+  c.assertEqual(result.data.title, 'foobar3')
+  c.assertEqual(result.data.version, 2)
+  c.assertEqual(result.data.publishedVersion, 1)
+
+  result = await c.get('get published item', `/data/${spaceId}/items/${id}?published=1`)
+  c.assertEqual(result.data.id, id)
+  c.assertEqual(result.data.title, 'foobar1')
+  c.assertEqual(result.data.version, 1)
+  c.assertEqual(result.data.publishedVersion, 1)
 
   result = await c.put('unpublish item', `/data/${spaceId}/items/${id}`, {publishedVersion: null})
   c.assertEqual(result.data.version, 2)
   c.assert(!result.data.publishedVersion)
 
-  // TODO: get item -> version=2
-  // TODO: get published item -> 404
+  result = await c.get('get item', `/data/${spaceId}/items/${id}`)
+  c.assertEqual(result.data.id, id)
+  c.assertEqual(result.data.title, 'foobar3')
+  c.assertEqual(result.data.version, 2)
+  c.assert(!result.data.publishedVersion)
+
+  result = await c.get({it: 'get published item', status: 404}, `/data/${spaceId}/items/${id}?published=1`)
 }

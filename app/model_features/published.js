@@ -1,4 +1,4 @@
-const {omit, empty, not, isArray, array, groupBy, property, deepMerge, concat, uuid, notEmpty, keys, pick, filter, getIn, merge, compact} = require('lib/util')
+const {empty, isArray, array, groupBy, property, deepMerge, concat, uuid, notEmpty, keys, pick, filter, getIn, merge, compact} = require('lib/util')
 const {changes} = require('lib/model_api')
 const modelMeta = require('lib/model_meta')
 const modelApi = require('lib/model_api')
@@ -62,13 +62,10 @@ function versionedProperties (model) {
   return keys(filter(modelMeta.properties(model), isVersionedProperty))
 }
 
-function unversionedProperties (model) {
-  return keys(filter(modelMeta.properties(model), not(isVersionedProperty)))
-}
-
 function mergeVersion (model, doc, versionDoc) {
   if (doc.version !== versionDoc.version) {
-    return [versionDoc, pick(doc, unversionedProperties(model)), {id: undefined, _id: doc._id}].reduce(merge)
+    const idProperties = {id: undefined, _id: doc._id}
+    return [doc, versionDoc, idProperties].reduce(merge)
   } else {
     return doc
   }
