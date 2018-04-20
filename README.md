@@ -4,12 +4,9 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 
 ## TODO
 
-* Add published query param to models_published API test
+* Verify changelog in models_published
 
-* Versioning and publishing
-  Built in models should not have published feature
-  Add API test models_published.js with features: ['audit', 'published', 'changelog']
-  Published feature should not assume audit feature
+* Need to add versions=1 param to get endpoint for published
 
 * Documentation index page with links to main swagger and data swagger per space
 
