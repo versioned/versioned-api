@@ -1,4 +1,4 @@
-const {empty, isArray, array, groupBy, property, deepMerge, concat, uuid, notEmpty, keys, pick, filter, getIn, merge, compact} = require('lib/util')
+const {rename, empty, isArray, array, groupBy, property, deepMerge, concat, uuid, notEmpty, keys, pick, filter, getIn, merge, compact} = require('lib/util')
 const {changes} = require('lib/model_api')
 const modelMeta = require('lib/model_meta')
 const modelApi = require('lib/model_api')
@@ -64,8 +64,7 @@ function versionedProperties (model) {
 
 function mergeVersion (model, doc, versionDoc) {
   if (doc.version !== versionDoc.version) {
-    const idProperties = {id: undefined, _id: doc._id}
-    return [doc, versionDoc, idProperties].reduce(merge)
+    return merge(doc, rename(versionDoc, {id: '_id'}))
   } else {
     return doc
   }
