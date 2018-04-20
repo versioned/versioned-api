@@ -4,21 +4,34 @@ const modelMeta = require('lib/model_meta')
 const modelApi = require('lib/model_api')
 const config = require('app/config')
 const logger = config.logger
+const {readableDoc} = require('lib/model_access')
 
 const VERSION_TOKEN_LENGTH = 10
 
+const PARAMS = {
+  published: {
+    name: 'published',
+    in: 'query',
+    required: false,
+    schema: {
+      type: 'boolean'
+    }
+  },
+  versions: {
+    name: 'versions',
+    in: 'query',
+    required: false,
+    schema: {
+      type: 'boolean'
+    }
+  }
+}
+
 function parameters (route) {
-  if (['list', 'get'].includes(route.action)) {
-    return [
-      {
-        name: 'published',
-        in: 'query',
-        required: false,
-        schema: {
-          type: 'boolean'
-        }
-      }
-    ]
+  if (route.action === 'list') {
+    return [PARAMS.published]
+  } else if (route.action === 'get') {
+    return [PARAMS.published, PARAMS.versions]
   } else {
     return []
   }
@@ -98,12 +111,9 @@ function newVersionToken (model, existingDoc, doc) {
 }
 
 function versionedDoc (model, doc) {
-  return merge(pick(doc, versionedProperties(model)), {
-    _id: undefined,
-    id: doc._id,
-    createdAt: new Date(),
-    createdBy: (doc.updatedBy || doc.createdBy)
-  })
+  return rename(
+    pick(doc, versionedProperties(model)),
+    {_id: 'id'})
 }
 
 function versionQuery (doc) {
@@ -139,6 +149,16 @@ async function mergePublishedDocs (doc, options) {
   return isArray(doc) ? result : result[0]
 }
 
+async function findVersions (doc, options) {
+  const {model} = options
+  if (!doc || !getIn(options, ['queryParams', 'versions'])) return doc
+  const query = {id: doc._id}
+  const sort = '-version'
+  const docs = await modelApi(versionedModel(model), logger).list(query, {sort})
+  const versions = docs.map(d => readableDoc(model, rename(d, {id: '_id'})))
+  return merge(doc, {versions})
+}
+
 function setVersion (doc, options) {
   const version = newVersion(options.model, options.existingDoc, doc)
   const versionToken = newVersionToken(options.model, options.existingDoc, doc)
@@ -150,8 +170,8 @@ function setVersion (doc, options) {
 
 async function updateVersion (doc, options) {
   const {model, existingDoc} = options
-  if (doc.version === getIn(existingDoc, ['version'])) {
-    const updatedDoc = versionedDoc(model, doc)
+  if (doc.version === getIn(existingDoc, ['version']) && notEmpty(versionedChanges(model, existingDoc, doc))) {
+    const updatedDoc = merge(versionedDoc(model, doc), pick(doc, ['updatedAt', 'updatedBy']))
     await modelApi(versionedModel(model), logger).update(versionQuery(doc), updatedDoc)
   }
   return doc
@@ -160,7 +180,8 @@ async function updateVersion (doc, options) {
 async function createVersion (doc, options) {
   const {model, existingDoc} = options
   if (!existingDoc || doc.version > existingDoc.version) {
-    await modelApi(versionedModel(model), logger).create(versionedDoc(model, doc))
+    const createDoc = merge(versionedDoc(model, doc), pick(doc, ['createdAt', 'createdBy']))
+    await modelApi(versionedModel(model), logger).create(createDoc)
   }
   return doc
 }
@@ -210,7 +231,8 @@ const model = {
       firstPublishedAt: {type: 'string', format: 'date-time', 'x-meta': {api_writable: false, versioned: false}},
       lastPublishedAt: {type: 'string', format: 'date-time', 'x-meta': {api_writable: false, versioned: false}},
       publishAt: {type: 'string', format: 'date-time', 'x-meta': {versioned: false}},
-      unpublishAt: {type: 'string', format: 'date-time', 'x-meta': {versioned: false}}
+      unpublishAt: {type: 'string', format: 'date-time', 'x-meta': {versioned: false}},
+      versions: {type: 'array', items: {type: 'object'}, 'x-meta': {writable: false, versioned: false, readable: true}}
     },
     required: ['version', 'versionToken']
   },
@@ -221,7 +243,7 @@ const model = {
     },
     get: {
       before: [addPublishedQuery],
-      after: [mergePublishedDocs]
+      after: [mergePublishedDocs, findVersions]
     },
     save: {
       beforeValidation: [setVersion, adjustPublishedVersion, setPublishAudit],

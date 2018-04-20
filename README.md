@@ -4,21 +4,7 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 
 ## TODO
 
-* Verify changelog in models_published
-
-* Need to add versions=1 param to get endpoint for published
-
 * Documentation index page with links to main swagger and data swagger per space
-
-* list/get before/after callbacks?
-  Update schema: update/create - ['beforeValidation', 'afterValidation', 'afterSave']
-    other: ['before', 'after']
-
-* The get endpoint should support published=1 param
-
-* The get endpoint should support versions=1 param
-
-* The list endpoint should support published=1 param
 
 * models.model should have update: false? You can do this by introducing models.schema and a setSchema callback (or have a setModel callback for coll, features, schema etc.)
 
