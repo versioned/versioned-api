@@ -4,7 +4,11 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 
 ## TODO
 
-* Allow separate configurable database per space - sapces.databaseUrl
+* Allow separate configurable database per space - spaces.databaseUrl
+  Have an object with a cached mongo instance (connection) per space.
+  Use the spaceMongos object to provide mongo instances to models/spaces
+    Need to refactor dataHandler for this
+  Add req.space and options.space
   Should be used for models and model content
 
 * Rename /data to /content ("Add Content")?
@@ -184,9 +188,8 @@ http "$BASE_URL/data/5ad73afec6d5f37d3d593ac1/items?published=1" Authorization:"
 
 ```javascript
 async function createAdmin() {
-  const mongo = require('lib/mongo')
   const config = require('app/config')
-  await mongo.connect(config.MONGODB_URL)
+  await config.modules.mongo.connect()
 
   const users = require('app/models/users')
   const doc = {name: 'Admin User', email: 'admin@example.com', password: 'admin'}
@@ -200,9 +203,8 @@ createAdmin()
 
 ```javascript
 async function printRoutes() {
-  const mongo = require('lib/mongo')
   const config = require('app/config')
-  await mongo.connect(config.MONGODB_URL)
+  await config.modules.mongo.connect()
 
   const {getRoutes} = require('app/routes')
   const {prettyJson} = require('lib/util')
@@ -246,9 +248,8 @@ ajv.compile(openapiSchema)(openapi)
 ## Integer ID Sequence in MongoDB
 
 ```javascript
-const mongo = require('lib/mongo')
 const config = require('app/config')
-mongo.connect(config.MONGODB_URL)
+config.modules.mongo.connect(config.MONGODB_URL)
 
 mongo.nextSequence('foobar').then(console.log) // => {value: { _id: 'foobar', seq: 1 }}
 mongo.nextSequence('foobar').then(console.log) // => {value: { _id: 'foobar', seq: 2 }}
@@ -287,10 +288,9 @@ console.log(decoded) //=> { foo: 'bar' }
 With a promise chain:
 
 ```javascript
-const mongo = require('lib/mongo')
 const config = require('app/config')
 async function crudTestPromises() {
-  const db = await mongo.connect(config.MONGODB_URL)
+  const db = await config.modules.mongo.connect(config.MONGODB_URL)
   const users = db.collection('users')
   const admin = {id:1, email: 'admin@example.com', password: 'admin'}
   users.insert(admin)
@@ -324,11 +324,10 @@ const resultPromises = crudTestPromises()
 With async functions:
 
 ```javascript
-const mongo = require('lib/mongo')
 const config = require('app/config')
 const {uuid} = require('lib/util')
 async function crudTestAsync() {
-  const db = await mongo.connect(config.MONGODB_URL)
+  const db = await config.modules.mongo.connect(config.MONGODB_URL)
   const users = db.collection('users')
   const admin = {id:1, email: `${uuid()}@example.com`, password: 'admin'}
   console.log('insert result', (await users.insert(admin)).result)
@@ -344,9 +343,8 @@ const resultAsync = crudTestAsync()
 With `lib/db_api`:
 
 ```javascript
-const mongo = require('lib/mongo')
 const config = require('app/config')
-mongo.connect(config.MONGODB_URL)
+config.modules.mongo.connect(config.MONGODB_URL)
 
 const db = mongo.db
 const dbApi = require('lib/db_api')(db)

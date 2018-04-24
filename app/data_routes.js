@@ -3,6 +3,7 @@ const modelApi = require('lib/model_api')
 const models = require('app/models/models')
 const modelController = require('lib/model_controller')
 const config = require('app/config')
+const {logger, mongo} = config.modules
 const {notFound} = config.modules.response
 const swaggerHandler = require('app/controllers/swagger').index
 const {idType} = require('lib/model_meta')
@@ -74,7 +75,7 @@ function dataHandler (coll, endpoint) {
     }
     const model = await models.findOne(query)
     if (model) {
-      const api = modelApi(model.model, config.logger)
+      const api = modelApi(model.model, mongo, logger)
       modelController(api, config.modules.response)[endpoint](req, res)
     } else {
       notFound(res)
@@ -118,7 +119,7 @@ const ROUTES = {
 }
 
 async function modelRoutes (prefix, options = {}) {
-  const modelCallbacks = require('lib/model_callbacks')(config.logger)
+  const modelCallbacks = require('lib/model_callbacks')(logger)
   const routes = []
   for (let [endpoint, route] of keyValues(ROUTES)) {
     const summary = options.model ? `${endpoint} ${options.model.coll} data` : `${endpoint} data`
@@ -133,7 +134,7 @@ async function modelRoutes (prefix, options = {}) {
       responseSchema: responseSchema(getIn(options, ['api', 'model']), endpoint)
     })
     if (options.api) {
-      route = await modelCallbacks(options.api.model, route, 'after', 'routeCreate')
+      route = await modelCallbacks(options.api, route, 'after', 'routeCreate')
     }
     routes.push(route)
   }
@@ -146,7 +147,7 @@ async function routes (prefix, options = {}) {
     if (options.models) spaceModels = spaceModels.concat(options.models)
     let result = [swaggerRoute(prefix, options)]
     for (let model of spaceModels) {
-      const api = modelApi(model.model)
+      const api = modelApi(model.model, mongo)
       const routes = await modelRoutes(prefix, merge(options, {model, api}))
       result = result.concat(routes)
     }

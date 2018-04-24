@@ -1,6 +1,6 @@
 const {json} = require('lib/util')
 const users = require('app/models/users')
-const logger = require('app/config').logger
+const {logger} = require('app/config').modules
 const {readableData} = require('lib/model_access')
 
 async function login (req, res) {

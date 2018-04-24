@@ -20,8 +20,9 @@ const config = merge(defaultConfig, envConfig)
 const logger = require('lib/logger')(config)
 
 module.exports = Object.assign({}, config, {
-  logger,
   modules: {
-    response: require('lib/response')(logger, config)
+    logger,
+    response: require('lib/response')(logger, config),
+    mongo: require('lib/mongo')(config.MONGODB_URL)
   }
 })

@@ -4,7 +4,8 @@ const {keyValues, json, prettyJson} = require('lib/util')
 const axios = require('axios').create({validateStatus: (status) => status < 500})
 const _assert = require('assert')
 const {uuid, pick, merge, array} = require('lib/util')
-const {isMongoId} = require('lib/mongo')
+const config = require('app/config')
+const {isMongoId} = config.modules.mongo
 const {elapsedSeconds} = require('lib/date_util')
 
 const anonymous = {headers: {authorization: null}}

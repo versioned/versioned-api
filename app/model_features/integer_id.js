@@ -1,7 +1,7 @@
 // See: https://docs.mongodb.com/v3.0/tutorial/create-an-auto-incrementing-field/
 
 const {merge} = require('lib/util')
-const {nextSequence} = require('lib/mongo')
+const {nextSequence} = require('app/config').modules.mongo
 
 async function setIdCallback (doc, options) {
   if (!doc.id) {

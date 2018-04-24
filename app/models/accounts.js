@@ -1,4 +1,4 @@
-const {logger} = require('app/config')
+const {logger, mongo} = require('app/config').modules
 const modelApi = require('lib/model_api')
 
 const model = {
@@ -13,4 +13,4 @@ const model = {
   }
 }
 
-module.exports = modelApi(model, logger)
+module.exports = modelApi(model, mongo, logger)

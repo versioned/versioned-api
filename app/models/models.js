@@ -1,5 +1,6 @@
 const {concat, compact, validInt, setIn, getIn, values, keys} = require('lib/util')
-const mongo = require('lib/mongo')
+const config = require('app/config')
+const {logger, mongo} = config.modules
 const modelApi = require('lib/model_api')
 const modelSpec = require('lib/model_spec')
 const modelSchema = require('lib/model_spec_schema')
@@ -7,16 +8,10 @@ const spaces = require('app/models/spaces')
 const swagger = require('app/swagger')
 const jsonSchema = require('lib/json_schema')
 const swaggerSchema = require('public/openapi-schema')
-const config = require('app/config')
-const logger = config.logger
 const {withoutRefs} = require('lib/json_schema')
 
 const coll = 'models'
 const collPattern = getIn(spaces, ['schema', 'properties', 'coll', 'pattern'])
-
-function validationError (message) {
-  return {status: 422, errors: [{type: 'validation', message}]}
-}
 
 async function getColl (model) {
   const space = model.spaceId && (await spaces.findOne(model.spaceId))
@@ -30,7 +25,7 @@ async function getColl (model) {
 
 async function validateSpace (doc, options) {
   if (doc.spaceId && !(await spaces.findOne(doc.spaceId))) {
-    throw validationError(`space '${doc.spaceId}' does not exist`)
+    throw modelApi.validationError(`space '${doc.spaceId}' does not exist`, 'spaceId')
   } else {
     return doc
   }
@@ -55,22 +50,22 @@ async function setFeatures (doc, options) {
 }
 
 async function validateModel (doc, options) {
-  if (doc.model) modelApi(doc.model) // creating the API this should not throw any error
+  if (doc.model) modelApi(doc.model, mongo) // creating the API this should not throw any error
   return doc
 }
 
 async function validatePropertiesLimit (doc, options) {
   const properties = getIn(doc, ['model', 'schema', 'properties'])
   if (properties && keys(properties).length > config.PROPERTY_LIMIT) {
-    throw validationError(`You can not have more than ${config.PROPERTY_LIMIT} properties`)
+    throw modelApi.validationError(`You can not have more than ${config.PROPERTY_LIMIT} properties`)
   }
   return doc
 }
 
 async function validateModelsLimit (doc, options) {
-  const modelsCount = doc.spaceId && (await modelApi({coll}).count({spaceId: doc.spaceId}))
+  const modelsCount = doc.spaceId && (await modelApi({coll}, mongo).count({spaceId: doc.spaceId}))
   if (modelsCount && modelsCount >= config.MODELS_LIMIT) {
-    throw validationError(`You cannot have more than ${config.MODELS_LIMIT} models per space`)
+    throw modelApi.validationError(`You cannot have more than ${config.MODELS_LIMIT} models per space`)
   }
   return doc
 }
@@ -116,7 +111,7 @@ async function validateSwagger (doc, options) {
 async function validateCollAvailable (doc, options) {
   const coll = getIn(doc, ['model', 'coll'])
   if (coll && (await mongo.getColls()).includes(coll)) {
-    throw validationError(`coll '${doc.coll}' is not available - please choose another name`)
+    throw modelApi.validationError(`coll '${doc.coll}' is not available - please choose another name`, 'coll')
   } else {
     return doc
   }
@@ -169,6 +164,6 @@ const model = {
   ]
 }
 
-module.exports = Object.assign(modelApi(model, logger), {
+module.exports = Object.assign(modelApi(model, mongo, logger), {
   getColl
 })

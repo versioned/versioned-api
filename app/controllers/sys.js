@@ -1,6 +1,6 @@
 const config = require('app/config')
+const {mongo} = config.modules
 const {wrapData, jsonResponse} = config.modules.response
-const mongo = require('lib/mongo')
 
 async function dbStats (req, res) {
   const stats = await mongo.dbStats()

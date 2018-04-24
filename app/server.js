@@ -1,6 +1,5 @@
 const config = require('app/config')
-const mongo = require('lib/mongo')
-const logger = config.logger
+const {logger, mongo} = config.modules
 const {lookupRoute} = require('app/routes')
 const app = require('lib/app')(config)
 const requestId = require('lib/middleware/request_id').requestId
@@ -26,7 +25,7 @@ function setupMiddleware (app) {
   app.use(serveStatic('public'))
   app.use(requestId)
   app.use(setCorsHeaders)
-  app.use(attachRoute(lookupRoute, config.logger))
+  app.use(attachRoute(lookupRoute, logger))
   app.use(queryParser)
   app.use(bodyParser)
   app.use(validateParams)
@@ -46,7 +45,7 @@ if (config.BUGSNAG_API_KEY) {
 function start () {
   return new Promise((resolve, reject) => {
     logger.info(`Starting server with config=${JSON.stringify(config, null, 4)}`)
-    mongo.connect(config.MONGODB_URL)
+    mongo.connect()
       .then(() => {
         setupMiddleware(app)
         app.listen(config['PORT'])

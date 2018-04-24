@@ -3,7 +3,7 @@ const {changes} = require('lib/model_api')
 const modelMeta = require('lib/model_meta')
 const modelApi = require('lib/model_api')
 const config = require('app/config')
-const logger = config.logger
+const {logger} = config.modules
 const {readableDoc} = require('lib/model_access')
 
 const VERSION_TOKEN_LENGTH = 10
@@ -138,11 +138,11 @@ function addPublishedQuery (doc, options) {
 
 async function mergePublishedDocs (doc, options) {
   if (empty(doc) || !getIn(options, ['queryParams', 'published'])) return doc
-  const {model} = options
+  const {model, api} = options
   const publishedIds = array(doc).filter(d => d.publishedVersion !== d.version).map(d => ({id: d._id, version: d.publishedVersion}))
   if (empty(publishedIds)) return doc
   const publishedQuery = {$or: publishedIds}
-  const publishedDocs = groupBy((await modelApi(versionedModel(model), logger).list(publishedQuery)), property('id'))
+  const publishedDocs = groupBy((await modelApi(versionedModel(model), api.mongo, logger).list(publishedQuery)), property('id'))
   const result = array(doc).map(d => {
     return mergeVersion(model, d, publishedDocs[d._id][0])
   })
@@ -150,11 +150,11 @@ async function mergePublishedDocs (doc, options) {
 }
 
 async function findVersions (doc, options) {
-  const {model} = options
+  const {model, api} = options
   if (!doc || !getIn(options, ['queryParams', 'versions'])) return doc
   const query = {id: doc._id}
   const sort = '-version'
-  const docs = await modelApi(versionedModel(model), logger).list(query, {sort})
+  const docs = await modelApi(versionedModel(model), api.mongo, logger).list(query, {sort})
   const versions = docs.map(d => readableDoc(model, rename(d, {id: '_id'})))
   return merge(doc, {versions})
 }
@@ -169,25 +169,26 @@ function setVersion (doc, options) {
 }
 
 async function updateVersion (doc, options) {
-  const {model, existingDoc} = options
+  const {model, api, existingDoc} = options
   if (doc.version === getIn(existingDoc, ['version']) && notEmpty(versionedChanges(model, existingDoc, doc))) {
     const updatedDoc = merge(versionedDoc(model, doc), pick(doc, ['updatedAt', 'updatedBy']))
-    await modelApi(versionedModel(model), logger).update(versionQuery(doc), updatedDoc)
+    await modelApi(versionedModel(model), api.mongo, logger).update(versionQuery(doc), updatedDoc)
   }
   return doc
 }
 
 async function createVersion (doc, options) {
-  const {model, existingDoc} = options
+  const {api, model, existingDoc} = options
   if (!existingDoc || doc.version > existingDoc.version) {
     const createDoc = merge(versionedDoc(model, doc), pick(doc, ['createdAt', 'createdBy']))
-    await modelApi(versionedModel(model), logger).create(createDoc)
+    await modelApi(versionedModel(model), api.mongo, logger).create(createDoc)
   }
   return doc
 }
 
 async function removeVersion (doc, options) {
-  await modelApi(versionedModel(options.model), logger).delete(versionQuery(doc))
+  const {api} = options
+  await modelApi(versionedModel(options.model), api.mongo, logger).delete(versionQuery(doc))
   return doc
 }
 
