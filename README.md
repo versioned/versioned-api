@@ -4,6 +4,48 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 
 ## TODO
 
+* Allow separate configurable database per space - sapces.databaseUrl
+  Should be used for models and model content
+
+* Rename /data to /content ("Add Content")?
+
+* Deal with empty content for required fields - api test
+
+* Preview feature - version, versionToken
+  models.previewUrl - http://my.site/articles/{id}
+  Need to support slug also?
+
+* Translate feature. There can be a spaces.locales setting with [{locale: 'sv', name: 'Swedish', default: true}]
+    have a fallbackLocale param?
+    locale is "two-letter (639-1) or three-letter (639-2 and 639-3)"
+    https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes
+    x-meta: translated: true
+    {
+        :type "object"
+        :x-meta {
+          :translated true
+        }
+        :properties makeObj(space.locales, () => {type: 'string'})
+        :additionalProperties false
+    }
+    translated model feature
+      locale query param for get/list - will transform objects to strings based on locale
+      If no locale is provided we use the default
+
+* Maybe we should not create a new changelog entry but instead update the last one if there is already a recent update for the same id (and version if the model is published). This will be especially important with autosave.
+
+* Need archiving? Contentful events: create, save, autosave, archive, unarchive, publish, unpublish, delete.
+
+* Don’t allow deletion of model with content
+
+* Relationship - many references, ordered list (array). UI is search plus add
+  References are restricted to one or more types
+
+* Ability to disable a field
+  Cannot delete field for model with content? Or need to disable before you delete.
+
+* Need to support images and other files (assets). Use service?
+
 * Documentation index page with links to main swagger and data swagger per space
 
 * models.model should have update: false? You can do this by introducing models.schema and a setSchema callback (or have a setModel callback for coll, features, schema etc.)
@@ -39,6 +81,11 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 
 ## Discussion Points and Backlog
 
+* Relationships - in contentful you can’t lookup the parent from the child
+* Approaches to translations - One space per locale or translated texts within one space. You can combine both.
+* Support Web hooks
+* Archive - soft delete?
+* Should there be one database per space or per account?
 * Log response times
 * Change naming convention from snake case to camel case?
 * Allow human readable space keys?
@@ -353,3 +400,5 @@ assertTypes([{foo: 1, bar: 'baz'}], {foo: 'number', bar: 'string'})
 * [Prismic: Headless API CMS for both developers and marketers](https://prismic.io)
 * [Cloud CMS: Headless CMS and Cloud Content API](https://www.cloudcms.com)
 * [Kentico Cloud](https://kenticocloud.com)
+
+* [Contentful Case Study: TUI Nordic](https://www.contentful.com/blog/2017/10/06/stockholm-user-meetup)
