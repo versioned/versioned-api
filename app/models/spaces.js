@@ -1,9 +1,10 @@
 const config = require('app/config')
-const {uuid, merge} = require('lib/util')
+const {toString, getIn, property, uuid, merge} = require('lib/util')
 const modelApi = require('lib/model_api')
 const {logger, mongo} = require('app/config').modules
 const MongoClient = require('mongodb').MongoClient
 const mongoModule = require('lib/mongo')
+const accounts = require('app/models/accounts')
 
 const coll = 'spaces'
 const KEY_LENGTH = 8 // 16^8 ~ 1 billion
@@ -52,13 +53,26 @@ async function validateDatabaseUrl (doc, options) {
   return doc
 }
 
+async function validateAccountId (doc, options) {
+  if (doc.accountId) {
+    const account = await accounts.findOne(doc.accountId)
+    if (!account) throw modelApi.validationError(`Could not find account ${doc.accountId}`, 'accountId')
+    const adminIds = account.users.filter(u => u.role === 'admin').map(property('id'))
+    const userId = toString(getIn(options.user, ['_id']))
+    if (!adminIds.includes(userId)) {
+      throw modelApi.validationError(`In order to create a space you need to have the administrator role`, 'accountId')
+    }
+  }
+  return doc
+}
+
 const model = {
   coll,
   schema: {
     type: 'object',
     properties: {
       name: {type: 'string'},
-      accountId: {type: 'string'},
+      accountId: {type: 'string', 'x-meta': {update: false, index: true}},
       key: {
         type: 'string',
         pattern: `^${KEY_PREFIX}[abcdef0-9]{${KEY_LENGTH}}$`,
@@ -66,12 +80,12 @@ const model = {
       },
       databaseUrl: {type: 'string'}
     },
-    required: ['name', 'key'],
+    required: ['name', 'accountId', 'key'],
     additionalProperties: false
   },
   callbacks: {
     create: {
-      beforeValidation: [setKeyCallback, validateDatabaseUrl]
+      beforeValidation: [setKeyCallback, validateDatabaseUrl, validateAccountId]
     }
   },
   indexes: [

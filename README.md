@@ -4,7 +4,14 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 
 ## TODO
 
+* accounts.users
+  Creator of account is admin
+  There must always be at least one admin
+
 * Introduce accounts which are mapped to spaces and users
+
+* Double check permission per role
+  Ability to create spaces?
 
 * Documentation index page with links to main swagger and data swagger per space
 

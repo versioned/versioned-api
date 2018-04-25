@@ -5,10 +5,12 @@ const {crudTest} = require('../shared/models')
 module.exports = async function (c) {
   const space = {
     name: 'My Dedicated CMS',
+    accountId: c.data.account.id,
     databaseUrl: `${config.MONGODB_URL}_dedicated`
   }
   const sharedSpace = {
-    name: 'My Shared CMS'
+    name: 'My Shared CMS',
+    accountId: c.data.account.id
   }
 
   await c.post({it: 'create space with invalid databaseUrl', status: 422}, '/spaces', merge(space, {databaseUrl: 'foobar'}))

@@ -60,6 +60,12 @@ async function setColl (doc, options) {
   }
 }
 
+async function setAccountId (doc, options) {
+  if (!doc.spaceId) return doc
+  const space = await spaces.get(doc.spaceId)
+  return merge(doc, {accountId: space.accountId})
+}
+
 async function setFeatures (doc, options) {
   if (doc.features) {
     const features = concat(modelSpec.DEFAULTS.features, doc.features)
@@ -152,17 +158,18 @@ const model = {
     type: 'object',
     properties: {
       name: {type: 'string'},
+      accountId: {type: 'string', 'x-meta': {write: false, index: true}},
       spaceId: {type: 'string', 'x-meta': {update: false, index: true}},
       coll: {type: 'string', pattern: collPattern, 'x-meta': {update: false, index: true}},
       features: {type: 'array', items: {enum: ['published']}},
       model: withoutRefs(modelSchema)
     },
-    required: ['name', 'spaceId', 'coll', 'model'],
+    required: ['name', 'spaceId', 'accountId', 'coll', 'model'],
     additionalProperties: false
   },
   callbacks: {
     save: {
-      beforeValidation: [validateSpace, setColl, setFeatures, validateModel, validatePropertiesLimit],
+      beforeValidation: [validateSpace, setColl, setAccountId, setFeatures, validateModel, validatePropertiesLimit],
       afterValidation: [validateXMeta, validateSwagger]
     },
     create: {

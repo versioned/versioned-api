@@ -34,6 +34,10 @@ function makeUser () {
     'password'])
 }
 
+function makeAccount () {
+  return make(['name'])
+}
+
 function dataString (data) {
   if (!data) return ''
   return keyValues(data).map(([key, value]) => {
@@ -130,12 +134,13 @@ function client ({BASE_URL}) {
     return {authorization: `Bearer ${result.data.token}`}
   }
 
-  async function registerUser (user) {
-    user = user || makeUser()
+  async function registerUser () {
+    const user = makeUser()
     let result = await post('create user', `/users`, user)
-    user = merge(user, pick(result.data, ['id', '_id']))
+    user.id = result.data.id
     const headers = await login(user)
-    return {user, headers}
+    const account = (await post('create account', '/accounts', makeAccount(), {headers})).data
+    return {account, user, headers}
   }
 
   async function get (expect, path, options = {}) {
