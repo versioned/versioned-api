@@ -6,7 +6,7 @@ module.exports = async function (c) {
   const spaceId = c.data.space.id
   const coll = c.uuid()
   const model = {
-    title: 'Integer ID Model',
+    name: 'Integer ID Model',
     spaceId: spaceId,
     coll,
     model: {

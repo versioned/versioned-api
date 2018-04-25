@@ -6,7 +6,7 @@ module.exports = async function (c) {
   const space = result.data
 
   result = await c.post('create model', '/models', {
-    title: 'Posts',
+    name: 'Posts',
     spaceId: space.id,
     coll: 'posts',
     model: {

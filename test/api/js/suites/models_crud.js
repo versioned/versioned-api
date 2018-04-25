@@ -6,7 +6,7 @@ module.exports = async function (c) {
   const spaceId = c.data.space.id
 
   const model = {
-    title: 'Article',
+    name: 'Article',
     spaceId: spaceId,
     coll: 'articles',
     model: {
@@ -22,7 +22,7 @@ module.exports = async function (c) {
     }
   }
 
-  await crudTest(c, '', 'models', model, {title: 'Article changed'})
+  await crudTest(c, '', 'models', model, {name: 'Article changed'})
 
   let result = await c.post('create articles model', '/models', model)
   const modelId = result.data.id

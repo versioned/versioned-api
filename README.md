@@ -4,17 +4,13 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 
 ## TODO
 
-* Allow separate configurable database per space - spaces.databaseUrl. Ok?
+* Introduce accounts which are mapped to spaces and users
 
 * Documentation index page with links to main swagger and data swagger per space
 
 * Load test 1000 spaces. How much memory is consumed?
 
-* Introduce accounts which are mapped to spaces and users
-
 * Need to drop ${config.MONGODB_URL}_dedicated in API tests? - Introduce c.MONGODB_URL_DEDICATED?
-
-* API test space that doesn't exist should yield 404
 
 * Should rename _id to id when we read the doc from mongo
   Need to rename version coll id for this to work.

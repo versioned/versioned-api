@@ -17,7 +17,7 @@ module.exports = async function (c) {
   }
 
   const articleModel = {
-    title: 'Article',
+    name: 'Article',
     spaceId: spaceId,
     coll: 'articles',
     model
@@ -83,7 +83,7 @@ module.exports = async function (c) {
   }, {})
   let uuid = c.uuid()
   await c.post(`can create article model with ${config.PROPERTY_LIMIT} properties`, '/models', merge(articleModel, {
-    title: `${articleModel.title} ${uuid}`,
+    name: `${articleModel.name} ${uuid}`,
     coll: uuid,
     model: {
       schema: {

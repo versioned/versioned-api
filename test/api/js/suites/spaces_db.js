@@ -18,7 +18,7 @@ module.exports = async function (c) {
   space.id = result.data.id
 
   const model = {
-    title: 'Article',
+    name: 'Article',
     spaceId: space.id,
     coll: 'articles',
     model: {
@@ -57,7 +57,12 @@ module.exports = async function (c) {
 
   await crudTest(c, `/data/${space.id}`, model.coll, article, updateArticle)
 
-  await c.post('create an article in the dedicated space', `/data/${space.id}/articles`, article)
+  result = await c.post('create an article in the dedicated space', `/data/${space.id}/articles`, article)
+  let id = result.data.id
+
+  await c.get('get article in the dedicated space', `/data/${space.id}/articles/${id}`)
+
+  await c.get({it: 'get article in the dedicated space with invalid space ID', status: 404}, `/data/12345/articles/${id}`)
 
   await c.post('create an article in the shared space', `/data/${sharedSpace.id}/articles`, article)
 }

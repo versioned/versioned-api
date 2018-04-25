@@ -151,13 +151,13 @@ const model = {
   schema: {
     type: 'object',
     properties: {
-      title: {type: 'string'},
+      name: {type: 'string'},
       spaceId: {type: 'string', 'x-meta': {update: false, index: true}},
       coll: {type: 'string', pattern: collPattern, 'x-meta': {update: false, index: true}},
       features: {type: 'array', items: {enum: ['published']}},
       model: withoutRefs(modelSchema)
     },
-    required: ['title', 'spaceId', 'coll', 'model'],
+    required: ['name', 'spaceId', 'coll', 'model'],
     additionalProperties: false
   },
   callbacks: {
@@ -182,7 +182,7 @@ const model = {
       options: {unique: true}
     },
     {
-      keys: {spaceId: 1, title: 1},
+      keys: {spaceId: 1, name: 1},
       options: {unique: true}
     }
   ]
