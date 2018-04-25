@@ -8,6 +8,7 @@ const modelRoutes = require('lib/model_routes')(config.modules.response)
 const dataRoutes = require('app/data_routes')
 const path = require('path')
 const router = require('lib/router')
+const spaces = require('app/models/spaces')
 
 const VERSION = 'v1'
 const PREFIX = `/${VERSION}`
@@ -60,7 +61,9 @@ function parseSpaceId (req) {
 
 async function lookupRoute (req) {
   const spaceId = parseSpaceId(req)
-  const routesByMethod = router.groupByMethod(await getRoutes({spaceId}))
+  const space = spaceId && (await spaces.get(spaceId))
+  if (space) req.space = space
+  const routesByMethod = router.groupByMethod(await getRoutes({space}))
   const match = await router.lookupRoute(routesByMethod, req)
   return match
 }

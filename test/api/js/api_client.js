@@ -56,6 +56,12 @@ function expectName (expect) {
   return typeof expect === 'string' ? expect : expect.it
 }
 
+function printSection (name) {
+  console.log('\n--------------------------------------')
+  console.log(name)
+  console.log('--------------------------------------')
+}
+
 function printExpect (expect) {
   const heading = expectName(expect)
   if (heading) console.log(`\n### ${heading}`)
@@ -197,6 +203,7 @@ function client ({BASE_URL}) {
   }
 
   Object.assign(self, {
+    printSection,
     anonymous,
     logRequests,
     assert,

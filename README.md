@@ -4,12 +4,20 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 
 ## TODO
 
-* Allow separate configurable database per space - spaces.databaseUrl
-  Have an object with a cached mongo instance (connection) per space.
-  Use the spaceMongos object to provide mongo instances to models/spaces
-    Need to refactor dataHandler for this
-  Add req.space and options.space
-  Should be used for models and model content
+* Allow separate configurable database per space - spaces.databaseUrl. Ok?
+
+* Documentation index page with links to main swagger and data swagger per space
+
+* Load test 1000 spaces. How much memory is consumed?
+
+* Introduce accounts which are mapped to spaces and users
+
+* Need to drop ${config.MONGODB_URL}_dedicated in API tests? - Introduce c.MONGODB_URL_DEDICATED?
+
+* API test space that doesn't exist should yield 404
+
+* Should rename _id to id when we read the doc from mongo
+  Need to rename version coll id for this to work.
 
 * Rename /data to /content ("Add Content")?
 
@@ -49,8 +57,6 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
   Cannot delete field for model with content? Or need to disable before you delete.
 
 * Need to support images and other files (assets). Use service?
-
-* Documentation index page with links to main swagger and data swagger per space
 
 * models.model should have update: false? You can do this by introducing models.schema and a setSchema callback (or have a setModel callback for coll, features, schema etc.)
 

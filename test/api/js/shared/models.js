@@ -2,6 +2,8 @@ const {keys, difference} = require('lib/util')
 const {elapsedSeconds} = require('lib/date_util')
 
 async function crudTest (c, prefix, coll, doc, updateDoc) {
+  c.printSection('crudTest')
+
   const listPath = `${prefix}/${coll}`
 
   let result = await c.get('can list docs', `${listPath}?dbStats=1`)

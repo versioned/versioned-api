@@ -1,9 +1,8 @@
 const {concat, getIn, keys, keyValues, merge} = require('lib/util')
-const modelApi = require('lib/model_api')
 const models = require('app/models/models')
 const modelController = require('lib/model_controller')
 const config = require('app/config')
-const {logger, mongo} = config.modules
+const {logger} = config.modules
 const {notFound} = config.modules.response
 const swaggerHandler = require('app/controllers/swagger').index
 const {idType} = require('lib/model_meta')
@@ -75,7 +74,7 @@ function dataHandler (coll, endpoint) {
     }
     const model = await models.findOne(query)
     if (model) {
-      const api = modelApi(model.model, mongo, logger)
+      const api = await models.getApi(req.space, model)
       modelController(api, config.modules.response)[endpoint](req, res)
     } else {
       notFound(res)
@@ -142,12 +141,12 @@ async function modelRoutes (prefix, options = {}) {
 }
 
 async function routes (prefix, options = {}) {
-  if (options.spaceId) {
-    let spaceModels = await models.list({spaceId: options.spaceId})
+  if (options.space) {
+    let spaceModels = await models.list({spaceId: options.space._id.toString()})
     if (options.models) spaceModels = spaceModels.concat(options.models)
     let result = [swaggerRoute(prefix, options)]
     for (let model of spaceModels) {
-      const api = modelApi(model.model, mongo)
+      const api = await models.getApi(options.space, model)
       const routes = await modelRoutes(prefix, merge(options, {model, api}))
       result = result.concat(routes)
     }

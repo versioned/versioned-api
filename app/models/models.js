@@ -1,4 +1,4 @@
-const {concat, compact, validInt, setIn, getIn, values, keys} = require('lib/util')
+const {merge, concat, compact, validInt, setIn, getIn, values, keys} = require('lib/util')
 const config = require('app/config')
 const {logger, mongo} = config.modules
 const modelApi = require('lib/model_api')
@@ -21,6 +21,26 @@ async function getColl (model) {
   } else {
     return undefined
   }
+}
+
+async function validateDataLimit (doc, options) {
+  const count = await options.api.count()
+  if (count >= config.DATA_LIMIT) {
+    throw modelApi.validationError(`You cannot create more than ${config.DATA_LIMIT} documents in your current plan`)
+  }
+  return doc
+}
+
+async function getApi (space, model) {
+  const modelInstance = merge(model.model, {
+    callbacks: {
+      create: {
+        beforeValidation: [validateDataLimit]
+      }
+    }
+  })
+  const mongo = await spaces.getMongo(space)
+  return modelApi(modelInstance, mongo, logger)
 }
 
 async function validateSpace (doc, options) {
@@ -160,10 +180,15 @@ const model = {
     {
       keys: {spaceId: 1, coll: 1},
       options: {unique: true}
+    },
+    {
+      keys: {spaceId: 1, title: 1},
+      options: {unique: true}
     }
   ]
 }
 
 module.exports = Object.assign(modelApi(model, mongo, logger), {
-  getColl
+  getColl,
+  getApi
 })
