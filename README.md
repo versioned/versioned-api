@@ -4,7 +4,15 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 
 ## TODO
 
-* authorization check based on role in auth middleware
+* Put checkAccountAccess in model_api
+
+* users model needs special case access checks in model callbacks
+
+* accounts model needs special case access checks in model callbacks
+
+* Users model checks
+  Can only update/delete self
+  Can not change role of self
 
 * Deletion of accounts. Disallow if there are users connected? Clear out relationships?
 
