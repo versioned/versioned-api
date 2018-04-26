@@ -4,9 +4,11 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 
 ## TODO
 
-* accounts.users
-  Creator of account is admin
-  There must always be at least one admin
+* authorization check based on role in auth middleware
+
+* Deletion of accounts. Disallow if there are users connected? Clear out relationships?
+
+* accounts API test that checks user relationship and permissions
 
 * Introduce accounts which are mapped to spaces and users
 

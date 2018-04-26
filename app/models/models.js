@@ -26,7 +26,7 @@ async function getColl (model) {
 async function validateDataLimit (doc, options) {
   const count = await options.api.count()
   if (count >= config.DATA_LIMIT) {
-    throw modelApi.validationError(`You cannot create more than ${config.DATA_LIMIT} documents in your current plan`)
+    throw modelApi.validationError(options.model, doc, `You cannot create more than ${config.DATA_LIMIT} documents in your current plan`)
   }
   return doc
 }
@@ -45,7 +45,7 @@ async function getApi (space, model) {
 
 async function validateSpace (doc, options) {
   if (doc.spaceId && !(await spaces.findOne(doc.spaceId))) {
-    throw modelApi.validationError(`space '${doc.spaceId}' does not exist`, 'spaceId')
+    throw modelApi.validationError(options.model, doc, `space '${doc.spaceId}' does not exist`, 'spaceId')
   } else {
     return doc
   }
@@ -83,7 +83,7 @@ async function validateModel (doc, options) {
 async function validatePropertiesLimit (doc, options) {
   const properties = getIn(doc, ['model', 'schema', 'properties'])
   if (properties && keys(properties).length > config.PROPERTY_LIMIT) {
-    throw modelApi.validationError(`You can not have more than ${config.PROPERTY_LIMIT} properties`)
+    throw modelApi.validationError(options.model, doc, `You can not have more than ${config.PROPERTY_LIMIT} properties`)
   }
   return doc
 }
@@ -91,7 +91,7 @@ async function validatePropertiesLimit (doc, options) {
 async function validateModelsLimit (doc, options) {
   const modelsCount = doc.spaceId && (await modelApi({coll}, mongo).count({spaceId: doc.spaceId}))
   if (modelsCount && modelsCount >= config.MODELS_LIMIT) {
-    throw modelApi.validationError(`You cannot have more than ${config.MODELS_LIMIT} models per space`)
+    throw modelApi.validationError(options.model, doc, `You cannot have more than ${config.MODELS_LIMIT} models per space`)
   }
   return doc
 }
@@ -137,7 +137,7 @@ async function validateSwagger (doc, options) {
 async function validateCollAvailable (doc, options) {
   const coll = getIn(doc, ['model', 'coll'])
   if (coll && (await mongo.getColls()).includes(coll)) {
-    throw modelApi.validationError(`coll '${doc.coll}' is not available - please choose another name`, 'coll')
+    throw modelApi.validationError(options.model, doc, `coll '${doc.coll}' is not available - please choose another name`, 'coll')
   } else {
     return doc
   }

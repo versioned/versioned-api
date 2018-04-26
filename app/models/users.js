@@ -6,6 +6,8 @@ const jwt = require('lib/jwt')
 const passwordHash = require('lib/password_hash')
 const DEFAULTS = require('lib/model_spec').DEFAULTS
 
+const ROLES = ['read', 'write', 'admin']
+
 const model = {
   coll: 'users',
   features: concat(DEFAULTS.features, ['password']),
@@ -13,7 +15,19 @@ const model = {
     type: 'object',
     properties: {
       name: {type: 'string'},
-      email: {type: 'string', format: 'email', 'x-meta': {unique: true}}
+      email: {type: 'string', format: 'email', 'x-meta': {unique: true}},
+      accounts: {
+        type: 'array',
+        items: {
+          type: 'object',
+          properties: {
+            id: {type: 'string'},
+            role: {enum: ROLES}
+          },
+          required: ['id', 'role'],
+          additionalProperties: false
+        }
+      }
     },
     required: ['name', 'email'],
     additionalProperties: false
@@ -34,6 +48,7 @@ function generateToken (doc) {
 }
 
 module.exports = merge(api, {
+  ROLES,
   authenticate,
   generateToken
 })

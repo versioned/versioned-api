@@ -47,7 +47,7 @@ async function validateDatabaseUrl (doc, options) {
     try {
       await MongoClient.connect(doc.databaseUrl)
     } catch (err) {
-      throw modelApi.validationError(`Could not connect to databaseUrl=${doc.databaseUrl}`, 'databaseUrl')
+      throw modelApi.validationError(options.model, doc, `Could not connect to databaseUrl=${doc.databaseUrl}`, 'databaseUrl')
     }
   }
   return doc
@@ -56,11 +56,11 @@ async function validateDatabaseUrl (doc, options) {
 async function validateAccountId (doc, options) {
   if (doc.accountId) {
     const account = await accounts.findOne(doc.accountId)
-    if (!account) throw modelApi.validationError(`Could not find account ${doc.accountId}`, 'accountId')
+    if (!account) throw modelApi.validationError(options.model, doc, `Could not find account ${doc.accountId}`, 'accountId')
     const adminIds = account.users.filter(u => u.role === 'admin').map(property('id'))
     const userId = toString(getIn(options.user, ['_id']))
     if (!adminIds.includes(userId)) {
-      throw modelApi.validationError(`In order to create a space you need to have the administrator role`, 'accountId')
+      throw modelApi.validationError(options.model, doc, `In order to create a space you need to have the administrator role`, 'accountId')
     }
   }
   return doc
