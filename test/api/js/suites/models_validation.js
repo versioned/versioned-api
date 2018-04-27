@@ -2,6 +2,7 @@ const {omit, keys, merge, range} = require('lib/util')
 const config = require('app/config')
 
 module.exports = async function (c) {
+  const accountId = c.data.account.id
   const spaceId = c.data.space.id
 
   const model = {
@@ -24,16 +25,16 @@ module.exports = async function (c) {
   }
 
   for (let property of keys(articleModel)) {
-    await c.post({it: `create article model with missing ${property}`, status: 422}, '/models', omit(articleModel, [property]))
+    await c.post({it: `create article model with missing ${property}`, status: 422}, `/${accountId}/models`, omit(articleModel, [property]))
   }
 
-  let result = await c.post('create article model', '/models', articleModel)
+  let result = await c.post('create article model', `/${accountId}/models`, articleModel)
   const id = result.data.id
-  await c.post({it: 'cannot create article model again with same coll', status: 422}, '/models', articleModel)
+  await c.post({it: 'cannot create article model again with same coll', status: 422}, `/${accountId}/models`, articleModel)
 
-  await c.put({it: 'cannot change coll or spaceId of model', status: 204}, `/models/${id}`, {spaceId: 123, coll: 'foobar'})
+  await c.put({it: 'cannot change coll or spaceId of model', status: 204}, `/${accountId}/models/${id}`, {spaceId: 123, coll: 'foobar'})
 
-  await c.post({it: 'cannot create article model with invalid schema - property type', status: 422}, '/models', merge(articleModel, {
+  await c.post({it: 'cannot create article model with invalid schema - property type', status: 422}, `/${accountId}/models`, merge(articleModel, {
     coll: c.uuid(),
     model: {
       schema: {
@@ -48,7 +49,7 @@ module.exports = async function (c) {
     }
   }))
 
-  await c.post({it: 'cannot create article model with invalid schema - x-meta property', status: 422}, '/models', merge(articleModel, {
+  await c.post({it: 'cannot create article model with invalid schema - x-meta property', status: 422}, `/${accountId}/models`, merge(articleModel, {
     coll: c.uuid(),
     model: {
       schema: {
@@ -67,7 +68,7 @@ module.exports = async function (c) {
     acc[`property${i}`] = {type: 'string'}
     return acc
   }, {})
-  await c.post({it: 'cannot create article model with too many properties', status: 422}, '/models', merge(articleModel, {
+  await c.post({it: 'cannot create article model with too many properties', status: 422}, `/${accountId}/models`, merge(articleModel, {
     coll: c.uuid(),
     model: {
       schema: {
@@ -82,7 +83,7 @@ module.exports = async function (c) {
     return acc
   }, {})
   let uuid = c.uuid()
-  await c.post(`can create article model with ${config.PROPERTY_LIMIT} properties`, '/models', merge(articleModel, {
+  await c.post(`can create article model with ${config.PROPERTY_LIMIT} properties`, `/${accountId}/models`, merge(articleModel, {
     name: `${articleModel.name} ${uuid}`,
     coll: uuid,
     model: {

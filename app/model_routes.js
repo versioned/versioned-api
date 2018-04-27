@@ -1,6 +1,6 @@
 const fs = require('fs')
 const path = require('path')
-const {flatten, keyValues, merge, pick} = require('lib/util')
+const {concat, flatten, keyValues, merge, pick} = require('lib/util')
 const modelController = require('lib/model_controller')
 const {idType} = require('lib/model_meta')
 const {requestSchema, responseSchema} = require('lib/model_access')
@@ -8,8 +8,19 @@ const {requestSchema, responseSchema} = require('lib/model_access')
 const DEFAULT_VERSION = 'v1'
 const DEFAULT_REQUIRE_PATH = 'app/models'
 
+function getScope (model) {
+  const name = 'accountId'
+  const schema = model.schema.properties[name]
+  return schema && {name, schema}
+}
+
 function listPath (model, prefix) {
-  return `/${prefix}/${model.coll}`
+  const scope = getScope(model)
+  if (scope) {
+    return `/${prefix}/:${scope.name}/${model.coll}`
+  } else {
+    return `/${prefix}/${model.coll}`
+  }
 }
 
 function getPath (model, prefix) {
@@ -66,14 +77,30 @@ const LIST_PARAMETERS = [
   }
 ]
 
+function scopeParameter (model) {
+  const scope = getScope(model)
+  if (scope) {
+    return {
+      name: scope.name,
+      in: 'path',
+      required: true,
+      schema: scope.schema
+    }
+  } else {
+    return undefined
+  }
+}
+
 function parameters (model, endpoint) {
-  return {
+  const params = {
     list: LIST_PARAMETERS,
     get: [idParameter(model)],
     create: [],
     update: [idParameter(model)],
     delete: [idParameter(model)]
   }[endpoint]
+  const scopeParam = scopeParameter(model)
+  return scopeParam ? concat([scopeParam], params) : params
 }
 
 const ROUTES = {
@@ -111,7 +138,8 @@ function modelRoutes (responseModule) {
   function routes (modelApi, prefix = DEFAULT_VERSION) {
     const model = modelApi.model
     if (!model.routes) return []
-    const controller = modelController(modelApi, responseModule)
+    const options = {scope: 'accountId'}
+    const controller = modelController(modelApi, responseModule, options)
     return keyValues(pick(ROUTES, model.routes)).reduce((acc, [endpoint, route]) => {
       return acc.concat([merge(route, {
         summary: `${endpoint} ${model.coll}`,

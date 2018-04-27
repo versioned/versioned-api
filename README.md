@@ -4,6 +4,10 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 
 ## TODO
 
+* API test account scoping in model_controller of models and spaces
+
+* Need to also scope changelog!
+
 * Put checkAccountAccess in model_api
 
 * users model needs special case access checks in model callbacks

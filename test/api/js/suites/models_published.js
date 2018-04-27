@@ -1,6 +1,7 @@
 const {crudTest} = require('../shared/models')
 
 module.exports = async function (c) {
+  const accountId = c.data.account.id
   const spaceId = c.data.space.id
 
   const model = {
@@ -21,7 +22,7 @@ module.exports = async function (c) {
     features: ['published']
   }
 
-  let result = await c.post('create published model', '/models', model)
+  let result = await c.post('create published model', `/${accountId}/models`, model)
   const modelId = result.data.id
   c.assert(modelId)
 

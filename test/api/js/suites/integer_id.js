@@ -3,6 +3,7 @@ const DEFAULTS = require('lib/model_spec').DEFAULTS
 
 module.exports = async function (c) {
   // TODO: create a model with integer_id sequence
+  const accountId = c.data.account.id
   const spaceId = c.data.space.id
   const coll = c.uuid()
   const model = {
@@ -22,7 +23,7 @@ module.exports = async function (c) {
       }
     }
   }
-  let result = await c.post('create integer id model', '/models', model)
+  let result = await c.post('create integer id model', `/${accountId}/models`, model)
 
   let startIndex = null
   let maxId = 0

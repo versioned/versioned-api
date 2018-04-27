@@ -7,7 +7,7 @@ const {notFound} = config.modules.response
 const swaggerHandler = require('app/controllers/swagger').index
 const {idType} = require('lib/model_meta')
 const {requestSchema, responseSchema} = require('lib/model_access')
-const {LIST_PARAMETERS} = require('lib/model_routes')
+const {LIST_PARAMETERS} = require('app/model_routes')
 
 const PARAMS = {
   // spaceId: ['spaceId'],
@@ -75,7 +75,8 @@ function dataHandler (coll, endpoint) {
     const model = await models.findOne(query)
     if (model) {
       const api = await models.getApi(req.space, model)
-      modelController(api, config.modules.response)[endpoint](req, res)
+      const options = {scope: 'spaceId'}
+      modelController(api, config.modules.response, options)[endpoint](req, res)
     } else {
       notFound(res)
     }

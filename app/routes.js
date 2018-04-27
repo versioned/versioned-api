@@ -2,13 +2,14 @@ const home = require('app/controllers/home')
 const swagger = require('app/controllers/swagger')
 const auth = require('app/controllers/auth')
 const sys = require('app/controllers/sys')
-const {concat} = require('lib/util')
+const {getIn, concat} = require('lib/util')
 const config = require('app/config')
-const modelRoutes = require('lib/model_routes')(config.modules.response)
+const modelRoutes = require('app/model_routes')(config.modules.response)
 const dataRoutes = require('app/data_routes')
 const path = require('path')
 const router = require('lib/router')
 const spaces = require('app/models/spaces')
+const accounts = require('app/models/accounts')
 
 const VERSION = 'v1'
 const PREFIX = `/${VERSION}`
@@ -65,6 +66,8 @@ async function lookupRoute (req) {
   if (space) req.space = space
   const routesByMethod = router.groupByMethod(await getRoutes({space}))
   const match = await router.lookupRoute(routesByMethod, req)
+  const accountId = getIn(space, 'accountId') || getIn(match, 'params.accountId')
+  if (accountId) req.account = await accounts.get(accountId)
   return match
 }
 

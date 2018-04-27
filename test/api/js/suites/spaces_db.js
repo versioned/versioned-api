@@ -3,6 +3,7 @@ const config = require('app/config')
 const {crudTest} = require('../shared/models')
 
 module.exports = async function (c) {
+  const accountId = c.data.account.id
   const space = {
     name: 'My Dedicated CMS',
     accountId: c.data.account.id,
@@ -13,9 +14,9 @@ module.exports = async function (c) {
     accountId: c.data.account.id
   }
 
-  await c.post({it: 'create space with invalid databaseUrl', status: 422}, '/spaces', merge(space, {databaseUrl: 'foobar'}))
+  await c.post({it: 'create space with invalid databaseUrl', status: 422}, `/${accountId}/spaces`, merge(space, {databaseUrl: 'foobar'}))
 
-  let result = await c.post('create space with valid databaseUrl', '/spaces', space)
+  let result = await c.post('create space with valid databaseUrl', `/${accountId}/spaces`, space)
   c.assert(result.data.id)
   space.id = result.data.id
 
@@ -43,17 +44,17 @@ module.exports = async function (c) {
     title: 'Title changed'
   }
 
-  result = await c.post('can create space in shared database', '/spaces', sharedSpace)
+  result = await c.post('can create space in shared database', `/${accountId}/spaces`, sharedSpace)
   c.assert(result.data.id)
   sharedSpace.id = result.data.id
 
   const sharedModel = merge(model, {spaceId: sharedSpace.id})
 
-  await c.post('create model in dedicated space', '/models', model)
+  await c.post('create model in dedicated space', `/${accountId}/models`, model)
   c.assert(result.data.id)
   model.id = result.data.id
 
-  await c.post('create same model in shared space', '/models', sharedModel)
+  await c.post('create same model in shared space', `/${accountId}/models`, sharedModel)
   c.assert(result.data.id)
   sharedModel.id = result.data.id
 
