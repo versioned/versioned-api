@@ -1,55 +1,56 @@
 const {elapsedSeconds} = require('lib/date_util')
 
 module.exports = async function (c) {
-  const user = {
+  const accountId = c.data.account.id
+  const space = {
     name: c.uuid(),
-    email: `${c.uuid()}@example.com`,
-    password: 'admin'
+    accountId
   }
-  let result = await c.post('create another user', `/users`, user)
+  let result = await c.post('create another space', `/${accountId}/spaces`, space)
   const id = result.data.id
+  c.assert(id)
+  c.assertEqual(result.data.accountId, accountId)
 
-  result = await c.get({it: 'list changelog without auth', status: 401}, `/changelog`, {headers: {authorization: null}})
+  result = await c.get({it: 'list changelog without auth', status: 401}, `/${accountId}/changelog`, {headers: {authorization: null}})
 
-  result = await c.get('list changelog', `/changelog`)
+  result = await c.get('list changelog', `/${accountId}/changelog`)
   let changelogId = result.data[0].id
   c.assertEqual(result.data[0].action, 'create')
+  c.assertEqual(result.data[0].accountId, accountId)
   c.assert(!result.data[0].changes)
   c.assertEqual(result.data[0].doc.id, id)
-  c.assertEqual(result.data[0].doc.name, user.name)
-  c.assertEqual(result.data[0].doc.email, user.email)
+  c.assertEqual(result.data[0].doc.name, space.name)
 
-  result = await c.get({it: 'get changelog without auth', status: 401}, `/changelog/${changelogId}`, {headers: {authorization: null}})
+  result = await c.get({it: 'get changelog without auth', status: 401}, `/${accountId}/changelog/${changelogId}`, {headers: {authorization: null}})
 
-  result = await c.get('get changelog', `/changelog/${changelogId}`)
+  result = await c.get('get changelog', `/${accountId}/changelog/${changelogId}`)
   c.assertEqual(result.data.id, changelogId)
   c.assertEqual(result.data.action, 'create')
   c.assertEqual(result.data.doc.id, id)
-  c.assertEqual(result.data.doc.name, user.name)
-  c.assertEqual(result.data.doc.email, user.email)
+  c.assertEqual(result.data.accountId, accountId)
+  c.assertEqual(result.data.doc.name, space.name)
+  c.assertEqual(result.data.doc.accountId, space.accountId)
   c.assert(elapsedSeconds(result.data.createdAt) < 1)
   c.assert(result.data.createdBy, c.data.user.id)
 
-  result = await c.put({it: 'there is no changelog update', status: 404}, `/changelog/${changelogId}`, {})
+  result = await c.put({it: 'there is no changelog update', status: 404}, `/${accountId}/changelog/${changelogId}`, {})
 
-  result = await c.put('update name', `/users/${id}`, {name: 'changed name'})
+  result = await c.put('update name', `/${accountId}/spaces/${id}`, {name: 'changed name'})
 
-  result = await c.get('list changelog', `/changelog`)
+  result = await c.get('list changelog', `/${accountId}/changelog`)
   c.assertEqual(result.data[0].action, 'update')
   c.assertEqual(result.data[0].doc.id, id)
   c.assertEqual(result.data[0].doc.name, 'changed name')
-  c.assertEqual(result.data[0].doc.email, user.email)
   c.assert(elapsedSeconds(result.data[0].createdAt) < 1)
   c.assertEqual(result.data[0].createdBy, c.data.user.id)
-  c.assertEqual(result.data[0].changes, {name: {changed: {from: user.name, to: 'changed name'}}})
+  c.assertEqual(result.data[0].changes, {name: {changed: {from: space.name, to: 'changed name'}}})
 
-  result = await c.delete('delete user', `/users/${id}`)
+  result = await c.delete('delete space', `/${accountId}/spaces/${id}`)
 
-  result = await c.get('list changelog', `/changelog`)
+  result = await c.get('list changelog', `/${accountId}/changelog`)
   c.assertEqual(result.data[0].action, 'delete')
   c.assertEqual(result.data[0].doc.id, id)
   c.assertEqual(result.data[0].doc.name, 'changed name')
-  c.assertEqual(result.data[0].doc.email, user.email)
   c.assert(elapsedSeconds(result.data[0].createdAt) < 1)
   c.assertEqual(result.data[0].createdBy, c.data.user.id)
   c.assert(!result.data[0].changes)

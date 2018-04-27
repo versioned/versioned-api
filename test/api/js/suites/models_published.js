@@ -46,7 +46,7 @@ module.exports = async function (c) {
   c.assert(!result.data.updatedAt)
   c.assert(!result.data.updatedBy)
 
-  result = await c.get('get changelog', `/changelog`)
+  result = await c.get('get changelog', `/data/${spaceId}/changelog`)
   c.assertEqual(result.data[0].action, 'create')
   c.assert(!result.data[0].changes)
   c.assertEqual(result.data[0].doc.id, id)
@@ -85,7 +85,7 @@ module.exports = async function (c) {
   c.assert(!result.data.publishedVersion)
   c.assertRecent(result.data.updatedAt)
 
-  result = await c.get('get changelog', `/changelog`)
+  result = await c.get('get changelog', `/data/${spaceId}/changelog`)
   c.assertEqual(result.data[0].action, 'update')
   c.assertEqual(result.data[0].doc.id, id)
   c.assertEqual(result.data[0].doc.title, 'foobar1')
@@ -189,7 +189,7 @@ module.exports = async function (c) {
   c.assertEqual(result.data.version, 2)
   c.assert(!result.data.publishedVersion)
 
-  result = await c.get('get changelog', `/changelog`)
+  result = await c.get('get changelog', `/data/${spaceId}/changelog`)
   c.assertEqual(result.data[0].action, 'update')
   c.assertEqual(result.data[0].doc.id, id)
   c.assertEqual(result.data[0].doc.version, 2)

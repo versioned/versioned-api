@@ -3,11 +3,14 @@ const models = require('app/models/models')
 const modelController = require('lib/model_controller')
 const config = require('app/config')
 const {logger} = config.modules
+const responseModule = config.modules.response
 const {notFound} = config.modules.response
 const swaggerHandler = require('app/controllers/swagger').index
 const {idType} = require('lib/model_meta')
 const {requestSchema, responseSchema} = require('lib/model_access')
 const {LIST_PARAMETERS} = require('app/model_routes')
+const changelog = require('app/models/changelog')
+const DEFAULTS = require('lib/model_spec').DEFAULTS
 
 const PARAMS = {
   // spaceId: ['spaceId'],
@@ -120,14 +123,17 @@ const ROUTES = {
 
 async function modelRoutes (prefix, options = {}) {
   const modelCallbacks = require('lib/model_callbacks')(logger)
-  const routes = []
-  for (let [endpoint, route] of keyValues(ROUTES)) {
+  const result = []
+  const apiRoutes = getIn(options, 'api.model.routes', DEFAULTS.routes)
+  const routes = keyValues(ROUTES).filter(r => apiRoutes.includes(r[0]))
+  for (let [endpoint, route] of routes) {
     const summary = options.model ? `${endpoint} ${options.model.coll} data` : `${endpoint} data`
+    const handler = options.handler ? options.handler(endpoint) : dataHandler(options.model.coll, endpoint)
     route = merge(route, {
       action: endpoint,
       tags: ['data'],
       path: route.path(prefix, options),
-      handler: dataHandler(options.model.coll, endpoint),
+      handler,
       summary,
       parameters: parameters(options.model, endpoint),
       requestSchema: requestSchema(getIn(options, ['api', 'model']), endpoint),
@@ -136,8 +142,16 @@ async function modelRoutes (prefix, options = {}) {
     if (options.api) {
       route = await modelCallbacks(options.api, route, 'after', 'routeCreate')
     }
-    routes.push(route)
+    result.push(route)
   }
+  return result
+}
+
+async function getChangelogRoutes (prefix, options) {
+  const controller = modelController(changelog, responseModule, {scope: 'spaceId'})
+  const handler = (endpoint) => controller[endpoint]
+  const model = {coll: changelog.model.coll, model: changelog.model}
+  const routes = await modelRoutes(prefix, merge(options, {handler, model, api: changelog}))
   return routes
 }
 
@@ -151,6 +165,8 @@ async function routes (prefix, options = {}) {
       const routes = await modelRoutes(prefix, merge(options, {model, api}))
       result = result.concat(routes)
     }
+    const changelogRoutes = await getChangelogRoutes(prefix, options)
+    result = result.concat(changelogRoutes)
     return result
   } else {
     return [swaggerRoute(prefix, options)]

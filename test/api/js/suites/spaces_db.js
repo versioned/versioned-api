@@ -1,5 +1,4 @@
 const {merge} = require('lib/util')
-const config = require('app/config')
 const {crudTest} = require('../shared/models')
 
 module.exports = async function (c) {
@@ -7,7 +6,7 @@ module.exports = async function (c) {
   const space = {
     name: 'My Dedicated CMS',
     accountId: c.data.account.id,
-    databaseUrl: `${config.MONGODB_URL}_dedicated`
+    databaseUrl: c.DEDICATED_MONGODB_URL
   }
   const sharedSpace = {
     name: 'My Shared CMS',

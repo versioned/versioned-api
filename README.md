@@ -4,25 +4,33 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 
 ## TODO
 
+* accessCheck - API test
+
+* changelog
+  Use same db as model
+  data endpoint - /v1/{spaceId}/changelog
+
+* API test changelog uses same db as model (need data endpoint, i.e. /v1/{spaceId}/changelog)
+
+* changelog mergeRecentUpdate
+
+* Schema validation errors should say which model (coll) and doc they refer to
+
+* Need to authenticate and checkAccess for data swagger, i.e. /v1/data/5ae30e38e7de8a922cc21406/swagger.json
+
 * API test account scoping in model_controller of models and spaces
 
 * Need to also scope changelog!
 
-* Put checkAccountAccess in model_api
-
 * users model needs special case access checks in model callbacks
-
-* accounts model needs special case access checks in model callbacks
-
-* Users model checks
   Can only update/delete self
   Can not change role of self
+
+* accounts model needs special case access checks in model callbacks
 
 * Deletion of accounts. Disallow if there are users connected? Clear out relationships?
 
 * accounts API test that checks user relationship and permissions
-
-* Introduce accounts which are mapped to spaces and users
 
 * Double check permission per role
   Ability to create spaces?
@@ -174,17 +182,17 @@ export BASE_URL=http://localhost:3000/v1
 echo '{"email": "admin@example.com", "password": "admin"}' | http POST $BASE_URL/login
 ```
 
-List Users:
+Create account:
 
 ```
-export BASE_URL=http://localhost:3000/v1
-http GET $BASE_URL/users Authorization:"Bearer $TOKEN"
+echo '{"name": "My CMS"}' | http POST $BASE_URL/accounts Authorization:"Bearer $TOKEN"
+export ACCOUNT_ID=...
 ```
 
 Create Space:
 
 ```
-http POST $BASE_URL/spaces Authorization:"Bearer $TOKEN" name="My Content"
+http POST $BASE_URL/$ACCOUNT_ID/spaces Authorization:"Bearer $TOKEN" name="My Content"
 export SPACE_ID=...
 ```
 

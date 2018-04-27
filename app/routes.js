@@ -2,10 +2,10 @@ const home = require('app/controllers/home')
 const swagger = require('app/controllers/swagger')
 const auth = require('app/controllers/auth')
 const sys = require('app/controllers/sys')
-const {getIn, concat} = require('lib/util')
+const {nil, getIn, concat} = require('lib/util')
 const config = require('app/config')
 const modelRoutes = require('app/model_routes')(config.modules.response)
-const dataRoutes = require('app/data_routes')
+const getDataRoutes = require('app/data_routes')
 const path = require('path')
 const router = require('lib/router')
 const spaces = require('app/models/spaces')
@@ -51,13 +51,43 @@ const systemRoutes = [
 ].concat(modelRoutes.requireDir(MODELS_DIR, VERSION))
 
 async function getRoutes (options = {}) {
-  return concat((await dataRoutes(DATA_PREFIX, options)), systemRoutes)
+  const dataRoutes = await getDataRoutes(DATA_PREFIX, options)
+  return concat(dataRoutes, systemRoutes)
 }
 
 function parseSpaceId (req) {
   const SPACE_ID_PATTERN = new RegExp(`${DATA_PREFIX}/([a-f0-9]{24})/`)
   const match = req.url.match(SPACE_ID_PATTERN)
   return match && match[1]
+}
+
+function accessError (message) {
+  return message && {status: 401, errors: [{type: 'access', message}]}
+}
+
+function checkAccess (req) {
+  const {route, user, account} = req
+  if (getIn(user, 'superUser')) return undefined
+  if (!account) {
+    if (route.require_auth === false || getIn(route, 'model.schema.x-meta.checkAccess') === false) {
+      return undefined
+    } else {
+      return accessError('No account ID is associated with that endpoint so it requires super user access')
+    }
+  }
+  let message
+  const accountId = account._id.toString()
+  const role = getIn((user.accounts || []).find(a => a.id === accountId), 'role')
+  const modelName = getIn(route, ['model', 'coll'])
+  const writeRequiresAdmin = (getIn(route, 'model.schema.x-meta.writeRequiresAdmin') !== false)
+  if (nil(role)) {
+    message = `You need to be granted access by an administrator to account ${account.name}`
+  } else if (role === 'read' && req.method !== 'GET') {
+    message = `You need to be granted write access by an administrator to update content in account ${account.name}`
+  } else if (role === 'write' && writeRequiresAdmin) {
+    message = `You need to be granted administrator access to update ${modelName}`
+  }
+  return accessError(message)
 }
 
 async function lookupRoute (req) {
@@ -75,5 +105,6 @@ module.exports = {
   VERSION,
   PREFIX,
   getRoutes,
+  checkAccess,
   lookupRoute
 }

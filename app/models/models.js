@@ -75,6 +75,17 @@ async function setFeatures (doc, options) {
   }
 }
 
+async function setSchema (doc, options) {
+  if (doc.model) {
+    const xMeta = {
+      writeRequiresAdmin: false
+    }
+    return setIn(doc, ['model', 'schema', 'x-meta'], xMeta)
+  } else {
+    return doc
+  }
+}
+
 async function validateModel (doc, options) {
   if (doc.model) modelApi(doc.model, mongo) // creating the API this should not throw any error
   return doc
@@ -169,7 +180,7 @@ const model = {
   },
   callbacks: {
     save: {
-      beforeValidation: [validateSpace, setColl, setAccountId, setFeatures, validateModel, validatePropertiesLimit],
+      beforeValidation: [validateSpace, setColl, setAccountId, setFeatures, setSchema, validateModel, validatePropertiesLimit],
       afterValidation: [validateXMeta, validateSwagger]
     },
     create: {

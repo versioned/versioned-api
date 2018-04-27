@@ -8,9 +8,10 @@ const apiClient = require('./api_client')
 const {unique, concat} = require('lib/util')
 const {elapsedSeconds} = require('lib/date_util')
 const config = require('app/config')
-const {mongo} = config.modules
+const mongo = require('lib/mongo')
 
 const BASE_URL = `http://localhost:${process.env.PORT}/v1`
+const DEDICATED_MONGODB_URL = `${config.MONGODB_URL}_dedicated`
 
 function initEnv () {
   const TEST_ENV = {
@@ -45,9 +46,13 @@ function printResults (client, startTime) {
 
 async function run () {
   const startTime = new Date()
-  const client = apiClient({BASE_URL})
+
+  const client = apiClient({BASE_URL, DEDICATED_MONGODB_URL})
   await server.start()
-  await mongo.db().dropDatabase()
+  await config.modules.mongo.db().dropDatabase()
+  const dedicatedMongo = mongo(DEDICATED_MONGODB_URL)
+  await dedicatedMongo.connect()
+  await dedicatedMongo.db().dropDatabase()
   for (let suiteName of suites()) {
     printSuiteHeader(suiteName)
     client.suite = suiteName

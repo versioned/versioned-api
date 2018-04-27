@@ -40,8 +40,8 @@ module.exports = async function (c) {
 
   await c.post('create article', `/data/${spaceId}/articles`, article)
 
-  result = await c.get('check collection has one record in db stats', '/sys/db_stats')
-  c.assertEqual(result.data[articlesColl].count, 1, `expecting ${articlesColl} to have 1 doc`)
+  result = await c.get('check collection has one record in db stats', `/data/${spaceId}/articles?dbStats=1`)
+  c.assertEqual(result.body.dbStats.count, 1, `expecting ${articlesColl} to have 1 doc`)
 
   const modelUpdated = setIn(model, ['model', 'schema', 'properties'], {title: {type: 'string'}, slug: {type: 'string'}})
   await c.put('update articles model with new schema property', `/${accountId}/models/${modelId}`, modelUpdated)
@@ -53,9 +53,6 @@ module.exports = async function (c) {
   await c.post('create another article with new property', `/data/${spaceId}/articles`, anotherArticle)
 
   await c.delete('delete articles model', `/${accountId}/models/${modelId}`)
-
-  result = await c.get('check collection is no longer in db stats', '/sys/db_stats')
-  c.assert(!result.data[models.getColl(model)], `expecting ${articlesColl} to not be there`)
 
   const thirdArticle = {
     title: 'My third article',

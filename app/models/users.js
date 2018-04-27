@@ -13,6 +13,9 @@ const model = {
   features: concat(DEFAULTS.features, ['password']),
   schema: {
     type: 'object',
+    'x-meta': {
+      checkAccess: false
+    },
     properties: {
       name: {type: 'string'},
       email: {type: 'string', format: 'email', 'x-meta': {unique: true}},
@@ -27,7 +30,8 @@ const model = {
           required: ['id', 'role'],
           additionalProperties: false
         }
-      }
+      },
+      superUser: {type: 'boolean', 'x-meta': {writable: false}}
     },
     required: ['name', 'email'],
     additionalProperties: false

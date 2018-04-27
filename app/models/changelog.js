@@ -7,11 +7,15 @@ const model = {
   schema: {
     type: 'object',
     properties: {
+      accountId: {type: 'string', 'x-meta': {write: false, index: true}},
+      spaceId: {type: 'string', 'x-meta': {write: false, index: true}},
       action: {enum: ['create', 'update', 'delete']},
+      coll: {type: 'string'},
+      existingDoc: {type: 'object'},
       doc: {type: 'object'},
       changes: {type: 'object'}
     },
-    required: ['action', 'doc'],
+    required: ['action', 'coll', 'doc'],
     additionalProperties: false
   },
   routes: ['list', 'get']

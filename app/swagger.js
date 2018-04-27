@@ -4,8 +4,8 @@ const spaces = require('app/models/spaces')
 
 async function swagger (options = {}) {
   const routesModule = require('app/routes')
-  const routes = await routesModule.getRoutes(options)
   const space = options.spaceId && (await spaces.get(options.spaceId))
+  const routes = await routesModule.getRoutes({space})
   const title = space ? `${config.TITLE} - space: ${space.name}` : config.TITLE
   const swaggerOptions = {
     title,

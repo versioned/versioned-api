@@ -79,7 +79,7 @@ function printHttp (method, url, headers, data) {
   }
 }
 
-function client ({BASE_URL}) {
+function client ({BASE_URL, DEDICATED_MONGODB_URL}) {
   const self = {
     data: {},
     defaultOptions: null,
@@ -208,6 +208,7 @@ function client ({BASE_URL}) {
   }
 
   Object.assign(self, {
+    DEDICATED_MONGODB_URL,
     printSection,
     anonymous,
     logRequests,

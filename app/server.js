@@ -1,6 +1,6 @@
 const config = require('app/config')
 const {logger, mongo} = config.modules
-const {lookupRoute} = require('app/routes')
+const {lookupRoute, checkAccess} = require('app/routes')
 const app = require('lib/app')(config)
 const requestId = require('lib/middleware/request_id').requestId
 const responseTime = require('lib/middleware/response_time').responseTime
@@ -17,6 +17,7 @@ const users = require('app/models/users')
 const AUTH_CONFIG = {
   JWT_SECRET: config.JWT_SECRET,
   findUser: users.get,
+  checkAccess,
   logger
 }
 
