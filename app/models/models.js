@@ -116,7 +116,8 @@ const X_META_SCHEMA = {
     update: {type: 'boolean'},
     versioned: {type: 'boolean'},
     index: {type: ['boolean', 'integer']},
-    unique: {type: 'boolean'}
+    unique: {type: 'boolean'},
+    mergeChangelog: {type: 'boolean'}
   },
   additionalProperties: false
 }

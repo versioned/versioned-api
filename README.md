@@ -4,29 +4,15 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 
 ## TODO
 
-* accessCheck - API test
-
-* changelog
-  Use same db as model
-  data endpoint - /v1/{spaceId}/changelog
-
-* API test changelog uses same db as model (need data endpoint, i.e. /v1/{spaceId}/changelog)
-
-* changelog mergeRecentUpdate
-
-* Schema validation errors should say which model (coll) and doc they refer to
-
-* Need to authenticate and checkAccess for data swagger, i.e. /v1/data/5ae30e38e7de8a922cc21406/swagger.json
-
-* API test account scoping in model_controller of models and spaces
-
-* Need to also scope changelog!
-
 * users model needs special case access checks in model callbacks
   Can only update/delete self
   Can not change role of self
 
 * accounts model needs special case access checks in model callbacks
+
+* accessCheck - API test
+
+* API test account scoping in model_controller of models and spaces
 
 * Deletion of accounts. Disallow if there are users connected? Clear out relationships?
 
@@ -37,7 +23,8 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 
 * Documentation index page with links to main swagger and data swagger per space
 
-* Load test 1000 spaces. How much memory is consumed?
+* Load test 1000 spaces and lots of data. How much memory is consumed?
+  Need a sync/import endpoint
 
 * Need to drop ${config.MONGODB_URL}_dedicated in API tests? - Introduce c.MONGODB_URL_DEDICATED?
 

@@ -228,7 +228,7 @@ const model = {
     properties: {
       version: {type: 'integer', minimum: 1, 'x-meta': {api_writable: false}},
       versionToken: {type: 'string', 'x-meta': {api_writable: false}},
-      publishedVersion: {type: 'integer', minimum: 1, 'x-meta': {versioned: false}},
+      publishedVersion: {type: 'integer', minimum: 1, 'x-meta': {versioned: false, mergeChangelog: false}},
       firstPublishedAt: {type: 'string', format: 'date-time', 'x-meta': {api_writable: false, versioned: false}},
       lastPublishedAt: {type: 'string', format: 'date-time', 'x-meta': {api_writable: false, versioned: false}},
       publishAt: {type: 'string', format: 'date-time', 'x-meta': {versioned: false}},

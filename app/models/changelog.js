@@ -18,6 +18,11 @@ const model = {
     required: ['action', 'coll', 'doc'],
     additionalProperties: false
   },
+  indexes: [
+    {
+      keys: {coll: 1, 'doc.id': 1}
+    }
+  ],
   routes: ['list', 'get']
 }
 

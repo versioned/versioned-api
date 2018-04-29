@@ -41,16 +41,32 @@ module.exports = async function (c) {
   c.assertEqual(result.data[0].action, 'update')
   c.assertEqual(result.data[0].doc.id, id)
   c.assertEqual(result.data[0].doc.name, 'changed name')
+  c.assertEqual(result.data[0].existingDoc.id, id)
+  c.assertEqual(result.data[0].existingDoc.name, space.name)
   c.assert(elapsedSeconds(result.data[0].createdAt) < 1)
   c.assertEqual(result.data[0].createdBy, c.data.user.id)
   c.assertEqual(result.data[0].changes, {name: {changed: {from: space.name, to: 'changed name'}}})
+  let countBefore = result.body.count
+
+  result = await c.put('update name again (recent update)', `/${accountId}/spaces/${id}`, {name: 'changed name again'})
+
+  result = await c.get('list changelog', `/${accountId}/changelog`)
+  c.assertEqual(result.data[0].action, 'update')
+  c.assertEqual(result.data[0].doc.id, id)
+  c.assertEqual(result.data[0].doc.name, 'changed name again')
+  c.assertEqual(result.data[0].existingDoc.id, id)
+  c.assertEqual(result.data[0].existingDoc.name, space.name)
+  c.assert(elapsedSeconds(result.data[0].createdAt) < 1)
+  c.assertEqual(result.data[0].createdBy, c.data.user.id)
+  c.assertEqual(result.data[0].changes, {name: {changed: {from: space.name, to: 'changed name again'}}})
+  c.assertEqual(result.body.count, countBefore)
 
   result = await c.delete('delete space', `/${accountId}/spaces/${id}`)
 
   result = await c.get('list changelog', `/${accountId}/changelog`)
   c.assertEqual(result.data[0].action, 'delete')
   c.assertEqual(result.data[0].doc.id, id)
-  c.assertEqual(result.data[0].doc.name, 'changed name')
+  c.assertEqual(result.data[0].doc.name, 'changed name again')
   c.assert(elapsedSeconds(result.data[0].createdAt) < 1)
   c.assertEqual(result.data[0].createdBy, c.data.user.id)
   c.assert(!result.data[0].changes)
