@@ -46,7 +46,7 @@ async function getMergableUpdate (api, doc, changes, options) {
 }
 
 async function changelogCallback (doc, options) {
-  const {action} = options
+  const {user, action} = options
   const accountId = toString(getIn(options, 'account._id'))
   const spaceId = toString(getIn(options, 'space._id'))
   const existingDoc = readableDoc(options.model, options.existingDoc)
@@ -59,7 +59,7 @@ async function changelogCallback (doc, options) {
       doc: toDoc,
       changes: modelApi.changes(mergableUpdate.existingDoc, toDoc),
       createdAt: new Date()
-    }, options)
+    }, {user})
   } else {
     await api.create({
       accountId,
@@ -71,7 +71,7 @@ async function changelogCallback (doc, options) {
       changes,
       createdBy: getUserId(options),
       createdAt: new Date()
-    }, options)
+    }, {user})
   }
   return doc
 }

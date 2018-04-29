@@ -50,16 +50,16 @@ async function updateUsersRelationship (doc, options) {
   for (let {id, role} of added) {
     const account = {id: accountId, role}
     const addAccount = (accounts) => concat(accounts, [account])
-    await users.update(id, {}, {evolve: {accounts: addAccount}})
+    await users.update(id, {}, {callbacks: false, evolve: {accounts: addAccount}})
   }
   for (let {id} of removed) {
     const removeAccount = (accounts) => accounts.filter(a => a.id !== accountId)
-    await users.update(id, {}, {evolve: {accounts: removeAccount}})
+    await users.update(id, {}, {callbacks: false, evolve: {accounts: removeAccount}})
   }
   for (let {id, role} of changed) {
     const account = {id: accountId, role}
     const updateAccount = (accounts) => accounts.map(a => a.id === accountId ? account : a)
-    await users.update(id, {}, {evolve: {accounts: updateAccount}})
+    await users.update(id, {}, {callbacks: false, evolve: {accounts: updateAccount}})
   }
   return doc
 }

@@ -1,12 +1,23 @@
-const {concat, merge} = require('lib/util')
+const {toString, getIn, concat, merge} = require('lib/util')
 const modelApi = require('lib/model_api')
 const config = require('app/config')
 const {logger, mongo} = config.modules
 const jwt = require('lib/jwt')
 const passwordHash = require('lib/password_hash')
 const DEFAULTS = require('lib/model_spec').DEFAULTS
+const {accessError} = require('app/errors')
 
 const ROLES = ['read', 'write', 'admin']
+
+function checkAccess (doc, options) {
+  if (getIn(options, 'user.superUser')) return doc
+  if (options.action === 'list') {
+    throw accessError('You must be super user to access that endpoint')
+  } else if (['update', 'delete'].includes(options.action) && toString(doc._id) !== toString(getIn(options, 'user._id'))) {
+    throw accessError('A logged in user can not update or delete other users')
+  }
+  return doc
+}
 
 const model = {
   coll: 'users',
@@ -35,6 +46,17 @@ const model = {
     },
     required: ['name', 'email'],
     additionalProperties: false
+  },
+  callbacks: {
+    list: {
+      before: [checkAccess]
+    },
+    update: {
+      beforeValidation: [checkAccess]
+    },
+    delete: {
+      before: [checkAccess]
+    }
   }
 }
 

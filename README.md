@@ -5,10 +5,13 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 ## TODO
 
 * users model needs special case access checks in model callbacks
-  Can only update/delete self
+  Can only update/delete/get self
+  Remove list endpoint
   Can not change role of self
 
 * accounts model needs special case access checks in model callbacks
+
+* versioned2-ui
 
 * accessCheck - API test
 
@@ -73,8 +76,6 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 * models.model should have update: false? You can do this by introducing models.schema and a setSchema callback (or have a setModel callback for coll, features, schema etc.)
 
 * Move spaceId from path to header?
-
-* versioned2-ui
 
 * Relationships
 

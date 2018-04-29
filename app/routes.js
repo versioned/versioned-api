@@ -10,6 +10,7 @@ const path = require('path')
 const router = require('lib/router')
 const spaces = require('app/models/spaces')
 const accounts = require('app/models/accounts')
+const {accessError} = require('app/errors')
 
 const VERSION = 'v1'
 const PREFIX = `/${VERSION}`
@@ -23,7 +24,7 @@ const systemRoutes = [
     method: 'get',
     path: '/',
     handler: home.index,
-    require_auth: false
+    requireAuth: false
   },
   {
     tags: ['documentation'],
@@ -31,7 +32,7 @@ const systemRoutes = [
     method: 'get',
     path: `${PREFIX}/swagger.json`,
     handler: swagger.index,
-    require_auth: false
+    requireAuth: false
   },
   {
     tags: ['auth'],
@@ -39,7 +40,7 @@ const systemRoutes = [
     method: 'post',
     path: `${PREFIX}/login`,
     handler: auth.login,
-    require_auth: false
+    requireAuth: false
   },
   {
     tags: ['system'],
@@ -61,20 +62,14 @@ function parseSpaceId (req) {
   return match && match[1]
 }
 
-function accessError (message) {
-  return message && {status: 401, errors: [{type: 'access', message}]}
-}
-
 function checkAccess (req) {
   const {route, user, account} = req
-  if (getIn(user, 'superUser')) return undefined
-  if (!account) {
-    if (route.require_auth === false || getIn(route, 'model.schema.x-meta.checkAccess') === false) {
-      return undefined
-    } else {
-      return accessError('No account ID is associated with that endpoint so it requires super user access')
-    }
+  if (route.requireAuth === false ||
+    getIn(route, 'model.schema.x-meta.checkAccess') === false ||
+    getIn(user, 'superUser')) {
+    return undefined
   }
+  if (!account) return accessError('No account ID is associated with that endpoint so it requires super user access')
   let message
   const accountId = account._id.toString()
   const role = getIn((user.accounts || []).find(a => a.id === accountId), 'role')
@@ -105,6 +100,7 @@ module.exports = {
   VERSION,
   PREFIX,
   getRoutes,
+  accessError,
   checkAccess,
   lookupRoute
 }

@@ -33,7 +33,9 @@ module.exports = async function (c) {
 
   result = await c.get({it: 'cannot list users without auth', status: 401}, `/users`, {headers: {authorization: null}})
 
-  result = await c.get('can list users with auth', `/users`, {headers})
+  result = await c.get({it: 'cannot list users as regular user', status: 401}, `/users`, {headers})
+
+  result = await c.get('can list users as super user', `/users`, {headers: c.data.superHeaders})
   c.assertEqual(result.data[0].id, id)
   c.assertEqual(result.data[0].email, user.email)
 
