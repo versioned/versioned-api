@@ -1,8 +1,9 @@
-const {getIn, concat, merge, property} = require('lib/util')
+const {toString, find, getIn, concat, merge, property} = require('lib/util')
 const {logger, mongo} = require('app/config').modules
 const modelApi = require('lib/model_api')
 const diff = require('lib/diff')
 const users = require('app/models/users')
+const {accessError} = require('app/errors')
 
 const PLANS = ['shared', 'dedicated']
 const DEFAULT_PLAN = 'shared'
@@ -21,6 +22,16 @@ function usersDiff (fromUsers, toUsers) {
 // ///////////////////////////////////////
 // CALLBACKS
 // ///////////////////////////////////////
+
+function checkAccess (doc, options) {
+  if (getIn(options, 'user.superUser')) return doc
+  const userId = toString(getIn(options, 'user._id'))
+  const isAccountAdmin = find(doc.users, (u) => u.id === userId && u.role === 'admin')
+  if (['update', 'delete'].includes(options.action) && !isAccountAdmin) {
+    throw accessError('You must be granted admin privileges to update or delete an account')
+  }
+  return doc
+}
 
 function setDefaultPlan (doc, options) {
   return merge({plan: DEFAULT_PLAN}, doc)
@@ -93,7 +104,20 @@ const model = {
     },
     create: {
       beforeValidation: [setDefaultPlan, setDefaultAdmin, validateOneAdmin]
+    },
+    update: {
+      afterValidation: [checkAccess]
+    },
+    delete: {
+      before: [checkAccess]
     }
+  },
+  routes: {
+    list: {superUser: true},
+    get: {},
+    create: {},
+    update: {},
+    delete: {}
   }
 }
 

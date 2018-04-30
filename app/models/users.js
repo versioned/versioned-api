@@ -43,9 +43,6 @@ const model = {
     additionalProperties: false
   },
   callbacks: {
-    list: {
-      before: [checkAccess]
-    },
     update: {
       beforeValidation: [checkAccess]
     },

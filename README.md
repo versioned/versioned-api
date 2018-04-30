@@ -4,16 +4,11 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 
 ## TODO
 
-* users model needs special case access checks in model callbacks
-  Can only update/delete/get self
-  Remove list endpoint
-  Can not change role of self
-
-* accounts model needs special case access checks in model callbacks
-
 * versioned2-ui
 
 * accessCheck - API test
+  users can only update/delete/get self
+  accounts can only be updated/deleted by admin
 
 * API test account scoping in model_controller of models and spaces
 
