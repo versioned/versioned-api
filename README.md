@@ -99,6 +99,7 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 
 ## Discussion Points and Backlog
 
+* Email verification and change password
 * Relationships - in contentful you can’t lookup the parent from the child
 * Approaches to translations - One space per locale or translated texts within one space. You can combine both.
 * Support Web hooks
@@ -144,6 +145,12 @@ LOG_LEVEL=verbose npm test
 
 ## API Examples
 
+For Heroku:
+
+```
+export BASE_URL=https://versioned2.herokuapp.com/v1
+```
+
 Create user:
 
 ```
@@ -175,7 +182,7 @@ echo '{"email": "admin@example.com", "password": "admin"}' | http POST $BASE_URL
 Get routes:
 
 ```
-http http://localhost:3000/v1/sys/routes Authorization:"Bearer $TOKEN"
+http $BASE_URL/sys/routes Authorization:"Bearer $TOKEN"
 ```
 
 Create account:
