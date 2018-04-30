@@ -68,9 +68,6 @@ const model = {
   coll: 'accounts',
   schema: {
     type: 'object',
-    'x-meta': {
-      checkAccess: false
-    },
     properties: {
       name: {type: 'string'},
       plan: {enum: PLANS},

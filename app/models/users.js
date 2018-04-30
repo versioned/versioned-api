@@ -11,9 +11,7 @@ const ROLES = ['read', 'write', 'admin']
 
 function checkAccess (doc, options) {
   if (getIn(options, 'user.superUser')) return doc
-  if (options.action === 'list') {
-    throw accessError('You must be super user to access that endpoint')
-  } else if (['update', 'delete'].includes(options.action) && toString(doc._id) !== toString(getIn(options, 'user._id'))) {
+  if (['update', 'delete'].includes(options.action) && toString(doc._id) !== toString(getIn(options, 'user._id'))) {
     throw accessError('A logged in user can not update or delete other users')
   }
   return doc
@@ -24,9 +22,6 @@ const model = {
   features: concat(DEFAULTS.features, ['password']),
   schema: {
     type: 'object',
-    'x-meta': {
-      checkAccess: false
-    },
     properties: {
       name: {type: 'string'},
       email: {type: 'string', format: 'email', 'x-meta': {unique: true}},
@@ -57,6 +52,13 @@ const model = {
     delete: {
       before: [checkAccess]
     }
+  },
+  routes: {
+    list: {superUser: true},
+    get: {},
+    create: {},
+    update: {},
+    delete: {}
   }
 }
 

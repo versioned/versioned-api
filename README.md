@@ -156,6 +156,13 @@ export BASE_URL=http://localhost:3000/v1
 echo '{"name": "Admin User", "email": "admin@example.com", "password": "admin"}' | http POST $BASE_URL/users
 ```
 
+Make super admin:
+
+```
+mongo versioned2_development
+db.users.update({_id: ObjectId('$USER_ID')}, {$set: {superUser: true}})
+```
+
 Create a bunch of users:
 
 ```
@@ -168,6 +175,12 @@ Login:
 ```bash
 export BASE_URL=http://localhost:3000/v1
 echo '{"email": "admin@example.com", "password": "admin"}' | http POST $BASE_URL/login
+```
+
+Get routes:
+
+```
+http http://localhost:3000/v1/sys/routes Authorization:"Bearer $TOKEN"
 ```
 
 Create account:

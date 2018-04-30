@@ -46,8 +46,15 @@ const systemRoutes = [
     tags: ['system'],
     summary: 'Get statistics on database data',
     method: 'get',
-    path: `${PREFIX}/sys/db_stats`,
+    path: `${PREFIX}/sys/dbStats`,
     handler: sys.dbStats
+  },
+  {
+    tags: ['system'],
+    summary: 'Get routes',
+    method: 'get',
+    path: `${PREFIX}/sys/routes`,
+    handler: sys.routes
   }
 ].concat(modelRoutes.requireDir(MODELS_DIR, VERSION))
 
@@ -62,13 +69,8 @@ function parseSpaceId (req) {
   return match && match[1]
 }
 
-function checkAccess (req) {
+function checkAccountAccess (req) {
   const {route, user, account} = req
-  if (route.requireAuth === false ||
-    getIn(route, 'model.schema.x-meta.checkAccess') === false ||
-    getIn(user, 'superUser')) {
-    return undefined
-  }
   if (!account) return accessError('No account ID is associated with that endpoint so it requires super user access')
   let message
   const accountId = account._id.toString()
@@ -83,6 +85,19 @@ function checkAccess (req) {
     message = `You need to be granted administrator access to update ${modelName}`
   }
   return accessError(message)
+}
+
+function checkAccess (req) {
+  const {space, route, user} = req
+  if (route.requireAuth === false ||
+    getIn(route, 'model.schema.x-meta.checkAccess') === false ||
+    getIn(user, 'superUser')) {
+    return undefined
+  }
+  const requireSuperUser = route.superUser || (!getIn(route, 'model') && !space)
+  if (requireSuperUser) return accessError('You must be super user to access that endpoint')
+  const accountScope = getIn(route, 'model.schema.properties.accountId')
+  return accountScope ? checkAccountAccess(req) : undefined
 }
 
 async function lookupRoute (req) {

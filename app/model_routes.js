@@ -1,6 +1,6 @@
 const fs = require('fs')
 const path = require('path')
-const {concat, flatten, keyValues, merge, pick} = require('lib/util')
+const {keys, concat, flatten, keyValues, merge, pick} = require('lib/util')
 const modelController = require('lib/model_controller')
 const {idType} = require('lib/model_meta')
 const {requestSchema, responseSchema} = require('lib/model_access')
@@ -140,16 +140,21 @@ function modelRoutes (responseModule) {
     if (!model.routes) return []
     const options = {scope: 'accountId'}
     const controller = modelController(modelApi, responseModule, options)
-    return keyValues(pick(ROUTES, model.routes)).reduce((acc, [endpoint, route]) => {
-      return acc.concat([merge(route, {
-        summary: `${endpoint} ${model.coll}`,
-        model,
-        path: route.path(model, prefix),
-        handler: controller[endpoint],
-        parameters: parameters(model, endpoint),
-        requestSchema: requestSchema(model, endpoint),
-        responseSchema: responseSchema(model, endpoint)
-      })])
+    return keyValues(pick(ROUTES, keys(model.routes))).reduce((acc, [endpoint, route]) => {
+      const modelRoute = [
+        route,
+        {
+          summary: `${endpoint} ${model.coll}`,
+          model,
+          path: route.path(model, prefix),
+          handler: controller[endpoint],
+          parameters: parameters(model, endpoint),
+          requestSchema: requestSchema(model, endpoint),
+          responseSchema: responseSchema(model, endpoint)
+        },
+        model.routes[endpoint]
+      ].reduce(merge)
+      return acc.concat(modelRoute)
     }, [])
   }
 
