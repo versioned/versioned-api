@@ -34,5 +34,8 @@ module.exports = async function (c) {
   })
   const model = result.data
 
-  c.data = {account, user, superUser, superHeaders, space, model}
+  result = await c.post('create a second space', `/${account.id}/spaces`, {name: 'My Second CMS', accountId: account.id})
+  let secondSpace = result.data
+
+  c.data = {account, user, superUser, superHeaders, space, secondSpace, model}
 }

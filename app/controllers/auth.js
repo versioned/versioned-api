@@ -1,7 +1,10 @@
-const {json} = require('lib/util')
+const {compact, json} = require('lib/util')
 const users = require('app/models/users')
-const {logger} = require('app/config').modules
-const {readableData} = require('lib/model_access')
+const {logger, response} = require('app/config').modules
+const {jsonResponse} = response
+const {readableDoc} = require('lib/model_access')
+const accounts = require('app/models/accounts')
+const spaces = require('app/models/spaces')
 
 async function login (req, res) {
   const {email, password} = req.params
@@ -10,12 +13,17 @@ async function login (req, res) {
   if (success) {
     logger.debug(`controllers.login - auth successful email=${email}`)
     const token = users.generateToken(user)
-    res.writeHead(200, {'Content-Type': 'application/json'})
-    res.end(JSON.stringify({data: {user: readableData(users.model, user), token}}))
+    const {account, space} = await users.getDefaultAccountAndSpace(user)
+    jsonResponse(req, res, compact({data: {
+      user: readableDoc(users.model, user),
+      token,
+      account: readableDoc(accounts.model, account),
+      space: readableDoc(spaces.model, space)
+    }}))
   } else {
     logger.debug(`controllers.login - auth failed email=${email} password=${password} user=${json(user)}`)
     res.writeHead(401, {'Content-Type': 'application/json'})
-    res.end('')
+    res.end()
   }
 }
 

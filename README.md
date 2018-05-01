@@ -4,6 +4,8 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 
 ## TODO
 
+* Change to yarn for consistency with UI?
+
 * versioned2-ui
 
 * accessCheck - API test
@@ -97,12 +99,32 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 * Multi tenant: accounts model (users.account_id)
 * Multi tenant: spaces model with (account_id, name, key)
 
+## Launch
+
+* Domain (dnsimple)
+  www.versioned.io
+  app.versioned.io
+  api.versioned.io
+* Name
+* Logo
+* Look and feel
+* Sale site at www.versioned.io
+* UI at app.versioned.io
+* API at api.versioned.io
+* Heroku addon?
+* Demo app, see: https://www.contentful.com/developers/docs/ruby/tutorials/full-stack-getting-started/
+  https://www.contentful.com/developers/docs/ruby/example-apps
+
 ## Discussion Points and Backlog
 
+* Support Web hooks
+  Use SQS and Lambda? Need to support many consumers.
+* Sign up with github or google
 * Email verification and change password
+  "Welcome to Contentful, confirm your email address and get started!"
+  "It’s important to do this now, or we won’t be able to reset your password if you ever forget it."
 * Relationships - in contentful you can’t lookup the parent from the child
 * Approaches to translations - One space per locale or translated texts within one space. You can combine both.
-* Support Web hooks
 * Archive - soft delete?
 * Should there be one database per space or per account?
 * Log response times
@@ -418,19 +440,41 @@ assertTypes([{foo: 1, bar: 'baz'}], {foo: 'number', bar: 'string'})
 * [Converting your Swagger 2.0 API Definition to OpenAPI 3.0](https://blog.runscope.com/posts/tutorial-upgrading-swagger-2-api-definition-to-openapi-3)
 * [OpenAPI - Add support for patternProperties in schemas](https://github.com/OAI/OpenAPI-Specification/issues/687)
 
+## Headless CMS - Concepts
+
+"The headless CMS is a back-end only content management system which provides the RESTful API which can be used to build any front-end around. The number of options in terms of languages or frameworks is unlimited."
+
+* [Introduction to the Headless CMS](https://edvins.io/introduction-to-the-headless-cms)
+
 ## Headless CMS - Open Source
 
+* [HeadlessCMS.org](https://headlesscms.org)
 * [Directus (PHP/MySQL)](https://getdirectus.com)
+
+* [GraphCMS](https://graphcms.com)
+* [Prisma](https://github.com/graphcool/prisma)
+
+Can work in headless mode:
+
+* Wordpress
+* Drupal
 
 ## Headless CMS - Services (SaaS)
 
 "A headless CMS allows you to provide content to any channel and device through an API."
 
 * [How to Choose a SaaS CMS: The 9-Point Checklist](https://www.coredna.com/blogs/how-to-choose-a-saas-cms)
-
+* [HeadlessCMS.org](https://headlesscms.org)
 * [Contentful: Content Infrastructure for Digital Teams](https://www.contentful.com)
+* [Comfortable](https://comfortable.io)
 * [Prismic: Headless API CMS for both developers and marketers](https://prismic.io)
 * [Cloud CMS: Headless CMS and Cloud Content API](https://www.cloudcms.com)
 * [Kentico Cloud](https://kenticocloud.com)
 
 * [Contentful Case Study: TUI Nordic](https://www.contentful.com/blog/2017/10/06/stockholm-user-meetup)
+
+## Static Site Generators
+
+* [Gatsby](https://github.com/gatsbyjs/gatsby)
+* [Nuxt](https://github.com/nuxt/nuxt.js)
+* [Hugo](https://github.com/gohugoio/hugo)

@@ -69,7 +69,7 @@ async function updateUsersRelationship (doc, options) {
   }
   for (let {id, role} of changed) {
     const account = {id: accountId, role}
-    const updateAccount = (accounts) => accounts.map(a => a.id === accountId ? account : a)
+    const updateAccount = (accounts) => accounts.map(a => a.id === accountId ? merge(a, account) : a)
     await users.update(id, {}, {callbacks: false, evolve: {accounts: updateAccount}})
   }
   return doc
