@@ -5,7 +5,7 @@ const {logger, mongo} = config.modules
 const jwt = require('lib/jwt')
 const passwordHash = require('lib/password_hash')
 const DEFAULTS = require('lib/model_spec').DEFAULTS
-const {accessError} = require('app/errors')
+const {accessError} = require('lib/errors')
 
 const ROLES = ['read', 'write', 'admin']
 

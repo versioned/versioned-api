@@ -4,19 +4,8 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 
 ## TODO
 
-* Add type to all docs
-  should be coll - as it's used in the URL (need to drop the prefix for dynamic models, i.e. model.coll not model.model.coll)
-
-* Ensure the following property names are reserved:
-
-id
-_id
-type
-sys
-createdAt
-createdBy
-updatedAt
-updatedBy
+* Add type to all docs?
+  should be type || model || coll - as it's used in the URL (need to drop the prefix for dynamic models, i.e. model.coll not model.model.coll)
 
 * Two way relationships
   owning side of relationship:

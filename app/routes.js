@@ -10,7 +10,7 @@ const path = require('path')
 const router = require('lib/router')
 const spaces = require('app/models/spaces')
 const accounts = require('app/models/accounts')
-const {accessError} = require('app/errors')
+const {accessError} = require('lib/errors')
 
 const VERSION = 'v1'
 const PREFIX = `/${VERSION}`

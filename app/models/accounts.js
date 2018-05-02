@@ -3,7 +3,7 @@ const {logger, mongo} = require('app/config').modules
 const modelApi = require('lib/model_api')
 const diff = require('lib/diff')
 const users = require('app/models/users')
-const {accessError} = require('app/errors')
+const {accessError} = require('lib/errors')
 
 const PLANS = ['shared', 'dedicated']
 const DEFAULT_PLAN = 'shared'

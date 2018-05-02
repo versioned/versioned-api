@@ -1,4 +1,4 @@
-const {omit, keys, merge, range} = require('lib/util')
+const {omit, merge, range} = require('lib/util')
 const config = require('app/config')
 
 module.exports = async function (c) {
@@ -21,11 +21,13 @@ module.exports = async function (c) {
     name: 'Article',
     spaceId: spaceId,
     coll: 'articles',
+    features: ['published'],
     model
   }
 
-  for (let property of keys(articleModel)) {
-    await c.post({it: `create article model with missing ${property}`, status: 422}, `/${accountId}/models`, omit(articleModel, [property]))
+  const requiredProperties = ['name', 'spaceId', 'coll', 'model']
+  for (let property of requiredProperties) {
+    await c.post({it: `create article model with missing required property ${property}`, status: 422}, `/${accountId}/models`, omit(articleModel, [property]))
   }
 
   let result = await c.post('create article model', `/${accountId}/models`, articleModel)
@@ -57,6 +59,38 @@ module.exports = async function (c) {
         properties: {
           title: {type: 'integer', 'x-meta': {'foobar': true}},
           body: {type: 'string'}
+        },
+        additionalProperties: false,
+        required: ['title']
+      }
+    }
+  }))
+
+  await c.post({it: 'cannot create article model with reserved property name sys', status: 422}, `/${accountId}/models`, merge(articleModel, {
+    name: c.uuid(),
+    coll: c.uuid(),
+    model: {
+      schema: {
+        type: 'object',
+        properties: {
+          title: {type: 'integer'},
+          sys: {type: 'string'}
+        },
+        additionalProperties: false,
+        required: ['title']
+      }
+    }
+  }))
+
+  await c.post({it: 'cannot create article model with reserved property name publishedVersion', status: 422}, `/${accountId}/models`, merge(articleModel, {
+    name: c.uuid(),
+    coll: c.uuid(),
+    model: {
+      schema: {
+        type: 'object',
+        properties: {
+          title: {type: 'integer'},
+          publishedVersion: {type: 'string'}
         },
         additionalProperties: false,
         required: ['title']
