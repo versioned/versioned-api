@@ -4,9 +4,6 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 
 ## TODO
 
-* Add type to all docs?
-  should be type || model || coll - as it's used in the URL (need to drop the prefix for dynamic models, i.e. model.coll not model.model.coll)
-
 * Two way relationships
   owning side of relationship:
   one-to-one
@@ -196,11 +193,11 @@ export BASE_URL=http://localhost:3000/v1
 echo '{"name": "Admin User", "email": "admin@example.com", "password": "admin"}' | http POST $BASE_URL/users
 ```
 
-Make super admin:
+Make super user:
 
 ```
 mongo versioned2_development
-db.users.update({_id: ObjectId('$USER_ID')}, {$set: {superUser: true}})
+db.users.update({_id: '$USER_ID'}, {$set: {superUser: true}})
 ```
 
 Create a bunch of users:
@@ -268,7 +265,7 @@ async function createAdmin() {
   const users = require('app/models/users')
   const doc = {name: 'Admin User', email: 'admin@example.com', password: 'admin'}
   users.create(doc).then(console.log)
-  users.findOne({email: doc.email}).then(console.log)
+  users.get({email: doc.email}).then(console.log)
 }
 createAdmin()
 ```

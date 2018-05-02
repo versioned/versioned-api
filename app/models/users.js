@@ -94,7 +94,7 @@ async function getDefaultAccountAndSpace (user) {
     const accountId = user.accounts[0].id
     const account = await accountsApi.get(accountId)
     const spacesApi = modelApi({coll: 'spaces'}, mongo, logger)
-    const space = await spacesApi.findOne({accountId})
+    const space = await spacesApi.get({accountId})
     return {account, space}
   }
 }

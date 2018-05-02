@@ -8,7 +8,7 @@ const spaces = require('app/models/spaces')
 
 async function login (req, res) {
   const {email, password} = req.params
-  const user = await users.findOne({email})
+  const user = await users.get({email})
   const success = await users.authenticate(user, password)
   if (success) {
     logger.debug(`controllers.login - auth successful email=${email}`)

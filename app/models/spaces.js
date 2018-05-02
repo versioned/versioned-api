@@ -30,7 +30,7 @@ async function findAvailableKey () {
   let attempts = 0
   do {
     key = uuid(KEY_LENGTH)
-    keyExists = await modelApi({coll}, mongo).findOne({key})
+    keyExists = await modelApi({coll}, mongo).get({key})
     attempts += 1
     if (attempts > MAX_ATTEMPTS) throw new Error(`Could not find available space key after ${MAX_ATTEMPTS} attempts`)
   } while (keyExists)
@@ -55,7 +55,7 @@ async function validateDatabaseUrl (doc, options) {
 
 async function validateAccountId (doc, options) {
   if (doc.accountId) {
-    const account = await accounts.findOne(doc.accountId)
+    const account = await accounts.get(doc.accountId)
     if (!account) throw modelApi.validationError(options.model, doc, `Could not find account ${doc.accountId}`, 'accountId')
     const adminIds = account.users.filter(u => u.role === 'admin').map(property('id'))
     const userId = getIn(options, 'user.id')

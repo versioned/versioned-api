@@ -75,7 +75,7 @@ function dataHandler (coll, endpoint) {
       spaceId: req.params.spaceId,
       coll
     }
-    const model = await models.findOne(query)
+    const model = await models.get(query)
     if (model) {
       const api = await models.getApi(req.space, model)
       const options = {scope: 'spaceId'}

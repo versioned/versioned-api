@@ -1,4 +1,4 @@
-const {merge, concat, compact, validInt, setIn, getIn, values, keys} = require('lib/util')
+const {deepMerge, merge, concat, compact, validInt, setIn, getIn, values, keys} = require('lib/util')
 const config = require('app/config')
 const {logger, mongo} = config.modules
 const modelApi = require('lib/model_api')
@@ -14,7 +14,7 @@ const coll = 'models'
 const collPattern = getIn(spaces, ['schema', 'properties', 'coll', 'pattern'])
 
 async function getColl (model) {
-  const space = model.spaceId && (await spaces.findOne(model.spaceId))
+  const space = model.spaceId && (await spaces.get(model.spaceId))
   if (space && model.coll) {
     const prefix = validInt(model.spaceId) ? `s${model.spaceId}` : space.key
     return [prefix, model.coll].join('_')
@@ -44,7 +44,7 @@ async function getApi (space, model) {
 }
 
 async function validateSpace (doc, options) {
-  if (doc.spaceId && !(await spaces.findOne(doc.spaceId))) {
+  if (doc.spaceId && !(await spaces.get(doc.spaceId))) {
     throw modelApi.validationError(options.model, doc, `space '${doc.spaceId}' does not exist`, 'spaceId')
   } else {
     return doc
@@ -54,7 +54,12 @@ async function validateSpace (doc, options) {
 async function setColl (doc, options) {
   const coll = await getColl(doc)
   if (coll) {
-    return setIn(doc, ['model', 'coll'], coll)
+    return deepMerge(doc, {
+      model: {
+        coll,
+        type: doc.coll
+      }
+    })
   } else {
     return doc
   }
