@@ -30,7 +30,7 @@ async function getMergableUpdate (api, doc, changes, options) {
   const query = {
     action: options.action,
     coll: getColl(options),
-    'doc.id': doc._id
+    'doc.id': doc.id
   }
   const listOptions = {limit: 1}
   const lastUpdate = first(await api.list(query, listOptions))
@@ -47,15 +47,15 @@ async function getMergableUpdate (api, doc, changes, options) {
 
 async function changelogCallback (doc, options) {
   const {user, action} = options
-  const accountId = toString(getIn(options, 'account._id'))
-  const spaceId = toString(getIn(options, 'space._id'))
+  const accountId = toString(getIn(options, 'account.id'))
+  const spaceId = toString(getIn(options, 'space.id'))
   const existingDoc = readableDoc(options.model, options.existingDoc)
   const toDoc = readableDoc(options.model, doc)
   const changes = modelApi.changes(existingDoc, toDoc)
   const api = modelApi(changelog.model, options.api.mongo, logger)
   const mergableUpdate = await getMergableUpdate(api, doc, changes, options)
   if (mergableUpdate && diff(mergableUpdate.doc, toDoc)) {
-    await api.update(mergableUpdate._id, {
+    await api.update(mergableUpdate.id, {
       doc: toDoc,
       changes: modelApi.changes(mergableUpdate.existingDoc, toDoc),
       createdAt: new Date()

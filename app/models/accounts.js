@@ -25,7 +25,7 @@ function usersDiff (fromUsers, toUsers) {
 
 function checkAccess (doc, options) {
   if (getIn(options, 'user.superUser')) return doc
-  const userId = toString(getIn(options, 'user._id'))
+  const userId = toString(getIn(options, 'user.id'))
   const isAccountAdmin = find(doc.users, (u) => u.id === userId && u.role === 'admin')
   if (['update', 'delete'].includes(options.action) && !isAccountAdmin) {
     throw accessError('You must be granted admin privileges to update or delete an account')
@@ -38,8 +38,8 @@ function setDefaultPlan (doc, options) {
 }
 
 function setDefaultAdmin (doc, options) {
-  if (options.user && !(doc.users || []).map(property('id')).includes(options.user._id)) {
-    const users = concat(doc.users, [{id: options.user._id.toString(), role: 'admin'}])
+  if (options.user && !(doc.users || []).map(property('id')).includes(options.user.id)) {
+    const users = concat(doc.users, [{id: options.user.id, role: 'admin'}])
     return merge(doc, {users})
   } else {
     return doc
@@ -56,7 +56,7 @@ function validateOneAdmin (doc, options) {
 async function updateUsersRelationship (doc, options) {
   const existingUsers = getIn(options, ['existingDoc', 'users'])
   const {added, removed, changed} = usersDiff(existingUsers, doc.users)
-  const accountId = doc._id.toString()
+  const accountId = doc.id
   logger.verbose('updateUsersRelationship', added, removed, changed)
   for (let {id, role} of added) {
     const account = {id: accountId, role}

@@ -49,6 +49,7 @@ function versionedModel (model) {
     schema: {
       type: 'object',
       properties: {
+        docId: {type: 'string'},
         createdAt: {type: 'string', format: 'date-time', 'x-meta': {writable: false, index: -1}},
         createdBy: {type: 'string', 'x-meta': {writable: false, index: 1}}
       }
@@ -56,11 +57,11 @@ function versionedModel (model) {
     features: [],
     indexes: [
       {
-        keys: {id: 1, version: 1},
+        keys: {docId: 1, version: 1},
         options: {unique: true}
       },
       {
-        keys: {id: 1, versionToken: 1},
+        keys: {docId: 1, versionToken: 1},
         options: {unique: true}
       }
     ]
@@ -77,7 +78,7 @@ function versionedProperties (model) {
 
 function mergeVersion (model, doc, versionDoc) {
   if (doc.version !== versionDoc.version) {
-    return merge(doc, rename(versionDoc, {id: '_id'}))
+    return merge(doc, rename(versionDoc, {docId: 'id'}))
   } else {
     return doc
   }
@@ -113,11 +114,11 @@ function newVersionToken (model, existingDoc, doc) {
 function versionedDoc (model, doc) {
   return rename(
     pick(doc, versionedProperties(model)),
-    {_id: 'id'})
+    {id: 'docId'})
 }
 
 function versionQuery (doc) {
-  return {id: doc._id, version: doc.version}
+  return {docId: doc.id, version: doc.version}
 }
 
 // ///////////////////////////////////////
@@ -139,12 +140,12 @@ function addPublishedQuery (doc, options) {
 async function mergePublishedDocs (doc, options) {
   if (empty(doc) || !getIn(options, ['queryParams', 'published'])) return doc
   const {model, api} = options
-  const publishedIds = array(doc).filter(d => d.publishedVersion !== d.version).map(d => ({id: d._id, version: d.publishedVersion}))
+  const publishedIds = array(doc).filter(d => d.publishedVersion !== d.version).map(d => ({docId: d.id, version: d.publishedVersion}))
   if (empty(publishedIds)) return doc
   const publishedQuery = {$or: publishedIds}
-  const publishedDocs = groupBy((await modelApi(versionedModel(model), api.mongo, logger).list(publishedQuery)), property('id'))
+  const publishedDocs = groupBy((await modelApi(versionedModel(model), api.mongo, logger).list(publishedQuery)), property('docId'))
   const result = array(doc).map(d => {
-    return mergeVersion(model, d, publishedDocs[d._id][0])
+    return mergeVersion(model, d, publishedDocs[d.id][0])
   })
   return isArray(doc) ? result : result[0]
 }
@@ -152,10 +153,10 @@ async function mergePublishedDocs (doc, options) {
 async function findVersions (doc, options) {
   const {model, api} = options
   if (!doc || !getIn(options, ['queryParams', 'versions'])) return doc
-  const query = {id: doc._id}
+  const query = {docId: doc.id}
   const sort = '-version'
   const docs = await modelApi(versionedModel(model), api.mongo, logger).list(query, {sort})
-  const versions = docs.map(d => readableDoc(model, rename(d, {id: '_id'})))
+  const versions = docs.map(d => readableDoc(model, rename(d, {docId: 'id'})))
   return merge(doc, {versions})
 }
 

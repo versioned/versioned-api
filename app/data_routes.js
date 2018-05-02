@@ -157,7 +157,7 @@ async function getChangelogRoutes (prefix, options) {
 
 async function routes (prefix, options = {}) {
   if (options.space) {
-    let spaceModels = await models.list({spaceId: options.space._id.toString()})
+    let spaceModels = await models.list({spaceId: options.space.id})
     if (options.models) spaceModels = spaceModels.concat(options.models)
     let result = [swaggerRoute(prefix, options)]
     for (let model of spaceModels) {

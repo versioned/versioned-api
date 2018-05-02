@@ -1,5 +1,5 @@
 const config = require('app/config')
-const {toString, getIn, property, uuid, merge} = require('lib/util')
+const {getIn, property, uuid, merge} = require('lib/util')
 const modelApi = require('lib/model_api')
 const {logger, mongo} = require('app/config').modules
 const MongoClient = require('mongodb').MongoClient
@@ -14,10 +14,10 @@ const mongoCache = {}
 
 async function getMongo (space) {
   if (space.databaseUrl) {
-    if (mongoCache[space._id]) return mongoCache[space._id]
+    if (mongoCache[space.id]) return mongoCache[space.id]
     const mongo = mongoModule(space.databaseUrl)
     await mongo.connect()
-    mongoCache[space._id] = mongo
+    mongoCache[space.id] = mongo
     return mongo
   } else {
     return config.modules.mongo
@@ -58,7 +58,7 @@ async function validateAccountId (doc, options) {
     const account = await accounts.findOne(doc.accountId)
     if (!account) throw modelApi.validationError(options.model, doc, `Could not find account ${doc.accountId}`, 'accountId')
     const adminIds = account.users.filter(u => u.role === 'admin').map(property('id'))
-    const userId = toString(getIn(options.user, ['_id']))
+    const userId = getIn(options, 'user.id')
     if (!adminIds.includes(userId)) {
       throw modelApi.validationError(options.model, doc, `In order to create a space you need to have the administrator role`, 'accountId')
     }

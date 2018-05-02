@@ -4,9 +4,32 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 
 ## TODO
 
-* Change to yarn for consistency with UI?
+* Add type to all docs
+  should be coll - as it's used in the URL (need to drop the prefix for dynamic models, i.e. model.coll not model.model.coll)
+
+* Ensure the following property names are reserved:
+
+id
+_id
+type
+sys
+createdAt
+createdBy
+updatedAt
+updatedBy
+
+* Two way relationships
+  owning side of relationship:
+  one-to-one
+  many-to-many
+  many-to-one
+  one-to-many
 
 * versioned2-ui
+
+* Change to yarn for consistency with UI?
+
+* Try MongoDB Stitch https://www.mongodb.com/cloud/stitch?jmp=hero
 
 * accessCheck - API test
   users can only update/delete/get self
@@ -101,6 +124,9 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 
 ## Launch
 
+* USP
+  * Direct database access and data scalability
+
 * Domain (dnsimple)
   www.versioned.io
   app.versioned.io
@@ -117,8 +143,9 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 
 ## Discussion Points and Backlog
 
-* Support Web hooks
+* Support Webhooks
   Use SQS and Lambda? Need to support many consumers.
+  MongoDB Stitch has webhooks? https://docs.mongodb.com/stitch/reference/service-webhooks
 * Sign up with github or google
 * Email verification and change password
   "Welcome to Contentful, confirm your email address and get started!"
@@ -224,7 +251,9 @@ export SPACE_ID=...
 Create Published Model in Space:
 
 ```
-echo "{\"title\": \"Published Items\", \"spaceId\": \"${SPACE_ID}\", \"coll\": \"items\", \"features\": [\"published\"], \"model\": {\"schema\": {\"type\": \"object\", \"properties\": {\"title\": {\"type\": \"string\"}, \"key\": {\"type\": \"string\", \"x-meta\": {\"update\": false}}}}}}" | http POST $BASE_URL/models Authorization:"Bearer $TOKEN"
+export SPACE_ID=...
+export ACCOUNT_ID=...
+echo "{\"name\": \"Published Items\", \"spaceId\": \"${SPACE_ID}\", \"coll\": \"items\", \"features\": [\"published\"], \"model\": {\"schema\": {\"type\": \"object\", \"properties\": {\"title\": {\"type\": \"string\"}, \"key\": {\"type\": \"string\", \"x-meta\": {\"update\": false}}}}}}" | http POST $BASE_URL/$ACCOUNT_ID/models Authorization:"Bearer $TOKEN"
 ```
 
 Create some content for that model:
@@ -440,6 +469,10 @@ assertTypes([{foo: 1, bar: 'baz'}], {foo: 'number', bar: 'string'})
 * [Converting your Swagger 2.0 API Definition to OpenAPI 3.0](https://blog.runscope.com/posts/tutorial-upgrading-swagger-2-api-definition-to-openapi-3)
 * [OpenAPI - Add support for patternProperties in schemas](https://github.com/OAI/OpenAPI-Specification/issues/687)
 
+* [Contentful and Netlify: The Dynamic Duo of Static Site Management](https://dev.to/milkstarz/contentful-and-netlify-the-dynamic-duo-of-static-site-management-55i)
+
+* [Beyond Headless CMS: The opportunity is greater than technical architecture](https://prismic.io/beyond-headless-cms)
+
 ## Headless CMS - Concepts
 
 "The headless CMS is a back-end only content management system which provides the RESTful API which can be used to build any front-end around. The number of options in terms of languages or frameworks is unlimited."
@@ -450,7 +483,7 @@ assertTypes([{foo: 1, bar: 'baz'}], {foo: 'number', bar: 'string'})
 
 * [HeadlessCMS.org](https://headlesscms.org)
 * [Directus (PHP/MySQL)](https://getdirectus.com)
-
+* [Strapi](https://strapi.io)
 * [GraphCMS](https://graphcms.com)
 * [Prisma](https://github.com/graphcool/prisma)
 
@@ -478,3 +511,7 @@ Can work in headless mode:
 * [Gatsby](https://github.com/gatsbyjs/gatsby)
 * [Nuxt](https://github.com/nuxt/nuxt.js)
 * [Hugo](https://github.com/gohugoio/hugo)
+
+## Image Services
+
+* [Aviary vs. Cloudinary vs. imgix](https://stackshare.io/stackups/aviary-vs-cloudinary-vs-imgix)

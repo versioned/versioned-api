@@ -1,4 +1,4 @@
-const {empty, find, toString, getIn, concat, merge} = require('lib/util')
+const {empty, find, getIn, concat, merge} = require('lib/util')
 const modelApi = require('lib/model_api')
 const config = require('app/config')
 const {logger, mongo} = config.modules
@@ -11,7 +11,7 @@ const ROLES = ['read', 'write', 'admin']
 
 function checkAccess (doc, options) {
   if (getIn(options, 'user.superUser')) return doc
-  if (['update', 'delete'].includes(options.action) && toString(doc._id) !== toString(getIn(options, 'user._id'))) {
+  if (['update', 'delete'].includes(options.action) && doc.id !== getIn(options, 'user.id')) {
     throw accessError('A logged in user can not update or delete other users')
   }
   return doc

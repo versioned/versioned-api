@@ -73,8 +73,7 @@ function checkAccountAccess (req) {
   const {route, user, account} = req
   if (!account) return accessError('No account ID is associated with that endpoint so it requires super user access')
   let message
-  const accountId = account._id.toString()
-  const role = getIn((user.accounts || []).find(a => a.id === accountId), 'role')
+  const role = getIn((user.accounts || []).find(a => a.id === account.id), 'role')
   const modelName = getIn(route, ['model', 'coll'])
   const writeRequiresAdmin = (getIn(route, 'model.schema.x-meta.writeRequiresAdmin') !== false)
   if (nil(role)) {
