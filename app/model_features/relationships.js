@@ -1,8 +1,8 @@
 const config = require('app/config')
 const {logger} = config.modules
-const {first, compact, notEmpty, json, array, keyValues, isObject, getIn, filter, merge, concat, empty, isArray} = require('lib/util')
+const {first, compact, notEmpty, json, array, keyValues, isObject, getIn, merge, concat, empty, isArray} = require('lib/util')
 const diff = require('lib/diff')
-const models = require('app/models/models')
+const {relationshipProperties, getApi} = require('app/relationships_helper')
 
 const PARAMS = {
   relationships: {
@@ -15,20 +15,12 @@ const PARAMS = {
   }
 }
 
-function relationshipProperties (doc, options) {
-  return filter(getIn(options, 'model.schema.properties'), (p) => {
-    return getIn(p, 'x-meta.relationship')
-  })
-}
-
 async function fetchRelationship (doc, name, property, options) {
   const isMany = (getIn(options, `model.schema.properties.${name}.type`, 'array') === 'array')
   const {toType} = getIn(property, 'x-meta.relationship')
   if (!toType) return
-  const spaceId = getIn(options, 'space.id')
-  const model = await models.get({spaceId, 'model.type': toType})
-  if (!model) return
-  const api = await models.getApi(options.space, model)
+  const api = await getApi(toType, options.space)
+  if (!api) return
   const ids = array(doc[name]).map(getId)
   if (empty(ids)) return
   const docs = await api.list({id: {$in: ids}})
@@ -37,7 +29,7 @@ async function fetchRelationship (doc, name, property, options) {
 }
 
 async function docWithRelationships (doc, options) {
-  const properties = relationshipProperties(doc, options)
+  const properties = relationshipProperties(options.model)
   if (getIn(options, ['queryParams', 'relationships']) && notEmpty(properties)) {
     const relationships = {}
     for (let [name, property] of keyValues(properties)) {
@@ -102,11 +94,9 @@ function relationshipDiff (from, to) {
 async function updateRelationship (doc, name, property, options) {
   const {toType, toField} = getIn(property, 'x-meta.relationship')
   if (!toField) return
-  const spaceId = getIn(options, 'space.id')
-  const model = await models.get({spaceId, 'model.type': toType})
-  if (!model) return
-  const toMany = (getIn(model, `schema.properties.${toField}.type`, 'array') === 'array')
-  const api = await models.getApi(options.space, model)
+  const api = await getApi(toType, options.space)
+  if (!api) return
+  const toMany = (getIn(api, `model.schema.properties.${toField}.type`, 'array') === 'array')
 
   const existingValues = getIn(options, ['existingDoc', name])
   const {added, removed, changed} = relationshipDiff(existingValues, doc[name])
@@ -135,7 +125,7 @@ async function updateRelationship (doc, name, property, options) {
 }
 
 async function updateAllRelationships (doc, options) {
-  for (let [name, property] of keyValues(relationshipProperties(doc, options))) {
+  for (let [name, property] of keyValues(relationshipProperties(options.model))) {
     await updateRelationship(doc, name, property, options)
   }
   return doc

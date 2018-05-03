@@ -10,6 +10,7 @@ const jsonSchema = require('lib/json_schema')
 const swaggerSchema = require('public/openapi-schema')
 const {withoutRefs} = require('lib/json_schema')
 const {validationError} = require('lib/errors')
+const DEFAULTS = require('lib/model_spec').DEFAULTS
 
 const PROPERTY_NAME_PATTERN = '^[a-zA-Z0-9_-]{1,30}$'
 const coll = 'models'
@@ -195,6 +196,7 @@ async function deleteColl (doc, options) {
 
 const model = {
   coll,
+  features: concat(DEFAULTS.features, ['relationships_meta']),
   schema: {
     type: 'object',
     properties: {

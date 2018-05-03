@@ -4,9 +4,13 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 
 ## TODO
 
+* modelApi.update option allowUnchanged: true
+
 * API test model relationships two way automatically set up
 
 * API test a relationship with state (categories.weight)
+
+* Remove fromType or set it automatically?
 
 * API test validation in models_relationships_validate (or add it in models_relationships for now?)
 

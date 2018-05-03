@@ -86,7 +86,7 @@ module.exports = async function (c) {
         properties: {
           title: {type: 'string'},
           body: {type: 'string'},
-          author: relationships.articles.author,
+          // author: relationships.articles.author,
           categories: relationships.articles.categories
         },
         required: ['title'],
@@ -103,8 +103,8 @@ module.exports = async function (c) {
       schema: {
         type: 'object',
         properties: {
-          name: {type: 'string'},
-          articles: relationships.categories.articles
+          name: {type: 'string'}
+          // articles: relationships.categories.articles
         },
         required: ['name'],
         additionalProperties: false
