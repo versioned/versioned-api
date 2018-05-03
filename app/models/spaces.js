@@ -5,6 +5,7 @@ const {logger, mongo} = require('app/config').modules
 const MongoClient = require('mongodb').MongoClient
 const mongoModule = require('lib/mongo')
 const accounts = require('app/models/accounts')
+const {validationError} = require('lib/errors')
 
 const coll = 'spaces'
 const KEY_LENGTH = 8 // 16^8 ~ 1 billion
@@ -47,7 +48,7 @@ async function validateDatabaseUrl (doc, options) {
     try {
       await MongoClient.connect(doc.databaseUrl)
     } catch (err) {
-      throw modelApi.validationError(options.model, doc, `Could not connect to databaseUrl=${doc.databaseUrl}`, 'databaseUrl')
+      throw validationError(options.model, doc, `Could not connect to databaseUrl=${doc.databaseUrl}`, 'databaseUrl')
     }
   }
   return doc
@@ -56,11 +57,11 @@ async function validateDatabaseUrl (doc, options) {
 async function validateAccountId (doc, options) {
   if (doc.accountId) {
     const account = await accounts.get(doc.accountId)
-    if (!account) throw modelApi.validationError(options.model, doc, `Could not find account ${doc.accountId}`, 'accountId')
+    if (!account) throw validationError(options.model, doc, `Could not find account ${doc.accountId}`, 'accountId')
     const adminIds = account.users.filter(u => u.role === 'admin').map(property('id'))
     const userId = getIn(options, 'user.id')
     if (!adminIds.includes(userId)) {
-      throw modelApi.validationError(options.model, doc, `In order to create a space you need to have the administrator role`, 'accountId')
+      throw validationError(options.model, doc, `In order to create a space you need to have the administrator role`, 'accountId')
     }
   }
   return doc

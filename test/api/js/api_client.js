@@ -79,6 +79,11 @@ function printHttp (method, url, headers, data) {
   }
 }
 
+// NOTE: We use this for mongodb collection names which should not start with a digit
+function uuidWithLetter (length) {
+  return 'u' + uuid(length)
+}
+
 function client ({BASE_URL, DEDICATED_MONGODB_URL}) {
   const self = {
     data: {},
@@ -216,7 +221,7 @@ function client ({BASE_URL, DEDICATED_MONGODB_URL}) {
     assertRecent,
     assertEqual,
     isMongoId,
-    uuid,
+    uuid: uuidWithLetter,
     makeUser,
     registerUser,
     login,

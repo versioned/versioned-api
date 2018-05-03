@@ -4,6 +4,35 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 
 ## TODO
 
+* API test model relationships two way automatically set up
+
+* API test a relationship with state (categories.weight)
+
+* API test validation in models_relationships_validate (or add it in models_relationships for now?)
+
+* The list endpoint needs to avoid N+1 problem when fetching relationships
+
+* When changes to relationships are published then the docs at the other side of those relationships
+  also need to be published in order for the relationships to be in sync two-way
+
+* The get/list functions need to fetch relationships when relationships=1 is
+  provided.
+
+* After update/create any changes to the relationship needs to be reflected on the other
+  side of the relationship if toField is set (if it's two way)
+
+* After delete the other side of the relationship needs to be updated if toField is set
+
+* When creating model with x-meta.relationship.toField then the opposite
+  end of the relationship needs to be set up as a property in the toType model
+  Need to handle likely case that the other model doesn't exist yet.
+
+* Support relationships with state? I.e. accounts-users with role
+
+* Handle or prevent updates/changes of relationships
+
+* published needs to fetch published versions of relationships if queryParams.relationships and relationshipProperties
+
 * Two way relationships
   owning side of relationship:
   one-to-one

@@ -1,20 +1,22 @@
-const {deepMerge, merge, concat, compact, validInt, setIn, getIn, values, keys} = require('lib/util')
+const {notEmpty, filter, deepMerge, merge, concat, compact, validInt, setIn, getIn, values, keys} = require('lib/util')
 const config = require('app/config')
 const {logger, mongo} = config.modules
 const modelApi = require('lib/model_api')
 const modelSpec = require('lib/model_spec')
 const modelSchema = require('lib/model_spec_schema')
-const spaces = require('app/models/spaces')
-const swagger = require('app/swagger')
+const requireSpaces = () => require('app/models/spaces')
+const requireSwagger = () => require('app/swagger')
 const jsonSchema = require('lib/json_schema')
 const swaggerSchema = require('public/openapi-schema')
 const {withoutRefs} = require('lib/json_schema')
+const {validationError} = require('lib/errors')
 
+const PROPERTY_NAME_PATTERN = '^[a-zA-Z0-9_-]{1,30}$'
 const coll = 'models'
-const collPattern = getIn(spaces, ['schema', 'properties', 'coll', 'pattern'])
+const collSchema = getIn(modelSchema, ['properties', 'coll'])
 
 async function getColl (model) {
-  const space = model.spaceId && (await spaces.get(model.spaceId))
+  const space = model.spaceId && (await requireSpaces().get(model.spaceId))
   if (space && model.coll) {
     const prefix = validInt(model.spaceId) ? `s${model.spaceId}` : space.key
     return [prefix, model.coll].join('_')
@@ -26,7 +28,7 @@ async function getColl (model) {
 async function validateDataLimit (doc, options) {
   const count = await options.api.count()
   if (count >= config.DATA_LIMIT) {
-    throw modelApi.validationError(options.model, doc, `You cannot create more than ${config.DATA_LIMIT} documents in your current plan`)
+    throw validationError(options.model, doc, `You cannot create more than ${config.DATA_LIMIT} documents in your current plan`)
   }
   return doc
 }
@@ -39,13 +41,13 @@ async function getApi (space, model) {
       }
     }
   })
-  const mongo = await spaces.getMongo(space)
+  const mongo = await requireSpaces().getMongo(space)
   return modelApi(modelInstance, mongo, logger)
 }
 
 async function validateSpace (doc, options) {
-  if (doc.spaceId && !(await spaces.get(doc.spaceId))) {
-    throw modelApi.validationError(options.model, doc, `space '${doc.spaceId}' does not exist`, 'spaceId')
+  if (doc.spaceId && !(await requireSpaces().get(doc.spaceId))) {
+    throw validationError(options.model, doc, `space '${doc.spaceId}' does not exist`, 'spaceId')
   } else {
     return doc
   }
@@ -67,7 +69,7 @@ async function setColl (doc, options) {
 
 async function setAccountId (doc, options) {
   if (!doc.spaceId) return doc
-  const space = await spaces.get(doc.spaceId)
+  const space = await requireSpaces().get(doc.spaceId)
   return merge(doc, {accountId: space.accountId})
 }
 
@@ -91,6 +93,15 @@ async function setSchema (doc, options) {
   }
 }
 
+function validatePropertyNames (doc, options) {
+  const propertyNames = keys(getIn(doc, 'model.schema.properties'))
+  const invalidNames = filter(propertyNames, name => !name.match(new RegExp(PROPERTY_NAME_PATTERN)))
+  if (notEmpty(invalidNames)) {
+    throw validationError(options.model, doc, `The following field names are invalid: ${invalidNames.join(', ')}`)
+  }
+  return doc
+}
+
 async function validateModel (doc, options) {
   if (doc.model) modelApi(doc.model, mongo) // creating the API this should not throw any error
   return doc
@@ -99,7 +110,7 @@ async function validateModel (doc, options) {
 async function validatePropertiesLimit (doc, options) {
   const properties = getIn(doc, ['model', 'schema', 'properties'])
   if (properties && keys(properties).length > config.PROPERTY_LIMIT) {
-    throw modelApi.validationError(options.model, doc, `You can not have more than ${config.PROPERTY_LIMIT} properties`)
+    throw validationError(options.model, doc, `You can not have more than ${config.PROPERTY_LIMIT} properties`)
   }
   return doc
 }
@@ -107,7 +118,7 @@ async function validatePropertiesLimit (doc, options) {
 async function validateModelsLimit (doc, options) {
   const modelsCount = doc.spaceId && (await modelApi({coll}, mongo).count({spaceId: doc.spaceId}))
   if (modelsCount && modelsCount >= config.MODELS_LIMIT) {
-    throw modelApi.validationError(options.model, doc, `You cannot have more than ${config.MODELS_LIMIT} models per space`)
+    throw validationError(options.model, doc, `You cannot have more than ${config.MODELS_LIMIT} models per space`)
   }
   return doc
 }
@@ -122,7 +133,19 @@ const X_META_SCHEMA = {
     versioned: {type: 'boolean'},
     index: {type: ['boolean', 'integer']},
     unique: {type: 'boolean'},
-    mergeChangelog: {type: 'boolean'}
+    mergeChangelog: {type: 'boolean'},
+    relationship: {
+      type: 'object',
+      properties: {
+        fromType: collSchema,
+        fromField: {type: 'string', pattern: PROPERTY_NAME_PATTERN},
+        toType: collSchema,
+        toField: {type: 'string', pattern: PROPERTY_NAME_PATTERN},
+        type: {enum: ['one-to-one', 'one-to-many', 'many-to-one', 'many-to-many']}
+      },
+      required: ['toType', 'type'],
+      additionalProperties: false
+    }
   },
   additionalProperties: false
 }
@@ -141,6 +164,7 @@ async function validateXMeta (doc, options) {
 
 async function validateSwagger (doc, options) {
   if (doc.model && doc.spaceId) {
+    const swagger = requireSwagger()
     let systemSwagger = await swagger()
     let spaceSwagger = await swagger({spaceId: doc.spaceId, models: [doc]})
     for (let swagger of [systemSwagger, spaceSwagger]) {
@@ -154,7 +178,7 @@ async function validateSwagger (doc, options) {
 async function validateCollAvailable (doc, options) {
   const coll = getIn(doc, ['model', 'coll'])
   if (coll && (await mongo.getColls()).includes(coll)) {
-    throw modelApi.validationError(options.model, doc, `coll '${doc.coll}' is not available - please choose another name`, 'coll')
+    throw validationError(options.model, doc, `coll '${doc.coll}' is not available - please choose another name`, 'coll')
   } else {
     return doc
   }
@@ -177,7 +201,7 @@ const model = {
       name: {type: 'string'},
       accountId: {type: 'string', 'x-meta': {write: false, index: true}},
       spaceId: {type: 'string', 'x-meta': {update: false, index: true}},
-      coll: {type: 'string', pattern: collPattern, 'x-meta': {update: false, index: true}},
+      coll: merge(collSchema, {'x-meta': {update: false, index: true}}),
       features: {type: 'array', items: {enum: ['published']}},
       model: withoutRefs(modelSchema)
     },
@@ -186,7 +210,7 @@ const model = {
   },
   callbacks: {
     save: {
-      beforeValidation: [validateSpace, setColl, setAccountId, setFeatures, setSchema, validateModel, validatePropertiesLimit],
+      beforeValidation: [validateSpace, setColl, setAccountId, setFeatures, setSchema, validatePropertyNames, validateModel, validatePropertiesLimit],
       afterValidation: [validateXMeta, validateSwagger]
     },
     create: {

@@ -3,7 +3,7 @@ const {logger, mongo} = require('app/config').modules
 const modelApi = require('lib/model_api')
 const diff = require('lib/diff')
 const users = require('app/models/users')
-const {accessError} = require('lib/errors')
+const {validationError, accessError} = require('lib/errors')
 
 const PLANS = ['shared', 'dedicated']
 const DEFAULT_PLAN = 'shared'
@@ -48,7 +48,7 @@ function setDefaultAdmin (doc, options) {
 
 function validateOneAdmin (doc, options) {
   if (!(doc.users || []).find(u => u.role === 'admin')) {
-    throw modelApi.validationError(options.model, doc, 'Each account must have at least one administrator')
+    throw validationError(options.model, doc, 'Each account must have at least one administrator')
   }
   return doc
 }
