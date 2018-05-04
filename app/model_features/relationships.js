@@ -1,6 +1,6 @@
 const config = require('app/config')
 const {logger} = config.modules
-const {first, compact, notEmpty, json, array, keyValues, isObject, getIn, merge, concat, empty, isArray} = require('lib/util')
+const {keys, isArray, groupBy, flatten, first, json, array, keyValues, isObject, getIn, merge, concat, empty} = require('lib/util')
 const diff = require('lib/diff')
 const {relationshipProperties, getApi} = require('app/relationships_helper')
 
@@ -15,44 +15,37 @@ const PARAMS = {
   }
 }
 
-async function fetchRelationship (doc, name, property, options) {
-  const isMany = (getIn(options, `model.schema.properties.${name}.type`, 'array') === 'array')
+async function fetchRelationshipDocs (docs, name, property, options) {
   const {toType} = getIn(property, 'x-meta.relationship')
   if (!toType) return
   const api = await getApi(toType, options.space)
   if (!api) return
-  const ids = array(doc[name]).map(getId)
+  const ids = flatten(docs.map(doc => array(doc[name]).map(getId)))
   if (empty(ids)) return
-  const docs = await api.list({id: {$in: ids}})
-  const orderedDocs = compact(ids.map(id => docs.find(doc => doc.id === id)))
-  return isMany ? orderedDocs : first(orderedDocs)
-}
-
-async function docWithRelationships (doc, options) {
-  const properties = relationshipProperties(options.model)
-  if (getIn(options, ['queryParams', 'relationships']) && notEmpty(properties)) {
-    const relationships = {}
-    for (let [name, property] of keyValues(properties)) {
-      relationships[name] = await fetchRelationship(doc, name, property, options)
-    }
-    return merge(doc, relationships)
-  } else {
-    return doc
-  }
+  const relationshipDocs = await api.list({id: {$in: ids}})
+  return groupBy(relationshipDocs, (doc) => doc.id, {unique: true})
 }
 
 async function addRelationships (data, options) {
-  if (empty(data)) {
+  const properties = relationshipProperties(options.model)
+  if (empty(data) || !getIn(options, ['queryParams', 'relationships']) || empty(properties)) {
     return data
-  } else if (isArray(data)) {
-    const result = []
-    for (let doc of data) {
-      result.push(await docWithRelationships(doc, options))
-    }
-    return result
-  } else {
-    return docWithRelationships(data, options)
   }
+  const docs = array(data)
+  const relationshipDocs = {}
+  for (let [name, property] of keyValues(properties)) {
+    relationshipDocs[name] = await fetchRelationshipDocs(docs, name, property, options)
+  }
+  const docsWithRelationships = docs.map(doc => {
+    const relationships = keys(properties).reduce((acc, name) => {
+      const isMany = (getIn(options, `model.schema.properties.${name}.type`, 'array') === 'array')
+      const orderedDocs = array(doc[name]).map(v => relationshipDocs[name][getId(v)])
+      acc[name] = isMany ? orderedDocs : first(orderedDocs)
+      return acc
+    }, {})
+    return merge(doc, relationships)
+  })
+  return isArray(data) ? docsWithRelationships : docsWithRelationships[0]
 }
 
 function addRouteParameters (route) {
