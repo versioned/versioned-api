@@ -1,5 +1,25 @@
+const {merge, empty, isArray} = require('lib/util')
 const {logger, mongo} = require('app/config').modules
 const modelApi = require('lib/model_api')
+
+function docWithChanges (doc) {
+  if (!doc.changes) return doc
+  const changes = doc.changes.reduce((acc, {path, change}) => {
+    acc[path] = change
+    return acc
+  }, {})
+  return merge(doc, {changes})
+}
+
+function setChanges (data, options) {
+  if (empty(data)) {
+    return data
+  } else if (isArray(data)) {
+    return data.map(docWithChanges)
+  } else {
+    return docWithChanges(data)
+  }
+}
 
 const model = {
   coll: 'changelog',
@@ -13,10 +33,18 @@ const model = {
       coll: {type: 'string'},
       existingDoc: {type: 'object'},
       doc: {type: 'object'},
-      changes: {type: 'object'}
+      changes: {type: 'array', items: {type: 'object'}}
     },
     required: ['action', 'coll', 'doc'],
     additionalProperties: false
+  },
+  callbacks: {
+    list: {
+      after: [setChanges]
+    },
+    get: {
+      after: [setChanges]
+    }
   },
   indexes: [
     {

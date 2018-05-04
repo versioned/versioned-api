@@ -4,7 +4,9 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 
 ## TODO
 
-* modelApi.update option allowUnchanged: true
+* Support fetching multiple levels of relationships (you can pass options={relationships: (N-1)})
+
+* Support published=1 and relationships=1 combination - models_relationships_published.js
 
 * API test model relationships two way automatically set up
 

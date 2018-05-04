@@ -1,6 +1,6 @@
 const config = require('app/config')
 const {logger} = config.modules
-const {keys, isArray, groupBy, flatten, first, json, array, keyValues, isObject, getIn, merge, concat, empty} = require('lib/util')
+const {compact, keys, isArray, groupBy, flatten, first, json, array, keyValues, isObject, getIn, merge, concat, empty} = require('lib/util')
 const diff = require('lib/diff')
 const {relationshipProperties, getApi} = require('app/relationships_helper')
 
@@ -39,7 +39,7 @@ async function addRelationships (data, options) {
   const docsWithRelationships = docs.map(doc => {
     const relationships = keys(properties).reduce((acc, name) => {
       const isMany = (getIn(options, `model.schema.properties.${name}.type`, 'array') === 'array')
-      const orderedDocs = array(doc[name]).map(v => relationshipDocs[name][getId(v)])
+      const orderedDocs = compact(array(doc[name]).map(v => relationshipDocs[name][getId(v)]))
       acc[name] = isMany ? orderedDocs : first(orderedDocs)
       return acc
     }, {})

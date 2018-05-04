@@ -19,6 +19,19 @@ function getColl (options) {
   return getIn(options, 'model.coll')
 }
 
+// Changes have dotted paths as keys which does not work well with MongoDB, see:
+// https://stackoverflow.com/questions/30014243/mongoerror-the-dotted-field-is-not-valid-for-storage
+function mongoFriendlyChanges (existingDoc, doc) {
+  const changes = modelApi.changes(existingDoc, doc)
+  if (empty(changes)) return undefined
+  return keys(changes).map(path => {
+    return {
+      path,
+      change: changes[path]
+    }
+  })
+}
+
 function mergableChanges (changes, options) {
   const unmergable = (property) => getIn(property, 'x-meta.mergeChangelog') === false
   const unmergableProperties = keys(filter(getIn(options, 'model.schema.properties'), unmergable))
@@ -51,13 +64,13 @@ async function changelogCallback (doc, options) {
   const spaceId = toString(getIn(options, 'space.id'))
   const existingDoc = readableDoc(options.model, options.existingDoc)
   const toDoc = readableDoc(options.model, doc)
-  const changes = modelApi.changes(existingDoc, toDoc)
+  const changes = mongoFriendlyChanges(existingDoc, toDoc)
   const api = modelApi(changelog.model, options.api.mongo, logger)
   const mergableUpdate = await getMergableUpdate(api, doc, changes, options)
   if (mergableUpdate && diff(mergableUpdate.doc, toDoc)) {
     await api.update(mergableUpdate.id, {
       doc: toDoc,
-      changes: modelApi.changes(mergableUpdate.existingDoc, toDoc),
+      changes: mongoFriendlyChanges(mergableUpdate.existingDoc, toDoc),
       createdAt: new Date()
     }, {user})
   } else {

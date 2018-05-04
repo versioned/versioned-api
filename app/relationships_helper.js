@@ -7,13 +7,13 @@ function relationshipProperties (model) {
   })
 }
 
-async function getModel (toType, space) {
-  if (!toType || !space) return undefined
-  return requireModels().get({spaceId: space.id, 'model.type': toType})
+async function getModel (toType, spaceId) {
+  if (!toType || !spaceId) return undefined
+  return requireModels().get({spaceId, 'model.type': toType})
 }
 
 async function getApi (toType, space) {
-  const model = await getModel(toType, space)
+  const model = await getModel(toType, space.id)
   if (!model) return undefined
   return requireModels().getApi(space, model)
 }

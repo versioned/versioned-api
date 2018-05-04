@@ -1,4 +1,4 @@
-const {notEmpty, merge, updateIn, setIn, getIn, keys, keyValues, filter} = require('lib/util')
+const {last, notEmpty, merge, updateIn, setIn, getIn, keys, keyValues, filter} = require('lib/util')
 const {relationshipProperties, getModel} = require('app/relationships_helper')
 const {changes} = require('lib/model_api')
 const requireModels = () => require('app/models/models')
@@ -10,10 +10,17 @@ function twoWayRelationships (model) {
   })
 }
 
-function changedTwoWayRelationships (model, existingDoc, doc) {
-  const changedNames = keys(changes(existingDoc, doc))
-  return filter(twoWayRelationships(model), (_, name) => {
-    return changedNames.includes(name)
+function isTwoWayRelationship (property) {
+  const {toType, toField} = getIn(property, 'x-meta.relationship', {})
+  return toType && toField
+}
+
+function twoWayRelationshipChanges (existingDoc, doc) {
+  return filter(changes(existingDoc, doc), (change, path) => {
+    const isPropertyPath = path.match(/model\.schema\.properties\./)
+    const fromValue = getIn(change, 'changed.from') || getIn(change, 'deleted')
+    const toValue = getIn(change, 'changed.to') || getIn(change, 'added')
+    return isPropertyPath && (isTwoWayRelationship(fromValue) || isTwoWayRelationship(toValue))
   })
 }
 
@@ -52,14 +59,17 @@ function toProperty (fromField, fromType, property) {
   }
 }
 
-async function updateRelationship (doc, name, property, options) {
+async function updateRelationship (doc, path, change, options) {
+  const name = last(path.split('.'))
+  const property = change.added || change.deleted || getIn(change, 'changed.to')
   let {fromType, toType, toField} = getIn(property, 'x-meta.relationship')
-  fromType = fromType || getIn(options, 'model.type')
+  fromType = fromType || getIn(doc, 'model.type')
   if (!toType || !toField || !fromType) return
-  const model = getModel(toType, options.space)
+  const model = await getModel(toType, doc.spaceId)
   if (!model) return
-  const updatedModel = setIn(model, `model.schema.properties.${name}`, toProperty(name, fromType, property))
-  await requireModels().update(model.id, updatedModel, {rejectUnchanged: false})
+  const updatedProperty = change.deleted ? null : toProperty(name, fromType, property)
+  const updatedModel = setIn(model.model, `schema.properties.${toField}`, updatedProperty)
+  return requireModels().update(model.id, {model: updatedModel}, {callbacks: false, rejectUnchanged: false})
 }
 
 async function setTwoWayRelationships (doc, options) {
@@ -86,16 +96,17 @@ async function setTwoWayRelationships (doc, options) {
 }
 
 async function updateTwoWayRelationships (doc, options) {
-  const {model, existingDoc} = options
-  const properties = changedTwoWayRelationships(model, existingDoc, doc)
-  for (let [name, property] of keyValues(properties)) {
-    await updateRelationship(doc, name, property, options)
+  const {existingDoc} = options
+  const changes = twoWayRelationshipChanges(existingDoc, doc)
+  for (let [path, change] of keyValues(changes)) {
+    await updateRelationship(doc, path, change, options)
   }
   return doc
 }
 
 async function deleteTwoWayRelationships (doc, options) {
-  // TODO
+  const toDoc = setIn(doc, 'model.schema.properties', {})
+  await updateTwoWayRelationships(toDoc, merge(options, {existingDoc: doc}))
   return doc
 }
 
