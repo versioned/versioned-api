@@ -127,6 +127,7 @@ module.exports = async function (c) {
 
   result = await c.post('create author', `/data/${spaceId}/authors`, author)
   author.id = result.data.id
+
   for (let i = 0; i < articles.length; i++) {
     result = await c.post(`create article ${i}`, `/data/${spaceId}/articles`, merge(articles[i], {author: author.id}))
     articles[i].id = result.data.id
@@ -141,20 +142,34 @@ module.exports = async function (c) {
     categories[i].id = result.data.id
   }
 
-  result = await c.get('get relationship authors->articles', `/data/${spaceId}/authors/${author.id}?relationships=1`)
+  result = await c.get('get author (relationship authors->articles)', `/data/${spaceId}/authors/${author.id}?relationships=1`)
   c.assertEqual(result.data.articles.map(a => pick(a, ['title', 'id'])), articles)
 
-  result = await c.get('get relationships articles->author and articles->categories 0', `/data/${spaceId}/articles/${articles[0].id}?relationships=1`)
+  result = await c.get('list authors (relationship authors->articles)', `/data/${spaceId}/authors?relationships=1`)
+  c.assertEqual(pick(result.data[0], ['name', 'id']), author)
+  c.assertEqual(result.data[0].articles.map(a => pick(a, ['title', 'id'])), articles)
+
+  result = await c.get('get article 0 (relationships articles->author and articles->categories)', `/data/${spaceId}/articles/${articles[0].id}?relationships=1`)
   c.assertEqual(pick(result.data.author, ['name', 'id']), author)
   c.assertEqual(result.data.categories.map(c => pick(c, ['name', 'id'])), [categories[0]])
 
-  result = await c.get('get relationships articles->author and articles->categories 1', `/data/${spaceId}/articles/${articles[1].id}?relationships=1`)
+  result = await c.get('get article 1 (relationships articles->author and articles->categories)', `/data/${spaceId}/articles/${articles[1].id}?relationships=1`)
   c.assertEqual(pick(result.data.author, ['name', 'id']), author)
   c.assertEqual(result.data.categories.map(c => pick(c, ['name', 'id'])), [categories[1]])
 
-  result = await c.get('get relationship categories->articles 0', `/data/${spaceId}/categories/${categories[0].id}?relationships=1`)
+  result = await c.get('list articles (relationships articles->author and articles->categories)', `/data/${spaceId}/articles?relationships=1`)
+  c.assertEqual(pick(result.data[0].author, ['name', 'id']), author)
+  c.assertEqual(pick(result.data[1].author, ['name', 'id']), author)
+  c.assertEqual(result.data[0].categories.map(c => pick(c, ['name', 'id'])), [categories[1]])
+  c.assertEqual(result.data[1].categories.map(c => pick(c, ['name', 'id'])), [categories[0]])
+
+  result = await c.get('get category 0 (relationship categories->articles)', `/data/${spaceId}/categories/${categories[0].id}?relationships=1`)
   c.assertEqual(result.data.articles.map(c => pick(c, ['title', 'id'])), [articles[0]])
 
-  result = await c.get('get relationship categories->articles 1', `/data/${spaceId}/categories/${categories[1].id}?relationships=1`)
+  result = await c.get('get category 1 (relationship categories->articles)', `/data/${spaceId}/categories/${categories[1].id}?relationships=1`)
   c.assertEqual(result.data.articles.map(c => pick(c, ['title', 'id'])), [articles[1]])
+
+  result = await c.get('list categories (relationship categories->articles)', `/data/${spaceId}/categories?relationships=1`)
+  c.assertEqual(result.data[0].articles.map(c => pick(c, ['title', 'id'])), [articles[1]])
+  c.assertEqual(result.data[1].articles.map(c => pick(c, ['title', 'id'])), [articles[0]])
 }
