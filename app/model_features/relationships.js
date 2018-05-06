@@ -1,6 +1,6 @@
 const config = require('app/config')
 const {logger} = config.modules
-const {compact, keys, isArray, groupBy, flatten, first, json, array, keyValues, isObject, getIn, merge, concat, empty} = require('lib/util')
+const {notEmpty, updateIn, compact, keys, isArray, groupBy, flatten, first, json, array, keyValues, isObject, getIn, merge, concat, empty} = require('lib/util')
 const diff = require('lib/diff')
 const {relationshipProperties, getApi} = require('app/relationships_helper')
 
@@ -10,7 +10,7 @@ const PARAMS = {
     in: 'query',
     required: false,
     schema: {
-      type: 'boolean'
+      type: 'integer'
     }
   }
 }
@@ -22,7 +22,8 @@ async function fetchRelationshipDocs (docs, name, property, options) {
   if (!api) return
   const ids = flatten(docs.map(doc => array(doc[name]).map(getId)))
   if (empty(ids)) return
-  const relationshipDocs = await api.list({id: {$in: ids}})
+  const queryParams = updateIn(options.queryParams, 'relationships', (n) => n - 1)
+  const relationshipDocs = await api.list({id: {$in: ids}}, {queryParams})
   return groupBy(relationshipDocs, (doc) => doc.id, {unique: true})
 }
 
@@ -40,7 +41,11 @@ async function addRelationships (data, options) {
     const relationships = keys(properties).reduce((acc, name) => {
       const isMany = (getIn(options, `model.schema.properties.${name}.type`, 'array') === 'array')
       const orderedDocs = compact(array(doc[name]).map(v => relationshipDocs[name][getId(v)]))
-      acc[name] = isMany ? orderedDocs : first(orderedDocs)
+      if (notEmpty(orderedDocs)) {
+        acc[name] = isMany ? orderedDocs : first(orderedDocs)
+      } else {
+        acc[name] = undefined
+      }
       return acc
     }, {})
     return merge(doc, relationships)

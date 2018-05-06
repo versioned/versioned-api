@@ -63,6 +63,7 @@ module.exports = async function (c) {
     name: 'Author',
     spaceId: spaceId,
     coll: 'authors',
+    features: ['published'],
     model: {
       schema: {
         type: 'object',
@@ -80,6 +81,7 @@ module.exports = async function (c) {
     name: 'Article',
     spaceId: spaceId,
     coll: 'articles',
+    features: ['published'],
     model: {
       schema: {
         type: 'object',
@@ -99,6 +101,7 @@ module.exports = async function (c) {
     name: 'Category',
     spaceId: spaceId,
     coll: 'categories',
+    features: ['published'],
     model: {
       schema: {
         type: 'object',
@@ -172,4 +175,31 @@ module.exports = async function (c) {
   result = await c.get('list categories (relationship categories->articles)', `/data/${spaceId}/categories?relationships=1`)
   c.assertEqual(result.data[0].articles.map(c => pick(c, ['title', 'id'])), [articles[1]])
   c.assertEqual(result.data[1].articles.map(c => pick(c, ['title', 'id'])), [articles[0]])
+
+  result = await c.put('publish author', `/data/${spaceId}/authors/${author.id}`, {publishedVersion: 1})
+
+  result = await c.get('get published author with relationships (authors->articles)', `/data/${spaceId}/authors/${author.id}?published=1&relationships=1`)
+  c.assertEqual(result.data.publishedVersion, 1)
+  c.assert(!result.data.articles) // articles are not published yet
+
+  result = await c.get('list published authors (relationship authors->articles)', `/data/${spaceId}/authors?relationships=1&published=1`)
+  c.assert(!result.data[0].articles) // articles are not published yet
+
+  result = await c.put('publish article 0', `/data/${spaceId}/articles/${articles[0].id}`, {publishedVersion: 1})
+
+  result = await c.get('get published author with relationships (authors->articles)', `/data/${spaceId}/authors/${author.id}?published=1&relationships=1`)
+  c.assert(result.data.articles.map(c => pick(c, ['title', 'id'])), [articles[0]])
+
+  result = await c.get('list published authors (relationship authors->articles)', `/data/${spaceId}/authors?relationships=1&published=1`)
+  c.assert(result.data[0].articles.map(c => pick(c, ['title', 'id'])), [articles[0]])
+
+  result = await c.get('get published article 0 relationship (articles->author)', `/data/${spaceId}/articles/${articles[0].id}?published=1&relationships=1`)
+  c.assertEqualKeys(['name', 'id'], result.data.author, author)
+
+  result = await c.get({it: 'get published article 1 - missing', status: 404}, `/data/${spaceId}/articles/${articles[1].id}?published=1&relationships=1`)
+
+  result = await c.put('publish article 1', `/data/${spaceId}/articles/${articles[1].id}`, {publishedVersion: 1})
+
+  result = await c.get('get published author with relationships (authors->articles)', `/data/${spaceId}/authors/${author.id}?published=1&relationships=1`)
+  c.assert(result.data.articles.map(c => pick(c, ['title', 'id'])), [articles[0], articles[1]])
 }

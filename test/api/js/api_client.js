@@ -3,7 +3,7 @@ const path = require('path')
 const {keyValues, json, prettyJson} = require('lib/util')
 const axios = require('axios').create({validateStatus: (status) => status < 500})
 const _assert = require('assert')
-const {uuid, pick, merge, array} = require('lib/util')
+const {isArray, uuid, pick, merge, array} = require('lib/util')
 const config = require('app/config')
 const {isMongoId} = config.modules.mongo
 const {elapsedSeconds} = require('lib/date_util')
@@ -118,6 +118,15 @@ function client ({BASE_URL, DEDICATED_MONGODB_URL}) {
     }
   }
 
+  function assertEqualKeys (keys, actual, expected, msg) {
+    const pickKeys = (v) => pick(v, keys)
+    if (isArray(expected)) {
+      assertEqual(actual.map(pickKeys), expected.map(pickKeys), msg)
+    } else {
+      assertEqual(pickKeys(actual), pickKeys(expected), msg)
+    }
+  }
+
   function assert (actual, msg) {
     try {
       _assert(actual, msg)
@@ -220,6 +229,7 @@ function client ({BASE_URL, DEDICATED_MONGODB_URL}) {
     assert,
     assertRecent,
     assertEqual,
+    assertEqualKeys,
     isMongoId,
     uuid: uuidWithLetter,
     makeUser,
