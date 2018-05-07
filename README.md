@@ -4,6 +4,8 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 
 ## TODO
 
+* Is there a need for a one-to-one relationship? Can't you just embed?
+
 * API test: relationships_update.js - update/delete/add from four rel types
   Use new models?
 
@@ -149,7 +151,9 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 ## Launch
 
 * USP
-  * Direct database access and data scalability
+  * Direct database access and data scalability. Use an external service
+    but own the data. You can always take the data and exit.
+    Open Source and fully dedicated option.
 
 * Domain (dnsimple)
   www.versioned.io

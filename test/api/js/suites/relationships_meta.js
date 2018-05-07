@@ -1,4 +1,5 @@
 const {last, deepMerge, getIn, setIn} = require('lib/util')
+const {relationshipsModel} = require('../shared/relationships')
 
 module.exports = async function (c) {
   const accountId = c.data.account.id
@@ -7,116 +8,13 @@ module.exports = async function (c) {
   const spaceId = space.id
   c.assert(spaceId)
 
-  const relationships = {
-    authors: {
-      articles: {
-        type: 'array',
-        items: {type: 'string'},
-        'x-meta': {
-          relationship: {
-            toType: 'articles',
-            toField: 'author',
-            type: 'one-to-many'
-          }
-        }
-      }
-    },
-    articles: {
-      author: {
-        type: 'string',
-        'x-meta': {
-          relationship: {
-            toType: 'authors',
-            toField: 'articles',
-            type: 'many-to-one'
-          }
-        }
-      },
-      categories: {
-        type: 'array',
-        items: {type: 'string'},
-        'x-meta': {
-          relationship: {
-            toType: 'categories',
-            toField: 'articles',
-            type: 'many-to-many'
-          }
-        }
-      }
-    },
-    categories: {
-      articles: {
-        type: 'array',
-        items: {type: 'string'},
-        'x-meta': {
-          relationship: {
-            toType: 'articles',
-            toField: 'categories',
-            type: 'many-to-many'
-          }
-        }
-      }
-    }
-  }
+  const {Author, Article, Category, relationships} = relationshipsModel(spaceId, {withRelationships: false})
 
   function modelWithRelationship (Model, relationshipPath, value) {
     const propertyName = last(relationshipPath.split('.'))
     const setValue = (value === undefined ? getIn(relationships, relationshipPath) : value)
     const schema = setIn({}, `properties.${propertyName}`, setValue)
     return deepMerge(Model.model, {schema})
-  }
-
-  const Author = {
-    name: 'Author',
-    spaceId: spaceId,
-    coll: 'authors',
-    model: {
-      schema: {
-        type: 'object',
-        properties: {
-          name: {type: 'string'}
-          // articles: relationships.authors.articles
-        },
-        required: ['name'],
-        additionalProperties: false
-      }
-    }
-  }
-
-  const Article = {
-    name: 'Article',
-    spaceId: spaceId,
-    coll: 'articles',
-    model: {
-      schema: {
-        type: 'object',
-        properties: {
-          title: {type: 'string'},
-          body: {type: 'string'}
-          // author: relationships.articles.author,
-          // categories: relationships.articles.categories
-        },
-        required: ['title'],
-        additionalProperties: false
-      }
-    }
-  }
-
-  const Category = {
-    name: 'Category',
-    spaceId: spaceId,
-    coll: 'categories',
-    model: {
-      schema: {
-        type: 'object',
-        properties: {
-          name: {type: 'string'}
-          // articles: relationships.categories.articles
-        },
-        required: ['name'],
-        additionalProperties: false
-      }
-    }
   }
 
   result = await c.post('create authors model without relationships', `/${accountId}/models`, Author)

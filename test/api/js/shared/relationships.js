@@ -1,4 +1,9 @@
-function relationshipsModel (spaceId) {
+const {merge, compact} = require('lib/util')
+
+function relationshipsModel (spaceId, options = {}) {
+  const defaultOptions = {withRelationships: true}
+  const {withRelationships} = merge(defaultOptions, options)
+
   const relationships = {
     authors: {
       articles: {
@@ -51,7 +56,7 @@ function relationshipsModel (spaceId) {
     }
   }
 
-  const Author = {
+  const Author = compact({
     name: 'Author',
     spaceId: spaceId,
     coll: 'authors',
@@ -61,15 +66,15 @@ function relationshipsModel (spaceId) {
         type: 'object',
         properties: {
           name: {type: 'string'},
-          articles: relationships.authors.articles
+          articles: (withRelationships ? relationships.authors.articles : undefined)
         },
         required: ['name'],
         additionalProperties: false
       }
     }
-  }
+  })
 
-  const Article = {
+  const Article = compact({
     name: 'Article',
     spaceId: spaceId,
     coll: 'articles',
@@ -80,16 +85,16 @@ function relationshipsModel (spaceId) {
         properties: {
           title: {type: 'string'},
           body: {type: 'string'},
-          // author: relationships.articles.author,
-          categories: relationships.articles.categories
+          author: (withRelationships ? relationships.articles.author : undefined),
+          categories: (withRelationships ? relationships.articles.categories : undefined)
         },
         required: ['title'],
         additionalProperties: false
       }
     }
-  }
+  })
 
-  const Category = {
+  const Category = compact({
     name: 'Category',
     spaceId: spaceId,
     coll: 'categories',
@@ -98,20 +103,37 @@ function relationshipsModel (spaceId) {
       schema: {
         type: 'object',
         properties: {
-          name: {type: 'string'}
-          // articles: relationships.categories.articles
+          name: {type: 'string'},
+          articles: (withRelationships ? relationships.categories.articles : undefined)
         },
         required: ['name'],
         additionalProperties: false
       }
     }
+  })
+
+  const author = {
+    name: 'Hemingway'
   }
+
+  const articles = [
+    {title: 'The old man and the sea'},
+    {title: 'A farewell to arms'}
+  ]
+
+  const categories = [
+    {name: 'Drama'},
+    {name: 'War'}
+  ]
 
   return {
     relationships,
     Author,
     Article,
-    Category
+    Category,
+    author,
+    articles,
+    categories
   }
 }
 
