@@ -157,7 +157,7 @@ async function findVersions (doc, options) {
   const sort = '-version'
   const docs = await modelApi(versionedModel(model), api.mongo, logger).list(query, {sort})
   const versions = docs.map(d => readableDoc(model, rename(d, {docId: 'id'})))
-  return merge(doc, {versions})
+  return deepMerge(doc, {sys: {versions}})
 }
 
 function setVersion (doc, options) {

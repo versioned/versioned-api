@@ -4,11 +4,9 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 
 ## TODO
 
-* API test update of versions - change field, remove field, add field
-
-* audit x-meta updatedAt?
-
 * relationshipPaths=foo.bar,blu.baa
+
+* audit sys.fields.updatedAt? Are there use cases for this?
 
 * API test: Support fetching multiple levels of relationships (you can pass options={relationships: (N-1)})
 
