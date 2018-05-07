@@ -4,10 +4,25 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 
 ## TODO
 
+* API test stateful relationships: relationships_update_state.js options={idSchema: {id: {type: 'string'}, score: {type: 'string'}}}
+  // one-to-many add
+  // one-to-many update
+  // one-to-many delete
+  // many-to-one add
+  // many-to-one update
+  // many-to-one delete
+  // many-to-many add
+  // many-to-many update
+  // many-to-many delete
+
+* API test update of versions - change field, remove field, add field
+
 * Is there a need for a one-to-one relationship? Can't you just embed?
 
 * API test: relationships_update.js - update/delete/add from four rel types
   Use new models?
+
+* audit x-meta updatedAt?
 
 * relationshipPaths=foo.bar,blu.baa
 
@@ -154,6 +169,8 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
   * Direct database access and data scalability. Use an external service
     but own the data. You can always take the data and exit.
     Open Source and fully dedicated option.
+  * Two way stateful relationships?
+  * GraphQL?
 
 * Domain (dnsimple)
   www.versioned.io

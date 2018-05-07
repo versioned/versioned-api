@@ -1,4 +1,4 @@
-const {rename, empty, isArray, array, groupBy, property, deepMerge, concat, uuid, notEmpty, keys, pick, filter, getIn, merge, compact} = require('lib/util')
+const {makeObj, difference, rename, empty, isArray, array, groupBy, property, deepMerge, concat, uuid, notEmpty, keys, pick, filter, getIn, merge, compact} = require('lib/util')
 const {changes} = require('lib/model_api')
 const modelMeta = require('lib/model_meta')
 const modelApi = require('lib/model_api')
@@ -172,7 +172,8 @@ function setVersion (doc, options) {
 async function updateVersion (doc, options) {
   const {model, api, existingDoc} = options
   if (doc.version === getIn(existingDoc, ['version']) && notEmpty(versionedChanges(model, existingDoc, doc))) {
-    const updatedDoc = merge(versionedDoc(model, doc), pick(doc, ['updatedAt', 'updatedBy']))
+    const removedFields = makeObj(difference(keys(existingDoc), keys(doc)), () => null)
+    const updatedDoc = [versionedDoc(model, doc), pick(doc, ['updatedAt', 'updatedBy']), removedFields].reduce(merge)
     await modelApi(versionedModel(model), api.mongo, logger).update(versionQuery(doc), updatedDoc)
   }
   return doc
