@@ -4,23 +4,7 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 
 ## TODO
 
-* API test stateful relationships: relationships_update_state.js options={idSchema: {id: {type: 'string'}, score: {type: 'string'}}}
-  // one-to-many add
-  // one-to-many update
-  // one-to-many delete
-  // many-to-one add
-  // many-to-one update
-  // many-to-one delete
-  // many-to-many add
-  // many-to-many update
-  // many-to-many delete
-
 * API test update of versions - change field, remove field, add field
-
-* Is there a need for a one-to-one relationship? Can't you just embed?
-
-* API test: relationships_update.js - update/delete/add from four rel types
-  Use new models?
 
 * audit x-meta updatedAt?
 
@@ -29,8 +13,6 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 * API test: Support fetching multiple levels of relationships (you can pass options={relationships: (N-1)})
 
 * You could publish two way rel changes if there are no other changes
-
-* API test a relationship with state (categories.weight)
 
 * Remove fromType or set it automatically?
 
@@ -65,6 +47,8 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
   many-to-many
   many-to-one
   one-to-many
+
+* Two way relationship properties are overwritten for to side.
 
 * versioned2-ui
 
@@ -121,6 +105,8 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
       If no locale is provided we use the default
 
 * Maybe we should not create a new changelog entry but instead update the last one if there is already a recent update for the same id (and version if the model is published). This will be especially important with autosave.
+
+* Is there a need for a one-to-one relationship? Can't you just embed?
 
 * Need archiving? Contentful events: create, save, autosave, archive, unarchive, publish, unpublish, delete.
 

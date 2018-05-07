@@ -1,14 +1,14 @@
 const {merge, compact} = require('lib/util')
 
 function relationshipsModel (spaceId, options = {}) {
-  const defaultOptions = {withRelationships: true}
-  const {withRelationships} = merge(defaultOptions, options)
+  const defaultOptions = {schema: {type: 'string'}, withRelationships: true}
+  const {schema, withRelationships} = merge(defaultOptions, options)
 
   const relationships = {
     authors: {
       articles: {
         type: 'array',
-        items: {type: 'string'},
+        items: schema,
         'x-meta': {
           relationship: {
             toType: 'articles',
@@ -19,8 +19,7 @@ function relationshipsModel (spaceId, options = {}) {
       }
     },
     articles: {
-      author: {
-        type: 'string',
+      author: merge(schema, {
         'x-meta': {
           relationship: {
             toType: 'authors',
@@ -28,10 +27,10 @@ function relationshipsModel (spaceId, options = {}) {
             type: 'many-to-one'
           }
         }
-      },
+      }),
       categories: {
         type: 'array',
-        items: {type: 'string'},
+        items: schema,
         'x-meta': {
           relationship: {
             toType: 'categories',
@@ -44,7 +43,7 @@ function relationshipsModel (spaceId, options = {}) {
     categories: {
       articles: {
         type: 'array',
-        items: {type: 'string'},
+        items: schema,
         'x-meta': {
           relationship: {
             toType: 'articles',

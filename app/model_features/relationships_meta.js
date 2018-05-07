@@ -1,4 +1,4 @@
-const {last, notEmpty, merge, updateIn, setIn, getIn, keys, keyValues, filter} = require('lib/util')
+const {pick, last, notEmpty, merge, updateIn, setIn, getIn, keys, keyValues, filter} = require('lib/util')
 const {relationshipProperties, getModel} = require('app/relationships_helper')
 const {changes} = require('lib/model_api')
 const requireModels = () => require('app/models/models')
@@ -27,7 +27,6 @@ function twoWayRelationshipChanges (existingDoc, doc) {
 const TYPES = {
   'one-to-many': 'many-to-one',
   'many-to-one': 'one-to-many',
-  'one-to-one': 'one-to-one',
   'many-to-many': 'many-to-many'
 }
 
@@ -38,6 +37,7 @@ function isArrayProperty (type) {
 function toProperty (fromField, fromType, property) {
   const relationship = getIn(property, 'x-meta.relationship')
   const type = TYPES[relationship.type]
+  const schema = property.items || pick(property, ['type'])
   const xMeta = {
     relationship: {
       toType: fromType,
@@ -48,14 +48,13 @@ function toProperty (fromField, fromType, property) {
   if (isArrayProperty(type)) {
     return {
       type: 'array',
-      items: {type: 'string'},
+      items: schema,
       'x-meta': xMeta
     }
   } else {
-    return {
-      type: 'string',
+    return merge(schema, {
       'x-meta': xMeta
-    }
+    })
   }
 }
 

@@ -223,6 +223,7 @@ function client ({BASE_URL, DEDICATED_MONGODB_URL}) {
 
   Object.assign(self, {
     DEDICATED_MONGODB_URL,
+    prettyJson,
     printSection,
     anonymous,
     logRequests,

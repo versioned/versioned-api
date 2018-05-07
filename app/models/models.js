@@ -142,7 +142,7 @@ const X_META_SCHEMA = {
         fromField: {type: 'string', pattern: PROPERTY_NAME_PATTERN},
         toType: collSchema,
         toField: {type: 'string', pattern: PROPERTY_NAME_PATTERN},
-        type: {enum: ['one-to-one', 'one-to-many', 'many-to-one', 'many-to-many']}
+        type: {enum: ['one-to-many', 'many-to-one', 'many-to-many']}
       },
       required: ['toType', 'type'],
       additionalProperties: false
