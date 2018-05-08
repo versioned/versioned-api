@@ -17,17 +17,22 @@ const PARAMS = {
   }
 }
 
+// NOTE: check relationshipParent so we don't fetch parent document again (the relationship we are coming from)
+function isParent (toType, toField, options) {
+  const parent = getIn(options, 'relationshipParent')
+  return toType === getIn(parent, 'type') && toField === getIn(parent, 'field')
+}
+
 async function fetchRelationshipDocs (docs, name, property, options) {
-  const {toType} = getIn(property, 'x-meta.relationship')
-  // NOTE: check relationshipParent so we don't fetch parent document again
-  if (!toType || toType === options.relationshipParent) return
+  const {toType, toField} = getIn(property, 'x-meta.relationship')
+  if (!toType || isParent(toType, toField, options)) return
   const api = await getApi(toType, options.space)
   if (!api) return
   const ids = flatten(docs.map(doc => array(doc[name]).map(getId)))
   if (empty(ids)) return
   const queryParams = updateIn(options.queryParams, 'relationships', (n) => n - 1)
-  const fromType = docs[0].type
-  const listOptions = {queryParams, space: options.space, relationshipParent: fromType}
+  const relationshipParent = {type: docs[0].type, field: name}
+  const listOptions = {queryParams, space: options.space, relationshipParent}
   const relationshipDocs = await api.list({id: {$in: ids}}, listOptions)
   return groupBy(relationshipDocs, (doc) => doc.id, {unique: true})
 }
