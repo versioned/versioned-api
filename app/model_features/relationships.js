@@ -10,20 +10,25 @@ const PARAMS = {
     in: 'query',
     required: false,
     schema: {
-      type: 'integer'
+      type: 'integer',
+      minimum: 1,
+      maximum: 10
     }
   }
 }
 
 async function fetchRelationshipDocs (docs, name, property, options) {
   const {toType} = getIn(property, 'x-meta.relationship')
-  if (!toType) return
+  // NOTE: check relationshipParent so we don't fetch parent document again
+  if (!toType || toType === options.relationshipParent) return
   const api = await getApi(toType, options.space)
   if (!api) return
   const ids = flatten(docs.map(doc => array(doc[name]).map(getId)))
   if (empty(ids)) return
   const queryParams = updateIn(options.queryParams, 'relationships', (n) => n - 1)
-  const relationshipDocs = await api.list({id: {$in: ids}}, {queryParams})
+  const fromType = docs[0].type
+  const listOptions = {queryParams, space: options.space, relationshipParent: fromType}
+  const relationshipDocs = await api.list({id: {$in: ids}}, listOptions)
   return groupBy(relationshipDocs, (doc) => doc.id, {unique: true})
 }
 
@@ -40,7 +45,7 @@ async function addRelationships (data, options) {
   const docsWithRelationships = docs.map(doc => {
     const relationships = keys(properties).reduce((acc, name) => {
       const isMany = (getIn(options, `model.schema.properties.${name}.type`, 'array') === 'array')
-      const orderedDocs = compact(array(doc[name]).map(v => relationshipDocs[name][getId(v)]))
+      const orderedDocs = compact(array(doc[name]).map(v => getIn(relationshipDocs[name], getId(v))))
       if (notEmpty(orderedDocs)) {
         acc[name] = isMany ? orderedDocs : first(orderedDocs)
       } else {

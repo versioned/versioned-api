@@ -4,9 +4,8 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 
 ## Backlog (Sprint)
 
-* API test: Support fetching multiple levels of relationships (you can pass options={relationships: (N-1)})
-
-* Remove fromType or set it automatically?
+* Drop relationship fromType, fromField?
+  Remove fromType or set it automatically?
 
 * API test validation in models_relationships_validate (or add it in models_relationships for now?)
 
@@ -19,7 +18,7 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 
 ## Ice Box (For Later Consideration)
 
-* relationshipPaths=foo.bar,blu.baa (GraphQL)
+* relationshipPaths=foo.bar,blu.baa (GraphQL). Need more API tests for this, nested relationship fetching
 
 * You could publish two way rel changes if there are no other changes
 

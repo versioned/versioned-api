@@ -1,4 +1,4 @@
-const {pick, merge} = require('lib/util')
+const {compact, property, pick, merge} = require('lib/util')
 const {relationshipsModel} = require('../shared/relationships')
 
 module.exports = async function (c) {
@@ -55,6 +55,14 @@ module.exports = async function (c) {
   result = await c.get('list categories (relationship categories->articles)', `/data/${spaceId}/categories?relationships=1`)
   c.assertEqual(result.data[0].articles.map(c => pick(c, ['title', 'id'])), [articles[1]])
   c.assertEqual(result.data[1].articles.map(c => pick(c, ['title', 'id'])), [articles[0]])
+
+  result = await c.get('get author with two levels of nesting (relationship authors->articles, articles->categories)', `/data/${spaceId}/authors/${author.id}?relationships=2`)
+  c.assertEqual(result.data.articles.map(a => pick(a, ['title', 'id'])), articles)
+  c.assertEqual(compact(result.data.articles.map(property('author'))), []) // only fetch author once
+  c.assertEqualKeys(['name', 'id'], result.data.articles[0].categories, [categories[0]])
+  c.assertEqualKeys(['name', 'id'], result.data.articles[1].categories, [categories[1]])
+  c.assertEqual(result.data.articles[0].categories[0].articles, [articles[0].id])
+  c.assertEqual(result.data.articles[1].categories[0].articles, [articles[1].id])
 
   result = await c.put('publish author', `/data/${spaceId}/authors/${author.id}`, {publishedVersion: 1})
 
