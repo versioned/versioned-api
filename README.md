@@ -2,84 +2,53 @@
 
 A CMS REST API on MongoDB/Node.js - similar to Contentful
 
-## TODO
-
-* relationshipPaths=foo.bar,blu.baa
-
-* audit sys.fields.updatedAt? Are there use cases for this?
+## Backlog (Sprint)
 
 * API test: Support fetching multiple levels of relationships (you can pass options={relationships: (N-1)})
-
-* You could publish two way rel changes if there are no other changes
 
 * Remove fromType or set it automatically?
 
 * API test validation in models_relationships_validate (or add it in models_relationships for now?)
 
-* The list endpoint needs to avoid N+1 problem when fetching relationships
+* versioned2-ui, first basic version
+
+## Epics (Major Features)
+
+* Translation
+* Webhooks
+
+## Ice Box (For Later Consideration)
+
+* relationshipPaths=foo.bar,blu.baa (GraphQL)
+
+* You could publish two way rel changes if there are no other changes
+
+* audit sys.fields.updatedAt? Are there use cases for this?
+
+* articles.map(pick('name,id')) (Ramda style curried)
 
 * When changes to relationships are published then the docs at the other side of those relationships
   also need to be published in order for the relationships to be in sync two-way
 
-* The get/list functions need to fetch relationships when relationships=1 is
-  provided.
-
-* After update/create any changes to the relationship needs to be reflected on the other
-  side of the relationship if toField is set (if it's two way)
-
-* After delete the other side of the relationship needs to be updated if toField is set
-
-* When creating model with x-meta.relationship.toField then the opposite
-  end of the relationship needs to be set up as a property in the toType model
-  Need to handle likely case that the other model doesn't exist yet.
-
-* Support relationships with state? I.e. accounts-users with role
-
-* Handle or prevent updates/changes of relationships
-
-* published needs to fetch published versions of relationships if queryParams.relationships and relationshipProperties
-
-* Two way relationships
-  owning side of relationship:
-  one-to-one
-  many-to-many
-  many-to-one
-  one-to-many
-
-* Two way relationship properties are overwritten for to side.
-
-* versioned2-ui
-
-* Change to yarn for consistency with UI?
+* Handle/prevent updates/changes of relationships and model properties in general (see contentful)
 
 * Try MongoDB Stitch https://www.mongodb.com/cloud/stitch?jmp=hero
 
-* accessCheck - API test
-  users can only update/delete/get self
-  accounts can only be updated/deleted by admin
+* API test:
+  * spaces writeRequiresAdmin
+  * users can only update/delete/get self
+  * accounts writeRequiresAdmin
+  * account scoping in model_controller of models and spaces
+  * empty content for required fields (compact)
 
-* API test account scoping in model_controller of models and spaces
+* Handle deletion of accounts. Disallow if there are users connected? Clear out relationships?
 
-* Deletion of accounts. Disallow if there are users connected? Clear out relationships?
-
-* accounts API test that checks user relationship and permissions
-
-* Double check permission per role
-  Ability to create spaces?
-
-* Documentation index page with links to main swagger and data swagger per space
+* Link to API documentation per space
 
 * Load test 1000 spaces and lots of data. How much memory is consumed?
   Need a sync/import endpoint
 
-* Need to drop ${config.MONGODB_URL}_dedicated in API tests? - Introduce c.MONGODB_URL_DEDICATED?
-
-* Should rename _id to id when we read the doc from mongo
-  Need to rename version coll id for this to work.
-
 * Rename /data to /content ("Add Content")?
-
-* Deal with empty content for required fields - api test
 
 * Preview feature - version, versionToken
   models.previewUrl - http://my.site/articles/{id}
@@ -102,10 +71,6 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
       locale query param for get/list - will transform objects to strings based on locale
       If no locale is provided we use the default
 
-* Maybe we should not create a new changelog entry but instead update the last one if there is already a recent update for the same id (and version if the model is published). This will be especially important with autosave.
-
-* Is there a need for a one-to-one relationship? Can't you just embed?
-
 * Need archiving? Contentful events: create, save, autosave, archive, unarchive, publish, unpublish, delete.
 
 * Don’t allow deletion of model with content
@@ -122,30 +87,13 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 
 * Move spaceId from path to header?
 
-* Relationships
+* Should always be throwing Error objects?
 
-* Try always throwing Error objects
-  Better error logging from middleware
-
-* swagger suite API test request/response schemas (update/create etc.)
-
-* api test list endpoint parameters. Validation of list params. Which fields can you query by and which can you sort by? Only query indexes fields if the collection is large?
+* api test list endpoint parameters. Validation of list params. Which fields can you query by and which can you sort by? Only query indexes fields if the collection is large? Add more query capabilities?
 
 * Put space_id in header instead of in path?
 
 * Contentful data types and constraints (short text, long text)
-
-* Rename swagger to openapi?
-
-* list endpoint improvements
-  stats optional via query param
-  always add count instead
-  make sure count always uses the same query as list
-
-* Study contentful
-
-* Multi tenant: accounts model (users.account_id)
-* Multi tenant: spaces model with (account_id, name, key)
 
 ## Launch
 
