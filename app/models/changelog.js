@@ -22,7 +22,7 @@ function setChanges (data, options) {
 }
 
 const model = {
-  coll: 'changelog',
+  type: 'changelog',
   features: ['mongo_id', 'typed', 'audit'],
   schema: {
     type: 'object',

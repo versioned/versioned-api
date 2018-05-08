@@ -18,7 +18,7 @@ function checkAccess (doc, options) {
 }
 
 const model = {
-  coll: 'users',
+  type: 'users',
   features: concat(DEFAULTS.features, ['password']),
   schema: {
     type: 'object',

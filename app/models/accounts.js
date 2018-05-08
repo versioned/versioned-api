@@ -76,7 +76,7 @@ async function updateUsersRelationship (doc, options) {
 }
 
 const model = {
-  coll: 'accounts',
+  type: 'accounts',
   schema: {
     type: 'object',
     properties: {
