@@ -61,8 +61,8 @@ function toProperty (fromField, fromType, property) {
 async function updateRelationship (doc, path, change, options) {
   const name = last(path.split('.'))
   const property = change.added || change.deleted || getIn(change, 'changed.to')
-  let {fromType, toType, toField} = getIn(property, 'x-meta.relationship')
-  fromType = fromType || getIn(doc, 'model.type')
+  let {toType, toField} = getIn(property, 'x-meta.relationship')
+  const fromType = getIn(doc, 'model.type')
   if (!toType || !toField || !fromType) return
   const model = await getModel(toType, doc.spaceId)
   if (!model) return

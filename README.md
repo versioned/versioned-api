@@ -4,9 +4,6 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 
 ## Backlog (Sprint)
 
-* Drop relationship fromType, fromField?
-  Remove fromType or set it automatically?
-
 * API test validation in models_relationships_validate (or add it in models_relationships for now?)
 
 * versioned2-ui, first basic version
