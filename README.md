@@ -165,16 +165,17 @@ LOG_LEVEL=verbose npm test
 
 ## API Examples
 
-For Heroku:
+For local/Heroku:
 
 ```
+export BASE_URL=http://localhost:3000/v1
+
 export BASE_URL=https://versioned2.herokuapp.com/v1
 ```
 
 Create user:
 
 ```
-export BASE_URL=http://localhost:3000/v1
 echo '{"name": "Admin User", "email": "admin@example.com", "password": "admin"}' | http POST $BASE_URL/users
 ```
 
@@ -185,24 +186,11 @@ mongo versioned2_development
 db.users.update({_id: '$USER_ID'}, {$set: {superUser: true}})
 ```
 
-Create a bunch of users:
-
-```
-export BASE_URL=http://localhost:3000/v1
-while [ 1 ]; do echo "{\"name\": \"Admin User\", \"email\": \"$(uuid)@example.com\", \"password\": \"admin\"}" | http POST $BASE_URL/users; done
-```
-
 Login:
 
 ```bash
-export BASE_URL=http://localhost:3000/v1
 echo '{"email": "admin@example.com", "password": "admin"}' | http POST $BASE_URL/login
-```
-
-Get routes:
-
-```
-http $BASE_URL/sys/routes Authorization:"Bearer $TOKEN"
+export TOKEN=...
 ```
 
 Create account:
@@ -222,22 +210,41 @@ export SPACE_ID=...
 Create Published Model in Space:
 
 ```
-export SPACE_ID=...
-export ACCOUNT_ID=...
 echo "{\"name\": \"Published Items\", \"spaceId\": \"${SPACE_ID}\", \"coll\": \"items\", \"features\": [\"published\"], \"model\": {\"schema\": {\"type\": \"object\", \"properties\": {\"title\": {\"type\": \"string\"}, \"key\": {\"type\": \"string\", \"x-meta\": {\"update\": false}}}}}}" | http POST $BASE_URL/$ACCOUNT_ID/models Authorization:"Bearer $TOKEN"
 ```
 
 Create some content for that model:
 
 ```
-http POST $BASE_URL/data/5ad73afec6d5f37d3d593ac1/items Authorization:"Bearer $TOKEN" title="My first item"
+http POST $BASE_URL/data/$SPACE_ID/items Authorization:"Bearer $TOKEN" title="My first item"
 ```
 
 List content:
 
 ```
-http $BASE_URL/data/5ad73afec6d5f37d3d593ac1/items Authorization:"Bearer $TOKEN"
-http "$BASE_URL/data/5ad73afec6d5f37d3d593ac1/items?published=1" Authorization:"Bearer $TOKEN"
+http $BASE_URL/data/$SPACE_ID/items Authorization:"Bearer $TOKEN"
+http "$BASE_URL/data/$SPACE_ID/items?published=1" Authorization:"Bearer $TOKEN"
+```
+
+Get account:
+
+```
+http $BASE_URL/accounts/$ACCOUNT_ID?relationships=1 Authorization:"Bearer $TOKEN"
+```
+
+Get spaces:
+
+```
+http $BASE_URL/$ACCOUNT_ID/spaces?relationships=1 Authorization:"Bearer $TOKEN"
+```
+
+## Other API Calls
+
+Create a bunch of users:
+
+```
+export BASE_URL=http://localhost:3000/v1
+while [ 1 ]; do echo "{\"name\": \"Admin User\", \"email\": \"$(uuid)@example.com\", \"password\": \"admin\"}" | http POST $BASE_URL/users; done
 ```
 
 ## Create Admin User from JavaScript

@@ -73,7 +73,19 @@ const model = {
     type: 'object',
     properties: {
       name: {type: 'string'},
-      accountId: {type: 'string', 'x-meta': {update: false, index: true}},
+      accountId: {
+        type: 'string',
+        'x-meta': {
+          update: false,
+          index: true,
+          relationship: {
+            toType: 'accounts',
+            toField: 'spaces',
+            name: 'account',
+            type: 'many-to-one'
+          }
+        }
+      },
       key: {
         type: 'string',
         pattern: `^${KEY_PREFIX}[abcdef0-9]{${KEY_LENGTH}}$`,

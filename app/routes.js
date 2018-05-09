@@ -4,7 +4,7 @@ const auth = require('app/controllers/auth')
 const sys = require('app/controllers/sys')
 const {nil, getIn, concat} = require('lib/util')
 const config = require('app/config')
-const modelRoutes = require('app/model_routes')(config.modules.response)
+const modelRoutes = require('app/model_routes')(config.modules.response, config.logger)
 const getDataRoutes = require('app/data_routes')
 const path = require('path')
 const router = require('lib/router')
@@ -56,11 +56,12 @@ const systemRoutes = [
     path: `${PREFIX}/sys/routes`,
     handler: sys.routes
   }
-].concat(modelRoutes.requireDir(MODELS_DIR, VERSION))
+]
 
 async function getRoutes (options = {}) {
   const dataRoutes = await getDataRoutes(DATA_PREFIX, options)
-  return concat(dataRoutes, systemRoutes)
+  const _modelRoutes = await modelRoutes.requireDir(MODELS_DIR, VERSION)
+  return concat(systemRoutes, _modelRoutes, dataRoutes)
 }
 
 function parseSpaceId (req) {
@@ -95,7 +96,7 @@ function checkAccess (req) {
   }
   const requireSuperUser = route.superUser || (!getIn(route, 'model') && !space)
   if (requireSuperUser) return accessError('You must be super user to access that endpoint')
-  const accountScope = getIn(route, 'model.schema.properties.accountId')
+  const accountScope = req.pathParams.accountId
   return accountScope ? checkAccountAccess(req) : undefined
 }
 

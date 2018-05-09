@@ -7,19 +7,27 @@ function relationshipProperties (model) {
   })
 }
 
-async function getModel (toType, spaceId) {
+function getStaticApi (toType) {
+  return require(`app/models/${toType}`)
+}
+
+async function getSpaceModel (toType, spaceId) {
   if (!toType || !spaceId) return undefined
   return requireModels().get({spaceId, 'model.type': toType})
 }
 
 async function getApi (toType, space) {
-  const model = await getModel(toType, space.id)
-  if (!model) return undefined
-  return requireModels().getApi(space, model)
+  if (space) {
+    const model = await getSpaceModel(toType, getIn(space, 'id'))
+    if (!model) return undefined
+    return requireModels().getApi(space, model)
+  } else {
+    return getStaticApi(toType)
+  }
 }
 
 module.exports = {
   relationshipProperties,
-  getModel,
+  getSpaceModel,
   getApi
 }

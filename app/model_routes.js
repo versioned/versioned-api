@@ -134,17 +134,21 @@ function requireModelApis (modelsDir, modelsRequirePath = DEFAULT_REQUIRE_PATH) 
   return requirePaths.map(path => require(path))
 }
 
-function modelRoutes (responseModule) {
-  function routes (modelApi, prefix = DEFAULT_VERSION) {
+function modelRoutes (responseModule, logger) {
+  const modelCallbacks = require('lib/model_callbacks')(logger)
+
+  async function routes (modelApi, prefix = DEFAULT_VERSION) {
     const model = modelApi.model
     if (!model.routes) return []
     const options = {scope: 'accountId'}
     const controller = modelController(modelApi, responseModule, options)
-    return keyValues(pick(ROUTES, keys(model.routes))).reduce((acc, [endpoint, route]) => {
-      const modelRoute = [
+    const result = []
+    for (let [endpoint, route] of keyValues(pick(ROUTES, keys(model.routes)))) {
+      let modelRoute = [
         route,
         {
           summary: `${endpoint} ${model.coll}`,
+          action: endpoint,
           model,
           path: route.path(model, prefix),
           handler: controller[endpoint],
@@ -154,13 +158,20 @@ function modelRoutes (responseModule) {
         },
         model.routes[endpoint]
       ].reduce(merge)
-      return acc.concat(modelRoute)
-    }, [])
+      modelRoute = await modelCallbacks(modelApi, modelRoute, 'after', 'routeCreate')
+      result.push(modelRoute)
+    }
+    return result
   }
 
-  function requireDir (modelsDir, prefix = DEFAULT_VERSION, modelsRequirePath = DEFAULT_REQUIRE_PATH) {
+  async function requireDir (modelsDir, prefix = DEFAULT_VERSION, modelsRequirePath = DEFAULT_REQUIRE_PATH) {
     const modelApis = requireModelApis(modelsDir, modelsRequirePath)
-    return flatten(modelApis.map(modelApi => routes(modelApi, prefix)))
+    const result = []
+    for (let modelApi of modelApis) {
+      const apiRoutes = await routes(modelApi, prefix)
+      result.push(apiRoutes)
+    }
+    return flatten(result)
   }
 
   return {

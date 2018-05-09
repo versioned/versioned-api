@@ -1,5 +1,5 @@
 const {pick, last, notEmpty, merge, updateIn, setIn, getIn, keys, keyValues, filter} = require('lib/util')
-const {relationshipProperties, getModel} = require('app/relationships_helper')
+const {relationshipProperties, getSpaceModel} = require('app/relationships_helper')
 const {changes} = require('lib/model_api')
 const requireModels = () => require('app/models/models')
 
@@ -63,8 +63,8 @@ async function updateRelationship (doc, path, change, options) {
   const property = change.added || change.deleted || getIn(change, 'changed.to')
   let {toType, toField} = getIn(property, 'x-meta.relationship')
   const fromType = getIn(doc, 'model.type')
-  if (!toType || !toField || !fromType) return
-  const model = await getModel(toType, doc.spaceId)
+  if (!toType || !toField || !fromType || !doc.spaceId) return
+  const model = await getSpaceModel(toType, doc.spaceId)
   if (!model) return
   const updatedProperty = change.deleted ? null : toProperty(name, fromType, property)
   const updatedModel = setIn(model.model, `schema.properties.${toField}`, updatedProperty)
@@ -72,7 +72,8 @@ async function updateRelationship (doc, path, change, options) {
 }
 
 async function setTwoWayRelationships (doc, options) {
-  const spaceId = doc.spaceId || getIn(options, 'space.id')
+  const spaceId = doc.spaceId
+  if (!spaceId) return
   const modelsInSpace = await requireModels().list({spaceId})
   const relationships = modelsInSpace.reduce((acc, model) => {
     const properties = filter(twoWayRelationships(model.model), (property) => {

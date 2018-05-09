@@ -82,6 +82,18 @@ const model = {
     properties: {
       name: {type: 'string'},
       plan: {enum: PLANS},
+      spaces: {
+        type: 'array',
+        items: {type: 'string'},
+        'x-meta': {
+          writable: false,
+          relationship: {
+            toType: 'spaces',
+            toField: 'accountId',
+            type: 'one-to-many'
+          }
+        }
+      },
       users: {
         type: 'array',
         items: {

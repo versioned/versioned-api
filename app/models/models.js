@@ -139,9 +139,11 @@ const X_META_SCHEMA = {
       type: 'object',
       properties: {
         toType: collSchema,
+        type: {enum: ['one-to-many', 'many-to-one', 'many-to-many']},
         // NOTE: the presence of a toField means the relationship is two-way
         toField: {type: 'string', pattern: PROPERTY_NAME_PATTERN},
-        type: {enum: ['one-to-many', 'many-to-one', 'many-to-many']}
+        // NOTE: the name is the optional property name used with relationships=1
+        name: {type: 'string'}
       },
       required: ['toType', 'type'],
       additionalProperties: false

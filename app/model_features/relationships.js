@@ -51,10 +51,11 @@ async function addRelationships (data, options) {
     const relationships = keys(properties).reduce((acc, name) => {
       const isMany = (getIn(options, `model.schema.properties.${name}.type`, 'array') === 'array')
       const orderedDocs = compact(array(doc[name]).map(v => getIn(relationshipDocs[name], getId(v))))
+      const relationshipName = getIn(properties, `${name}.x-meta.relationship.name`, name)
       if (notEmpty(orderedDocs)) {
-        acc[name] = isMany ? orderedDocs : first(orderedDocs)
+        acc[relationshipName] = isMany ? orderedDocs : first(orderedDocs)
       } else {
-        acc[name] = undefined
+        acc[relationshipName] = undefined
       }
       return acc
     }, {})
@@ -111,7 +112,7 @@ async function updateRelationship (doc, name, property, options) {
 
   logger.verbose(`updateRelationship ${options.model.type}.${name} -> ${toType}.${toField} toMany=${toMany} added=${json(added)} removed=${json(removed)} changed=${json(changed)}`)
 
-  const skipCallbacks = ['updateAllRelationships']
+  const skipCallbacks = ['updateAllRelationships', 'checkAccess']
   for (let fromValue of added) {
     const toValue = makeToValue(fromValue, doc.id)
     const addValue = (values) => toMany ? concat(values, [toValue]) : toValue
