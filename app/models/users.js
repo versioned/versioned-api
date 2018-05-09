@@ -44,7 +44,16 @@ const model = {
           }
         }
       },
-      defaultSpaceId: {type: 'string'},
+      defaultSpaceId: {
+        type: 'string',
+        'x-meta': {
+          relationship: {
+            toType: 'spaces',
+            type: 'many-to-one',
+            name: 'defaultSpace'
+          }
+        }
+      },
       superUser: {type: 'boolean', 'x-meta': {writable: false}}
     },
     required: ['name', 'email'],

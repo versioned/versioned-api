@@ -1,6 +1,7 @@
 const {merge} = require('lib/util')
 
 module.exports = async function (c) {
+  const {space} = c.data
   const name = c.uuid()
   const user = {
     name,
@@ -31,4 +32,10 @@ module.exports = async function (c) {
   result = await c.post('can log in after update with new email and new password', `/login`, {email: newEmail, password: newPassword})
 
   result = await c.post({it: 'cannot log in with old password', status: 401}, `/login`, {email: newEmail, password: user.password})
+
+  await c.put('set defaultSpaceId', `/users/${id}`, {defaultSpaceId: space.id}, {headers})
+
+  result = await c.get('get user with relationships', `/users/${id}?relationships=1`, {headers})
+  c.assertEqual(result.data.defaultSpaceId, space.id)
+  c.assertEqualKeys(['id', 'name'], result.data.defaultSpace, space)
 }

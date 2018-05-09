@@ -4,8 +4,6 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 
 ## Backlog (Sprint)
 
-* users.defaultSpace relationship
-
 * login endpoint with relationships
 
 * register endpoint
@@ -244,6 +242,19 @@ Get spaces:
 
 ```
 http $BASE_URL/$ACCOUNT_ID/spaces?relationships=1 Authorization:"Bearer $TOKEN"
+```
+
+Get user:
+
+```
+http $BASE_URL/users/$USER_ID?relationships=1 Authorization:"Bearer $TOKEN"
+```
+
+Set defaultSpaceId for user:
+
+```
+echo "{\"defaultSpaceId\": \"$SPACE_ID\"}" | http PUT $BASE_URL/users/$USER_ID Authorization:"Bearer $TOKEN"
+
 ```
 
 ## Other API Calls
