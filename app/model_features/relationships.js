@@ -50,7 +50,10 @@ async function addRelationships (data, options) {
   const docsWithRelationships = docs.map(doc => {
     const relationships = keys(properties).reduce((acc, name) => {
       const isMany = (getIn(options, `model.schema.properties.${name}.type`, 'array') === 'array')
-      const orderedDocs = compact(array(doc[name]).map(v => getIn(relationshipDocs[name], getId(v))))
+      const orderedDocs = compact(array(doc[name]).map(v => {
+        const doc = getIn(relationshipDocs[name], getId(v))
+        return typeof v === 'object' ? merge(doc, v) : doc
+      }))
       const relationshipName = getIn(properties, `${name}.x-meta.relationship.name`, name)
       if (notEmpty(orderedDocs)) {
         acc[relationshipName] = isMany ? orderedDocs : first(orderedDocs)

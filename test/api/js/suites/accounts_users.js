@@ -1,6 +1,6 @@
 module.exports = async function (c) {
+  const {account, superHeaders} = c.data
   const userId = c.data.user.id
-  const account = c.data.account
   let users = [{id: userId, role: 'admin'}]
   c.assertEqual(account.users, users)
   let result = await c.get('get user', `/users/${userId}`)
@@ -17,6 +17,19 @@ module.exports = async function (c) {
 
   result = await c.get('get account', `/accounts/${account.id}`)
   c.assertEqual(result.data.users, users)
+
+  result = await c.get('get account with relationships', `/accounts/${account.id}?relationships=1`)
+  c.assertEqualKeys(['id', 'role'], result.data.users, users)
+  c.assertEqualKeys(['id', 'email'], result.data.users, [user, newUser])
+
+  result = await c.get('list accounts with relationships', `/accounts?relationships=1`, {headers: superHeaders})
+  let data = result.data.find(d => d.id === account.id)
+  c.assertEqualKeys(['id', 'role'], data.users, users)
+  c.assertEqualKeys(['id', 'email'], data.users, [user, newUser])
+
+  result = await c.get('get user with relationships', `/users/${user.id}?relationships=1`)
+  c.assertEqualKeys(['id', 'role'], result.data.accounts, [{id: account.id, role: 'admin'}])
+  c.assertEqualKeys(['id', 'name'], result.data.accounts, [account])
 
   // result = await c.get('get new user', `/users/${newUser.id}`)
   // c.assertEqual(result.data.accounts, [{id: account.id, role: 'read'}])

@@ -4,6 +4,8 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 
 ## Backlog (Sprint)
 
+* models-spaces two way relationship
+
 * versioned2-ui, first basic version
 
 ## Epics (Major Features)
@@ -47,6 +49,8 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 * Preview feature - version, versionToken
   models.previewUrl - http://my.site/articles/{id}
   Need to support slug also?
+
+* Where do we fetch relationships to when the relationship is stateful (type: 'object')?
 
 * Translate feature. There can be a spaces.locales setting with [{locale: 'sv', name: 'Swedish', default: true}]
     have a fallbackLocale param?

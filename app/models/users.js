@@ -35,6 +35,13 @@ const model = {
           },
           required: ['id', 'role'],
           additionalProperties: false
+        },
+        'x-meta': {
+          relationship: {
+            toType: 'accounts',
+            toField: 'users',
+            type: 'many-to-many'
+          }
         }
       },
       defaultSpaceId: {type: 'string'},
