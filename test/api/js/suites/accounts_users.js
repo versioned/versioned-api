@@ -1,3 +1,5 @@
+const {property, compact} = require('lib/util')
+
 module.exports = async function (c) {
   const {account, superHeaders} = c.data
   const userId = c.data.user.id
@@ -21,6 +23,7 @@ module.exports = async function (c) {
   result = await c.get('get account with relationships', `/accounts/${account.id}?relationships=1`)
   c.assertEqualKeys(['id', 'role'], result.data.users, users)
   c.assertEqualKeys(['id', 'email'], result.data.users, [user, newUser])
+  c.assertEqual(compact(result.data.users.map(property('passwordHash'))), [])
 
   result = await c.get('list accounts with relationships', `/accounts?relationships=1`, {headers: superHeaders})
   let data = result.data.find(d => d.id === account.id)

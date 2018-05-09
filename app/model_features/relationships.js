@@ -3,6 +3,7 @@ const {logger} = config.modules
 const {notEmpty, updateIn, compact, keys, isArray, groupBy, flatten, first, json, array, keyValues, isObject, getIn, merge, concat, empty} = require('lib/util')
 const diff = require('lib/diff')
 const {relationshipProperties, getApi} = require('app/relationships_helper')
+const {readableDoc} = require('lib/model_access')
 
 const PARAMS = {
   relationships: {
@@ -33,7 +34,7 @@ async function fetchRelationshipDocs (docs, name, property, options) {
   const queryParams = updateIn(options.queryParams, 'relationships', (n) => n - 1)
   const relationshipParent = {type: docs[0].type, field: name}
   const listOptions = {queryParams, space: options.space, relationshipParent}
-  const relationshipDocs = await api.list({id: {$in: ids}}, listOptions)
+  const relationshipDocs = (await api.list({id: {$in: ids}}, listOptions)).map(d => readableDoc(api.model, d))
   return groupBy(relationshipDocs, (doc) => doc.id, {unique: true})
 }
 
