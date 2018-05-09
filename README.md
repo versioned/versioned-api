@@ -4,10 +4,6 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 
 ## Backlog (Sprint)
 
-* API Test: relationships_delete.js: should we cascade? When target will be empty/nil and is required then you need to delete instead of update (or refuse, cascade: false)
-
-* relationships save afterValidation validateRelationshipsIds
-
 * create default space when account is created
 
 * users.defaultSpace relationship
@@ -32,6 +28,8 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 * audit sys.fields.updatedAt? Are there use cases for this?
 
 * articles.map(pick('name,id')) (Ramda style curried)
+
+* API Test: relationships_cascading_delete.js: should we cascade? When target will be empty/nil and is required then you need to delete instead of update (or refuse, cascadingDelete: false)
 
 * When changes to relationships are published then the docs at the other side of those relationships
   also need to be published in order for the relationships to be in sync two-way
