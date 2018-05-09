@@ -203,7 +203,19 @@ const model = {
     properties: {
       name: {type: 'string'},
       accountId: {type: 'string', 'x-meta': {write: false, index: true}},
-      spaceId: {type: 'string', 'x-meta': {update: false, index: true}},
+      spaceId: {
+        type: 'string',
+        'x-meta': {
+          update: false,
+          index: true,
+          relationship: {
+            toType: 'spaces',
+            toField: 'models',
+            name: 'space',
+            type: 'many-to-one'
+          }
+        }
+      },
       coll: merge(collSchema, {'x-meta': {update: false, index: true}}),
       features: {type: 'array', items: {enum: ['published']}},
       model: withoutRefs(modelSchema)

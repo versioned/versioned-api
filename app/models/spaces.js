@@ -86,6 +86,18 @@ const model = {
           }
         }
       },
+      models: {
+        type: 'array',
+        items: {type: 'string'},
+        'x-meta': {
+          writable: false,
+          relationship: {
+            toType: 'models',
+            toField: 'spaceId',
+            type: 'one-to-many'
+          }
+        }
+      },
       key: {
         type: 'string',
         pattern: `^${KEY_PREFIX}[abcdef0-9]{${KEY_LENGTH}}$`,
