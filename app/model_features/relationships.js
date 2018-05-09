@@ -1,9 +1,10 @@
 const config = require('app/config')
 const {logger} = config.modules
-const {notEmpty, updateIn, compact, keys, isArray, groupBy, flatten, first, json, array, keyValues, isObject, getIn, merge, concat, empty} = require('lib/util')
+const {pick, difference, filter, notEmpty, updateIn, compact, keys, isArray, groupBy, flatten, first, json, array, keyValues, isObject, getIn, merge, concat, empty} = require('lib/util')
 const diff = require('lib/diff')
 const {relationshipProperties, getApi} = require('app/relationships_helper')
 const {readableDoc} = require('lib/model_access')
+const {validationError} = require('lib/errors')
 
 const PARAMS = {
   relationships: {
@@ -116,7 +117,7 @@ async function updateRelationship (doc, name, property, options) {
 
   logger.verbose(`updateRelationship ${options.model.type}.${name} -> ${toType}.${toField} toMany=${toMany} added=${json(added)} removed=${json(removed)} changed=${json(changed)}`)
 
-  const skipCallbacks = ['updateAllRelationships', 'checkAccess']
+  const skipCallbacks = ['updateAllRelationships', 'checkAccess', 'validateRelationshipIds']
   for (let fromValue of added) {
     const toValue = makeToValue(fromValue, doc.id)
     const addValue = (values) => toMany ? concat(values, [toValue]) : toValue
@@ -138,6 +139,22 @@ async function updateRelationship (doc, name, property, options) {
   }
 }
 
+async function validateRelationshipIds (doc, options) {
+  const properties = filter(relationshipProperties(options.model), (property, name) => notEmpty(doc[name]))
+  for (let [name, property] of keyValues(properties)) {
+    const ids = array(doc[name]).map(getId)
+    const {toType} = getIn(property, 'x-meta.relationship')
+    const api = await getApi(toType, options.space)
+    if (api) {
+      const foundIds = (await api.list({id: {$in: ids}}, {limit: ids.length, projection: {id: 1}})).map(d => d.id)
+      const invalidIds = difference(ids, foundIds)
+      if (notEmpty(invalidIds)) {
+        throw validationError(options.model, doc, `The ${name} relationship has the following invalid ids: ${invalidIds.join(', ')}`)
+      }
+    }
+  }
+}
+
 async function updateAllRelationships (doc, options) {
   for (let [name, property] of keyValues(relationshipProperties(options.model))) {
     await updateRelationship(doc, name, property, options)
@@ -145,10 +162,20 @@ async function updateAllRelationships (doc, options) {
   return doc
 }
 
+async function deleteAllRelationships (doc, options) {
+  const toDoc = pick(doc, ['id', 'type'])
+  await updateAllRelationships(toDoc, merge(options, {existingDoc: doc}))
+  return doc
+}
+
 const model = {
   callbacks: {
     save: {
+      afterValidation: [validateRelationshipIds],
       afterSave: [updateAllRelationships]
+    },
+    delete: {
+      before: [deleteAllRelationships]
     },
     list: {
       after: [addRelationships]

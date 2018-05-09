@@ -47,8 +47,9 @@ async function getApi (space, model) {
 }
 
 async function validateSpace (doc, options) {
-  if (doc.spaceId && !(await requireSpaces().get(doc.spaceId))) {
-    throw validationError(options.model, doc, `space '${doc.spaceId}' does not exist`, 'spaceId')
+  const accountId = getIn(options, 'account.id')
+  if (doc.spaceId && !(await requireSpaces().get({id: doc.spaceId, accountId}))) {
+    throw validationError(options.model, doc, `space '${doc.spaceId}' does not exist in account ${accountId}`, 'spaceId')
   } else {
     return doc
   }

@@ -4,6 +4,18 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 
 ## Backlog (Sprint)
 
+* API Test: relationships_delete.js: should we cascade? When target will be empty/nil and is required then you need to delete instead of update (or refuse, cascade: false)
+
+* relationships save afterValidation validateRelationshipsIds
+
+* create default space when account is created
+
+* users.defaultSpace relationship
+
+* login endpoint with relationships
+
+* register endpoint
+
 * versioned2-ui, first basic version
 
 ## Epics (Major Features)
