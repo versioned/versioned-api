@@ -4,8 +4,6 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 
 ## Backlog (Sprint)
 
-* create default space when account is created
-
 * users.defaultSpace relationship
 
 * login endpoint with relationships
@@ -192,6 +190,7 @@ Create user:
 
 ```
 echo '{"name": "Admin User", "email": "admin@example.com", "password": "admin"}' | http POST $BASE_URL/users
+export USER_ID=...
 ```
 
 Make super user:
@@ -213,12 +212,6 @@ Create account:
 ```
 echo '{"name": "My CMS"}' | http POST $BASE_URL/accounts Authorization:"Bearer $TOKEN"
 export ACCOUNT_ID=...
-```
-
-Create Space:
-
-```
-http POST $BASE_URL/$ACCOUNT_ID/spaces Authorization:"Bearer $TOKEN" name="My Content"
 export SPACE_ID=...
 ```
 

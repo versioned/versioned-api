@@ -13,7 +13,7 @@ module.exports = async function (c) {
   await users.update(superUser.id, {superUser: true}, {callbacks: false})
   const superHeaders = await c.login(superUser)
 
-  result = await c.post('create space', `/${account.id}/spaces`, {name: 'My CMS', accountId: account.id})
+  result = await c.get('get default space', `/${account.id}/spaces/${account.spaces[0]}`)
   const space = result.data
 
   result = await c.post('create model', `/${account.id}/models`, {

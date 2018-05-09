@@ -54,7 +54,7 @@ async function validateDatabaseUrl (doc, options) {
   return doc
 }
 
-async function validateAccountId (doc, options) {
+async function checkAccess (doc, options) {
   if (doc.accountId) {
     const account = await accounts.get(doc.accountId)
     if (!account) throw validationError(options.model, doc, `Could not find account ${doc.accountId}`, 'accountId')
@@ -110,7 +110,7 @@ const model = {
   },
   callbacks: {
     create: {
-      beforeValidation: [setKeyCallback, validateDatabaseUrl, validateAccountId]
+      beforeValidation: [setKeyCallback, validateDatabaseUrl, checkAccess]
     }
   },
   indexes: [

@@ -3,6 +3,7 @@ const {logger, mongo} = require('app/config').modules
 const modelApi = require('lib/model_api')
 const users = require('app/models/users')
 const {validationError, accessError} = require('lib/errors')
+const requireSpaces = () => require('app/models/spaces')
 
 const PLANS = ['shared', 'dedicated']
 const DEFAULT_PLAN = 'shared'
@@ -38,6 +39,12 @@ function validateOneAdmin (doc, options) {
   if (!(doc.users || []).find(u => u.role === 'admin')) {
     throw validationError(options.model, doc, 'Each account must have at least one administrator')
   }
+  return doc
+}
+
+async function createDefaultSpace (doc, options) {
+  const space = {name: doc.name, accountId: doc.id}
+  await requireSpaces().create(space, {skipCallbacks: ['checkAccess']})
   return doc
 }
 
@@ -85,7 +92,8 @@ const model = {
   },
   callbacks: {
     create: {
-      beforeValidation: [setDefaultPlan, setDefaultAdmin, validateOneAdmin]
+      beforeValidation: [setDefaultPlan, setDefaultAdmin, validateOneAdmin],
+      afterSave: [createDefaultSpace]
     },
     update: {
       afterValidation: [checkAccess]
