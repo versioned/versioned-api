@@ -225,6 +225,7 @@ function client ({BASE_URL, DEDICATED_MONGODB_URL}) {
     DEDICATED_MONGODB_URL,
     prettyJson,
     printSection,
+    printLastResult,
     anonymous,
     logRequests,
     assert,

@@ -9,6 +9,7 @@ const {unique, concat} = require('lib/util')
 const {elapsedSeconds} = require('lib/date_util')
 const config = require('app/config')
 const mongo = require('lib/mongo')
+const {AssertionError} = require('assert')
 
 const BASE_URL = `http://localhost:${process.env.PORT}/v1`
 const DEDICATED_MONGODB_URL = `${config.MONGODB_URL}_dedicated`
@@ -57,10 +58,18 @@ async function run () {
     printSuiteHeader(suiteName)
     client.suite = suiteName
     const suite = require(`./suites/${suiteName}`)
-    await suite(client)
+    try {
+      await suite(client)
+    } catch (err) {
+      if (!(err instanceof AssertionError)) {
+        client.printLastResult()
+        client.logRequests()
+      }
+      throw err
+    }
   }
   printResults(client, startTime)
-  client.logRequests(client)
+  client.logRequests()
   // NOTE: Sometimes it's useful to keep the test server running for debugging
   if (process.env.EXIT !== '0') process.exit(0)
 }
