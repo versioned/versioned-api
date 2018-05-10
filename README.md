@@ -4,9 +4,21 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 
 ## Backlog (Sprint)
 
-* login endpoint with relationships
-
 * register endpoint
+
+* Change from relationships=N to relationshipLevels=N
+  Have relationships=defaultSpace.account matches on property name or x-meta.relationship.name
+  Use this on login page?
+
+* Make sure all users start with a defaultSpaceId or set it on first login?
+
+* better approach to login: return only {token}
+  Then UI can fetch user with relationships=2 to get all info needed
+
+* SQS
+  https://docs.aws.amazon.com/sdk-for-javascript/v2/developer-guide/sqs-examples-send-receive-messages.html
+  https://youtu.be/lQvTubduQwQ
+  https://medium.com/@manjulapiyumal/lambda-for-asynchronous-message-processing-through-sqs-9b798a6c509c
 
 * versioned2-ui, first basic version
 
@@ -16,6 +28,8 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 * Webhooks
 
 ## Ice Box (For Later Consideration)
+
+* Test deep clone 1000 times
 
 * relationshipPaths=foo.bar,blu.baa (GraphQL). Need more API tests for this, nested relationship fetching
 
@@ -247,7 +261,7 @@ http $BASE_URL/$ACCOUNT_ID/spaces?relationships=1 Authorization:"Bearer $TOKEN"
 Get user:
 
 ```
-http $BASE_URL/users/$USER_ID?relationships=1 Authorization:"Bearer $TOKEN"
+http $BASE_URL/users/$USER_ID?relationships=2 Authorization:"Bearer $TOKEN"
 ```
 
 Set defaultSpaceId for user:
@@ -255,6 +269,7 @@ Set defaultSpaceId for user:
 ```
 echo "{\"defaultSpaceId\": \"$SPACE_ID\"}" | http PUT $BASE_URL/users/$USER_ID Authorization:"Bearer $TOKEN"
 
+http $BASE_URL/users/$USER_ID?relationships=2 Authorization:"Bearer $TOKEN"
 ```
 
 ## Other API Calls

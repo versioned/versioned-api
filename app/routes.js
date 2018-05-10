@@ -40,7 +40,18 @@ const systemRoutes = [
     method: 'post',
     path: `${PREFIX}/login`,
     handler: auth.login,
-    requireAuth: false
+    requireAuth: false,
+    parameters: [
+      {
+        name: 'getUser',
+        in: 'query',
+        description: 'Set to 1 (true) to return user data in the response',
+        required: false,
+        schema: {
+          type: 'boolean'
+        }
+      }
+    ]
   },
   {
     tags: ['system'],

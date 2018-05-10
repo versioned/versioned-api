@@ -12,6 +12,7 @@ const PARAMS = {
   published: {
     name: 'published',
     in: 'query',
+    description: 'Set to 1 (true) to only return published content',
     required: false,
     schema: {
       type: 'boolean'
@@ -20,6 +21,7 @@ const PARAMS = {
   versions: {
     name: 'versions',
     in: 'query',
+    description: 'Set to 1 (true) to return version history of the document',
     required: false,
     schema: {
       type: 'boolean'

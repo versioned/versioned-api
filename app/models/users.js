@@ -1,4 +1,4 @@
-const {empty, find, getIn, concat, merge} = require('lib/util')
+const {getIn, concat, merge} = require('lib/util')
 const modelApi = require('lib/model_api')
 const config = require('app/config')
 const {logger, mongo} = config.modules
@@ -89,35 +89,8 @@ function generateToken (doc) {
   return jwt.encode(payload, config.JWT_SECRET)
 }
 
-async function getDefaultSpace (user) {
-  const spacesApi = modelApi({coll: 'spaces'}, mongo, logger)
-  const defaultSpace = user.defaultSpaceId && (await spacesApi.get(user.defaultSpaceId))
-  if (defaultSpace && find(user.accounts, a => a.id === defaultSpace.accountId)) {
-    return defaultSpace
-  } else {
-    return undefined
-  }
-}
-
-async function getDefaultAccountAndSpace (user) {
-  if (empty(user.accounts)) return {}
-  const defaultSpace = await getDefaultSpace(user)
-  const accountsApi = modelApi({coll: 'accounts'}, mongo, logger)
-  if (defaultSpace) {
-    const account = await accountsApi.get(defaultSpace.accountId)
-    return {account, space: defaultSpace}
-  } else {
-    const accountId = user.accounts[0].id
-    const account = await accountsApi.get(accountId)
-    const spacesApi = modelApi({coll: 'spaces'}, mongo, logger)
-    const space = await spacesApi.get({accountId})
-    return {account, space}
-  }
-}
-
 module.exports = merge(api, {
   ROLES,
   authenticate,
-  generateToken,
-  getDefaultAccountAndSpace
+  generateToken
 })

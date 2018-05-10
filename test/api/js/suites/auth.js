@@ -21,14 +21,4 @@ module.exports = async function (c) {
   result = await c.post({it: 'invalid password login', status: 401}, '/login', {email: user.email, password: 'foobar'})
 
   result = await c.post({it: 'invalid email login', status: 401}, '/login', {email: 'foo@example.com', password: user.password})
-
-  c.assert(!c.data.user.defaultSpaceId)
-  result = await c.post('valid login with account and space', '/login', c.data.user)
-  c.assertEqual(result.data.account.id, c.data.account.id)
-  c.assertEqual(result.data.space.id, c.data.space.id)
-
-  await c.put('set defaultSpaceId', `/users/${c.data.user.id}`, {defaultSpaceId: c.data.secondSpace.id})
-  result = await c.post('valid login with account and defaultSpaceId', '/login', c.data.user)
-  c.assertEqual(result.data.account.id, c.data.account.id)
-  c.assertEqual(result.data.space.id, c.data.secondSpace.id)
 }
