@@ -143,7 +143,7 @@ const X_META_SCHEMA = {
         type: {enum: ['one-to-many', 'many-to-one', 'many-to-many']},
         // NOTE: the presence of a toField means the relationship is two-way
         toField: {type: 'string', pattern: PROPERTY_NAME_PATTERN},
-        // NOTE: the name is the optional property name used with relationships=1
+        // NOTE: the name is the optional property name used when fetching relationships
         name: {type: 'string'}
       },
       required: ['toType', 'type'],

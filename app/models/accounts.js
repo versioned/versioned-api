@@ -4,6 +4,7 @@ const modelApi = require('lib/model_api')
 const users = require('app/models/users')
 const {validationError, accessError} = require('lib/errors')
 const requireSpaces = () => require('app/models/spaces')
+const requireUsers = () => require('app/models/users')
 
 const PLANS = ['shared', 'dedicated']
 const DEFAULT_PLAN = 'shared'
@@ -43,8 +44,11 @@ function validateOneAdmin (doc, options) {
 }
 
 async function createDefaultSpace (doc, options) {
-  const space = {name: doc.name, accountId: doc.id}
-  await requireSpaces().create(space, {skipCallbacks: ['checkAccess']})
+  const spaceDoc = {name: doc.name, accountId: doc.id}
+  const space = await requireSpaces().create(spaceDoc, {skipCallbacks: ['checkAccess']})
+  if (!getIn(options, 'user.defaultSpaceId')) {
+    await requireUsers().update(getIn(options, 'user.id'), {defaultSpaceId: space.id}, options)
+  }
   return doc
 }
 

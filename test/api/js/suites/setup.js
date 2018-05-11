@@ -2,13 +2,16 @@ const {merge} = require('lib/util')
 const users = require('app/models/users')
 
 module.exports = async function (c) {
-  const {account, user, headers} = await c.registerUser()
+  let {account, user, headers} = await c.registerUser()
   c.defaultOptions = {headers}
+
+  let result = await c.get('get user', `/users/${user.id}`)
+  user = result.data
 
   const superUser = merge(c.makeUser(), {
     name: 'Super User'
   })
-  let result = await c.post('create super user', '/users', superUser)
+  result = await c.post('create super user', '/users', superUser)
   superUser.id = result.data.id
   await users.update(superUser.id, {superUser: true}, {callbacks: false})
   const superHeaders = await c.login(superUser)

@@ -25,38 +25,38 @@ module.exports = async function (c) {
     categories[i].id = result.data.id
   }
 
-  result = await c.get('get author (relationship authors->articles)', `/data/${spaceId}/authors/${author.id}?relationships=1`)
+  result = await c.get('get author (relationship authors->articles)', `/data/${spaceId}/authors/${author.id}?relationshipLevels=1`)
   c.assertEqual(result.data.articles.map(a => pick(a, ['title', 'id'])), articles)
 
-  result = await c.get('list authors (relationship authors->articles)', `/data/${spaceId}/authors?relationships=1`)
+  result = await c.get('list authors (relationship authors->articles)', `/data/${spaceId}/authors?relationshipLevels=1`)
   c.assertEqual(pick(result.data[0], ['name', 'id']), author)
   c.assertEqual(result.data[0].articles.map(a => pick(a, ['title', 'id'])), articles)
 
-  result = await c.get('get article 0 (relationships articles->author and articles->categories)', `/data/${spaceId}/articles/${articles[0].id}?relationships=1`)
+  result = await c.get('get article 0 (relationships articles->author and articles->categories)', `/data/${spaceId}/articles/${articles[0].id}?relationshipLevels=1`)
   c.assertEqual(pick(result.data.author, ['name', 'id']), author)
   c.assertEqual(result.data.categories.map(c => pick(c, ['name', 'id'])), [categories[0]])
 
-  result = await c.get('get article 1 (relationships articles->author and articles->categories)', `/data/${spaceId}/articles/${articles[1].id}?relationships=1`)
+  result = await c.get('get article 1 (relationships articles->author and articles->categories)', `/data/${spaceId}/articles/${articles[1].id}?relationshipLevels=1`)
   c.assertEqual(pick(result.data.author, ['name', 'id']), author)
   c.assertEqual(result.data.categories.map(c => pick(c, ['name', 'id'])), [categories[1]])
 
-  result = await c.get('list articles (relationships articles->author and articles->categories)', `/data/${spaceId}/articles?relationships=1`)
+  result = await c.get('list articles (relationships articles->author and articles->categories)', `/data/${spaceId}/articles?relationshipLevels=1`)
   c.assertEqual(pick(result.data[0].author, ['name', 'id']), author)
   c.assertEqual(pick(result.data[1].author, ['name', 'id']), author)
   c.assertEqual(result.data[0].categories.map(c => pick(c, ['name', 'id'])), [categories[1]])
   c.assertEqual(result.data[1].categories.map(c => pick(c, ['name', 'id'])), [categories[0]])
 
-  result = await c.get('get category 0 (relationship categories->articles)', `/data/${spaceId}/categories/${categories[0].id}?relationships=1`)
+  result = await c.get('get category 0 (relationship categories->articles)', `/data/${spaceId}/categories/${categories[0].id}?relationshipLevels=1`)
   c.assertEqual(result.data.articles.map(c => pick(c, ['title', 'id'])), [articles[0]])
 
-  result = await c.get('get category 1 (relationship categories->articles)', `/data/${spaceId}/categories/${categories[1].id}?relationships=1`)
+  result = await c.get('get category 1 (relationship categories->articles)', `/data/${spaceId}/categories/${categories[1].id}?relationshipLevels=1`)
   c.assertEqual(result.data.articles.map(c => pick(c, ['title', 'id'])), [articles[1]])
 
-  result = await c.get('list categories (relationship categories->articles)', `/data/${spaceId}/categories?relationships=1`)
+  result = await c.get('list categories (relationship categories->articles)', `/data/${spaceId}/categories?relationshipLevels=1`)
   c.assertEqual(result.data[0].articles.map(c => pick(c, ['title', 'id'])), [articles[1]])
   c.assertEqual(result.data[1].articles.map(c => pick(c, ['title', 'id'])), [articles[0]])
 
-  result = await c.get('get author with two levels of nesting (relationship authors->articles, articles->categories)', `/data/${spaceId}/authors/${author.id}?relationships=2`)
+  result = await c.get('get author with two levels of nesting (relationship authors->articles, articles->categories)', `/data/${spaceId}/authors/${author.id}?relationshipLevels=2`)
   c.assertEqual(result.data.articles.map(a => pick(a, ['title', 'id'])), articles)
   c.assertEqual(compact(result.data.articles.map(property('author'))), []) // only fetch author once
   c.assertEqualKeys(['name', 'id'], result.data.articles[0].categories, [categories[0]])
@@ -66,28 +66,28 @@ module.exports = async function (c) {
 
   result = await c.put('publish author', `/data/${spaceId}/authors/${author.id}`, {publishedVersion: 1})
 
-  result = await c.get('get published author with relationships (authors->articles)', `/data/${spaceId}/authors/${author.id}?published=1&relationships=1`)
+  result = await c.get('get published author with relationships (authors->articles)', `/data/${spaceId}/authors/${author.id}?published=1&relationshipLevels=1`)
   c.assertEqual(result.data.publishedVersion, 1)
   c.assert(!result.data.articles) // articles are not published yet
 
-  result = await c.get('list published authors (relationship authors->articles)', `/data/${spaceId}/authors?relationships=1&published=1`)
+  result = await c.get('list published authors (relationship authors->articles)', `/data/${spaceId}/authors?relationshipLevels=1&published=1`)
   c.assert(!result.data[0].articles) // articles are not published yet
 
   result = await c.put('publish article 0', `/data/${spaceId}/articles/${articles[0].id}`, {publishedVersion: 1})
 
-  result = await c.get('get published author with relationships (authors->articles)', `/data/${spaceId}/authors/${author.id}?published=1&relationships=1`)
+  result = await c.get('get published author with relationships (authors->articles)', `/data/${spaceId}/authors/${author.id}?published=1&relationshipLevels=1`)
   c.assert(result.data.articles.map(c => pick(c, ['title', 'id'])), [articles[0]])
 
-  result = await c.get('list published authors (relationship authors->articles)', `/data/${spaceId}/authors?relationships=1&published=1`)
+  result = await c.get('list published authors (relationship authors->articles)', `/data/${spaceId}/authors?relationshipLevels=1&published=1`)
   c.assert(result.data[0].articles.map(c => pick(c, ['title', 'id'])), [articles[0]])
 
-  result = await c.get('get published article 0 relationship (articles->author)', `/data/${spaceId}/articles/${articles[0].id}?published=1&relationships=1`)
+  result = await c.get('get published article 0 relationship (articles->author)', `/data/${spaceId}/articles/${articles[0].id}?published=1&relationshipLevels=1`)
   c.assertEqualKeys(['name', 'id'], result.data.author, author)
 
-  result = await c.get({it: 'get published article 1 - missing', status: 404}, `/data/${spaceId}/articles/${articles[1].id}?published=1&relationships=1`)
+  result = await c.get({it: 'get published article 1 - missing', status: 404}, `/data/${spaceId}/articles/${articles[1].id}?published=1&relationshipLevels=1`)
 
   result = await c.put('publish article 1', `/data/${spaceId}/articles/${articles[1].id}`, {publishedVersion: 1})
 
-  result = await c.get('get published author with relationships (authors->articles)', `/data/${spaceId}/authors/${author.id}?published=1&relationships=1`)
+  result = await c.get('get published author with relationships (authors->articles)', `/data/${spaceId}/authors/${author.id}?published=1&relationshipLevels=1`)
   c.assert(result.data.articles.map(c => pick(c, ['title', 'id'])), [articles[0], articles[1]])
 }

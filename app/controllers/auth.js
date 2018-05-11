@@ -5,8 +5,8 @@ const {jsonResponse} = response
 
 async function login (req, res) {
   const {email, password, getUser} = req.params
-  const relationships = getUser ? 2 : 1
-  const user = await users.get({email}, {queryParams: {relationships}})
+  const relationshipLevels = getUser ? 2 : 0
+  const user = await users.get({email}, {queryParams: {relationshipLevels}})
   const success = await users.authenticate(user, password)
   if (success) {
     logger.debug(`controllers.login - auth successful email=${email}`)

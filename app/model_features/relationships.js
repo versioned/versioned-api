@@ -1,14 +1,14 @@
 const config = require('app/config')
 const {logger} = config.modules
-const {pick, difference, filter, notEmpty, updateIn, compact, keys, isArray, groupBy, flatten, first, json, array, keyValues, isObject, getIn, merge, concat, empty} = require('lib/util')
+const {pick, difference, filter, notEmpty, evolve, compact, keys, isArray, groupBy, flatten, first, json, array, keyValues, isObject, getIn, merge, concat, empty} = require('lib/util')
 const diff = require('lib/diff')
 const {relationshipProperties, getApi} = require('app/relationships_helper')
 const {readableDoc} = require('lib/model_access')
 const {validationError} = require('lib/errors')
 
-const PARAMS = {
-  relationships: {
-    name: 'relationships',
+const PARAMS = [
+  {
+    name: 'relationshipLevels',
     in: 'query',
     required: false,
     schema: {
@@ -16,8 +16,19 @@ const PARAMS = {
       minimum: 1,
       maximum: 10
     }
+  },
+  {
+    name: 'relationships',
+    in: 'query',
+    required: false,
+    schema: {
+      type: 'array',
+      items: {
+        type: 'string'
+      }
+    }
   }
-}
+]
 
 // NOTE: check relationshipParent so we don't fetch parent document again (the relationship we are coming from)
 function isParent (toType, toField, options) {
@@ -25,25 +36,51 @@ function isParent (toType, toField, options) {
   return toType === getIn(parent, 'type') && toField === getIn(parent, 'field')
 }
 
+function nestedRelationships (name, property, relationships) {
+  return compact(relationships.map(path => {
+    const relNames = path.split('.')
+    const nameMatch = (relNames[0] === name || relNames[0] === getIn(property, 'x-meta.relationship.name'))
+    return nameMatch ? relNames.slice(1).join('.') : undefined
+  }))
+}
+
 async function fetchRelationshipDocs (docs, name, property, options) {
+  logger.verbose(`fetchRelationshipDocs name=${name} property=${json(property)} parent=${json(getIn(options, 'relationshipParent'))}`)
   const {toType, toField} = getIn(property, 'x-meta.relationship')
   if (!toType || isParent(toType, toField, options)) return
   const api = await getApi(toType, options.space)
   if (!api) return
   const ids = flatten(docs.map(doc => array(doc[name]).map(getId)))
   if (empty(ids)) return
-  const queryParams = updateIn(options.queryParams, 'relationships', (n) => n - 1)
+  const queryParams = evolve(options.queryParams, {
+    relationshipLevels: (n) => n - 1,
+    relationships: (r) => nestedRelationships(name, property, r)
+  })
   const relationshipParent = {type: docs[0].type, field: name}
   const listOptions = {queryParams, space: options.space, relationshipParent}
   const relationshipDocs = (await api.list({id: {$in: ids}}, listOptions)).map(d => readableDoc(api.model, d))
+  logger.verbose(`fetchRelationshipDocs name=${name} docs.length=${relationshipDocs.length}`)
   return groupBy(relationshipDocs, (doc) => doc.id, {unique: true})
 }
 
-async function addRelationships (data, options) {
-  const properties = relationshipProperties(options.model)
-  if (empty(data) || !getIn(options, ['queryParams', 'relationships']) || empty(properties)) {
-    return data
+function propertiesToFetch (options) {
+  const levels = getIn(options, 'queryParams.relationshipLevels')
+  const paths = getIn(options, 'queryParams.relationships')
+  if (levels === undefined && empty(paths)) return undefined
+  let properties = relationshipProperties(options.model)
+  if (notEmpty(paths)) {
+    const namesToFetch = paths.map(path => path.split('.')[0])
+    properties = filter(properties, (property, propertyName) => {
+      const relationshipName = getIn(property, 'x-meta.relationship.name')
+      return namesToFetch.includes(propertyName) || namesToFetch.includes(relationshipName)
+    })
   }
+  return (levels === undefined || levels > 0) ? properties : undefined
+}
+
+async function fetchAllRelationships (data, options) {
+  const properties = propertiesToFetch(options)
+  if (empty(data) || empty(properties)) return data
   const docs = array(data)
   const relationshipDocs = {}
   for (let [name, property] of keyValues(properties)) {
@@ -72,7 +109,7 @@ async function addRelationships (data, options) {
 function addRouteParameters (route) {
   if (['list', 'get'].includes(route.action)) {
     return merge(route, {
-      parameters: concat(route.parameters, [PARAMS.relationships])
+      parameters: concat(route.parameters, PARAMS)
     })
   } else {
     return route
@@ -178,10 +215,10 @@ const model = {
       before: [deleteAllRelationships]
     },
     list: {
-      after: [addRelationships]
+      after: [fetchAllRelationships]
     },
     get: {
-      after: [addRelationships]
+      after: [fetchAllRelationships]
     },
     routeCreate: {
       after: [addRouteParameters]

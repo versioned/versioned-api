@@ -73,7 +73,7 @@ module.exports = async function (c) {
 
   result = await c.put('add articles to author', `/data/${spaceId}/authors/${author.id}`, {articles: articleIds})
 
-  result = await c.get('get author with relationships', `/data/${spaceId}/authors/${author.id}?relationships=1`)
+  result = await c.get('get author with relationships', `/data/${spaceId}/authors/${author.id}?relationshipLevels=1`)
   c.assertEqual(result.data.id, author.id)
   c.assertEqual(result.data.name, author.name)
   c.assertEqualKeys(['id', 'title'], result.data.articles, articles)

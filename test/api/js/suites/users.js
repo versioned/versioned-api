@@ -35,7 +35,7 @@ module.exports = async function (c) {
 
   await c.put('set defaultSpaceId', `/users/${id}`, {defaultSpaceId: space.id}, {headers})
 
-  result = await c.get('get user with relationships', `/users/${id}?relationships=1`, {headers})
+  result = await c.get('get user with relationships', `/users/${id}?relationshipLevels=1`, {headers})
   c.assertEqual(result.data.defaultSpaceId, space.id)
   c.assertEqualKeys(['id', 'name'], result.data.defaultSpace, space)
 }
