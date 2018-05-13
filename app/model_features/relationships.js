@@ -1,6 +1,6 @@
 const config = require('app/config')
 const {logger} = config.modules
-const {pick, difference, filter, notEmpty, evolve, compact, keys, isArray, groupBy, flatten, first, json, array, keyValues, isObject, getIn, merge, concat, empty} = require('lib/util')
+const {deepMerge, pick, difference, filter, notEmpty, evolve, compact, keys, isArray, groupBy, flatten, first, json, array, keyValues, isObject, getIn, merge, concat, empty} = require('lib/util')
 const diff = require('lib/diff')
 const {relationshipProperties, getApi} = require('app/relationships_helper')
 const {readableDoc} = require('lib/model_access')
@@ -27,8 +27,38 @@ const PARAMS = [
         type: 'string'
       }
     }
+  },
+  {
+    name: 'graph',
+    in: 'query',
+    required: false,
+    schema: {
+      'x-meta': {
+        coerce: parseGraph
+      },
+      type: 'object'
+    }
   }
 ]
+
+function parseGraph (graph) {
+  if (typeof graph !== 'string') return graph
+  let result = graph
+  if (!(result.startsWith('{') && result.endsWith('}'))) {
+    result = '{' + result + '}'
+  }
+  result = result.replace(/\s/g, '')
+    .replace(/[^{},]+/g, (match) => `"${match}"`)
+    .replace(/"\{/g, '": {')
+    .replace(/",/g, '": 1,')
+    .replace(/"}/g, '": 1}')
+  try {
+    return JSON.parse(result)
+  } catch (err) {
+    logger.error(`Could not JSON.parse graph param err=${err.message}`, graph, err)
+    return undefined
+  }
+}
 
 // NOTE: check relationshipParent so we don't fetch parent document again (the relationship we are coming from)
 function isParent (toType, toField, options) {
@@ -44,6 +74,10 @@ function nestedRelationships (name, property, relationships) {
   }))
 }
 
+function nestedGraph (name, property, graph) {
+  return graph[name] || graph[getIn(property, 'x-meta.relationship.name')]
+}
+
 async function fetchRelationshipDocs (docs, name, property, options) {
   logger.verbose(`fetchRelationshipDocs name=${name} property=${json(property)} parent=${json(getIn(options, 'relationshipParent'))}`)
   const {toType, toField} = getIn(property, 'x-meta.relationship')
@@ -54,7 +88,8 @@ async function fetchRelationshipDocs (docs, name, property, options) {
   if (empty(ids)) return
   const queryParams = evolve(options.queryParams, {
     relationshipLevels: (n) => n - 1,
-    relationships: (r) => nestedRelationships(name, property, r)
+    relationships: (r) => nestedRelationships(name, property, r),
+    graph: (g) => nestedGraph(name, property, g)
   })
   const relationshipParent = {type: docs[0].type, field: name}
   const listOptions = {queryParams, space: options.space, relationshipParent}
@@ -63,16 +98,49 @@ async function fetchRelationshipDocs (docs, name, property, options) {
   return groupBy(relationshipDocs, (doc) => doc.id, {unique: true})
 }
 
+function relationshipNames (model) {
+  const properties = getIn(model, 'schema.properties')
+  return keys(properties).reduce((acc, name) => {
+    const relationshipName = getIn(properties, `${name}.x-meta.relationship.name`)
+    if (relationshipName) acc[relationshipName] = name
+    return acc
+  }, {})
+}
+
+function graphToProjection (graph, model) {
+  if (empty(graph)) return undefined
+  const relToProperty = relationshipNames(model)
+  return keys(graph).reduce((acc, name) => {
+    const propertyName = relToProperty[name] || name
+    acc[propertyName] = 1
+    return acc
+  }, {})
+}
+
+function setGraphProjection (doc, options) {
+  const graph = getIn(options, 'queryParams.graph')
+  const projection = graphToProjection(graph, options.model)
+  if (projection) {
+    return deepMerge(doc, {findOptions: {projection}})
+  }
+}
+
 function propertiesToFetch (options) {
   const levels = getIn(options, 'queryParams.relationshipLevels')
   const paths = getIn(options, 'queryParams.relationships')
-  if (levels === undefined && empty(paths)) return undefined
+  const graph = getIn(options, 'queryParams.graph')
+  if (levels === undefined && empty(paths) && empty(graph)) return undefined
   let properties = relationshipProperties(options.model)
-  if (notEmpty(paths)) {
-    const namesToFetch = paths.map(path => path.split('.')[0])
+  let filterByNames = null
+  if (notEmpty(graph)) {
+    filterByNames = keys(graph)
+  } else if (notEmpty(paths)) {
+    filterByNames = paths.map(path => path.split('.')[0])
+  }
+  if (filterByNames) {
     properties = filter(properties, (property, propertyName) => {
       const relationshipName = getIn(property, 'x-meta.relationship.name')
-      return namesToFetch.includes(propertyName) || namesToFetch.includes(relationshipName)
+      return filterByNames.includes(propertyName) || filterByNames.includes(relationshipName)
     })
   }
   return (levels === undefined || levels > 0) ? properties : undefined
@@ -215,9 +283,11 @@ const model = {
       before: [deleteAllRelationships]
     },
     list: {
+      before: [setGraphProjection],
       after: [fetchAllRelationships]
     },
     get: {
+      before: [setGraphProjection],
       after: [fetchAllRelationships]
     },
     routeCreate: {

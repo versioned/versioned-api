@@ -4,7 +4,14 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 
 ## Backlog (Sprint)
 
+* API tests: graph param
+
 * relationships param pattern
+
+* filter param implementation in model_api. filter.foo=, filter.bar[in]=
+  Move model_controller.listQuery to model_api
+
+* If a user is saved with an account and space without defaultSpaceId - set it
 
 * register endpoint
 
