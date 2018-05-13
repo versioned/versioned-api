@@ -67,6 +67,18 @@ const LIST_PARAMETERS = [
     }
   },
   {
+    name: 'filter',
+    'x-meta': {
+      namePattern: '^filter\\.'
+    },
+    description: 'Filters to query by, i.e. filter.published=true or filter.name=foobar or filter.updatedAt[lte]=2018-05-09T12:31:33Z',
+    in: 'query',
+    required: false,
+    schema: {
+      type: 'string'
+    }
+  },
+  {
     name: 'dbStats',
     description: 'Include database statistics in the response',
     in: 'query',

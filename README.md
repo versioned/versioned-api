@@ -4,12 +4,8 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 
 ## Backlog (Sprint)
 
-* API tests: graph param
-
-* relationships param pattern
-
-* filter param implementation in model_api. filter.foo=, filter.bar[in]=
-  Move model_controller.listQuery to model_api
+* API test filter param
+  http "$BASE_URL/users?filter.updatedAt[lte]=2018-05-09T12:31:33" Authorization:"Bearer $TOKEN"
 
 * If a user is saved with an account and space without defaultSpaceId - set it
 
