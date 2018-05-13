@@ -1,12 +1,13 @@
 const fs = require('fs')
 const path = require('path')
-const {keyValues, json, prettyJson} = require('lib/util')
+const {empty, keyValues, json, prettyJson} = require('lib/util')
 const axios = require('axios').create({validateStatus: (status) => status < 500})
 const _assert = require('assert')
 const {isArray, uuid, pick, merge, array} = require('lib/util')
 const config = require('app/config')
 const {isMongoId} = config.modules.mongo
 const {elapsedSeconds} = require('lib/date_util')
+const querystring = require('querystring')
 
 const anonymous = {headers: {authorization: null}}
 
@@ -82,6 +83,12 @@ function printHttp (method, url, headers, data) {
 // NOTE: We use this for mongodb collection names which should not start with a digit
 function uuidWithLetter (length) {
   return 'u' + uuid(length)
+}
+
+function urlWithParams (url, params) {
+  if (empty(params)) return url
+  const sep = url.includes('?') ? '&' : '?'
+  return url + sep + querystring.stringify(params)
 }
 
 function client ({BASE_URL, DEDICATED_MONGODB_URL}) {
@@ -160,8 +167,8 @@ function client ({BASE_URL, DEDICATED_MONGODB_URL}) {
   async function get (expect, path, options = {}) {
     options = merge(self.defaultOptions, options)
     printExpect(expect)
-    const url = `${BASE_URL}${path}`
-    printHttp('get', url, options.headers)
+    let url = `${BASE_URL}${path}`
+    printHttp('get', urlWithParams(url, options.params), options.headers)
     const result = await axios.get(url, options)
     self.requests.push({
       suite: self.suite,
