@@ -4,6 +4,8 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 
 ## Backlog (Sprint)
 
+* log callback errors
+
 * register endpoint
 
 * SQS
@@ -152,6 +154,12 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 * Use bcrypt instead of crypto when it works with latest Node?
 * Investigate using [Auth0](https://auth0.com/docs/api-auth) for authentication?
 * Documentation - Readable/writable fields, type coercion, etc.
+
+## Prerequisites
+
+```
+export NODE_PATH=.
+```
 
 ## Start Dev Server
 
