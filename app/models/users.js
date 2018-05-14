@@ -1,4 +1,4 @@
-const {getIn, concat, merge} = require('lib/util')
+const {notEmpty, getIn, concat, merge} = require('lib/util')
 const modelApi = require('lib/model_api')
 const config = require('app/config')
 const {logger, mongo} = config.modules
@@ -6,6 +6,7 @@ const jwt = require('lib/jwt')
 const passwordHash = require('lib/password_hash')
 const DEFAULTS = require('lib/model_spec').DEFAULTS
 const {accessError} = require('lib/errors')
+const requireSpaces = () => require('app/models/spaces')
 
 const ROLES = ['read', 'write', 'admin']
 
@@ -15,6 +16,14 @@ function checkAccess (doc, options) {
     throw accessError('A logged in user can not update or delete other users')
   }
   return doc
+}
+
+async function setDefaultSpace (doc, options) {
+  const changes = options.action === 'create' || notEmpty(modelApi.changes(options.existingDoc, doc))
+  if (!doc.defaultSpaceId && notEmpty(doc.accounts) && changes) {
+    const spaces = await requireSpaces().list({accountId: doc.accounts[0].id}, {projection: {}})
+    if (notEmpty(spaces)) return merge(doc, {defaultSpaceId: spaces[0].id})
+  }
 }
 
 const model = {
@@ -60,6 +69,9 @@ const model = {
     additionalProperties: false
   },
   callbacks: {
+    save: {
+      afterValidation: [setDefaultSpace]
+    },
     update: {
       beforeValidation: [checkAccess]
     },

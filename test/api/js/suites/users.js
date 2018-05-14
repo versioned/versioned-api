@@ -1,13 +1,17 @@
 const {merge} = require('lib/util')
 
-module.exports = async function (c) {
-  const {space} = c.data
+function makeUser (c) {
   const name = c.uuid()
-  const user = {
+  return {
     name,
     email: `${name}@example.com`,
     password: 'admin'
   }
+}
+
+module.exports = async function (c) {
+  const {account, space} = c.data
+  const user = makeUser(c)
   let result = await c.post('valid create user', '/users', user)
   const id = result.data.id
   c.assertEqual(result.status, 200)
@@ -38,4 +42,14 @@ module.exports = async function (c) {
   result = await c.get('get user with relationships', `/users/${id}?relationshipLevels=1`, {headers})
   c.assertEqual(result.data.defaultSpaceId, space.id)
   c.assertEqualKeys(['id', 'name'], result.data.defaultSpace, space)
+
+  const accountUser = merge(makeUser(c), {accounts: [{role: 'read', id: account.id}]})
+  result = await c.post('create user for account with default space', '/users', accountUser)
+  accountUser.id = result.data.id
+  c.assertEqual(result.data.email, accountUser.email)
+  c.assertEqual(result.data.accounts, accountUser.accounts)
+  c.assert(result.data.defaultSpaceId)
+
+  result = await c.get('get account user', `/users/${accountUser.id}?relationships=defaultSpace`)
+  c.assertEqual(result.data.defaultSpace.accountId, account.id)
 }

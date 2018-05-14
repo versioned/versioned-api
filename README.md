@@ -4,21 +4,7 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 
 ## Backlog (Sprint)
 
-* API test filter param
-  http "$BASE_URL/users?filter.updatedAt[lte]=2018-05-09T12:31:33" Authorization:"Bearer $TOKEN"
-
-* If a user is saved with an account and space without defaultSpaceId - set it
-
 * register endpoint
-
-* Change from relationshipLevels=N to relationshipLevels=N
-  Have relationshipLevels=defaultSpace.account matches on property name or x-meta.relationship.name
-  Use this on login page?
-
-* Make sure all users start with a defaultSpaceId or set it on first login?
-
-* better approach to login: return only {token}
-  Then UI can fetch user with relationshipLevels=2 to get all info needed
 
 * SQS
   https://docs.aws.amazon.com/sdk-for-javascript/v2/developer-guide/sqs-examples-send-receive-messages.html
