@@ -4,7 +4,9 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 
 ## Backlog (Sprint)
 
-* log callback errors
+* use accounts/spaces key in URLs as scopes instead of id?
+
+* API test accounts/spaces writable key?
 
 * register endpoint
 

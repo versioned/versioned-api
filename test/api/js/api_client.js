@@ -1,9 +1,8 @@
 const fs = require('fs')
 const path = require('path')
-const {empty, keyValues, json, prettyJson} = require('lib/util')
+const {isArray, uuid, pick, merge, array, empty, keyValues, json, prettyJson} = require('lib/util')
 const axios = require('axios').create({validateStatus: (status) => status < 500})
 const _assert = require('assert')
-const {isArray, uuid, pick, merge, array} = require('lib/util')
 const config = require('app/config')
 const {isMongoId} = config.modules.mongo
 const {elapsedSeconds} = require('lib/date_util')
@@ -19,24 +18,24 @@ function unwrapData (result) {
   })
 }
 
-function make (attributes) {
+function make (attributesList) {
   const id = uuid()
-  return attributes.reduce((acc, item) => {
+  return attributesList.reduce((acc, item) => {
     const [key, make] = array(item)
     acc[key] = (make ? make(id) : id)
     return acc
   }, {})
 }
 
-function makeUser () {
-  return make([
+function makeUser (attributes = {}) {
+  return merge(make([
     'name',
     ['email', (id) => `${id}@example.com`],
-    'password'])
+    'password']), attributes)
 }
 
-function makeAccount () {
-  return make(['name'])
+function makeAccount (attributes = {}) {
+  return merge(make(['name']), attributes)
 }
 
 function dataString (data) {
@@ -155,12 +154,13 @@ function client ({BASE_URL, DEDICATED_MONGODB_URL}) {
     return {authorization: `Bearer ${result.data.token}`}
   }
 
-  async function registerUser () {
-    const user = makeUser()
+  async function registerUser (options = {}) {
+    const user = options.user || makeUser()
+    const accountAttributes = options.account || makeAccount()
     let result = await post('create user', `/users`, user)
     user.id = result.data.id
     const headers = await login(user)
-    const account = (await post('create account', '/accounts', makeAccount(), {headers})).data
+    const account = (await post('create account', '/accounts', accountAttributes, {headers})).data
     return {account, user, headers}
   }
 
@@ -242,6 +242,7 @@ function client ({BASE_URL, DEDICATED_MONGODB_URL}) {
     isMongoId,
     uuid: uuidWithLetter,
     makeUser,
+    makeAccount,
     registerUser,
     login,
     get,

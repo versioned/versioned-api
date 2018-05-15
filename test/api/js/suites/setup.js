@@ -2,7 +2,7 @@ const {merge} = require('lib/util')
 const users = require('app/models/users')
 
 module.exports = async function (c) {
-  let {account, user, headers} = await c.registerUser()
+  let {account, user, headers} = await c.registerUser({account: c.makeAccount({name: 'Awesome Content'})})
   c.defaultOptions = {headers}
 
   let result = await c.get('get user', `/users/${user.id}`)

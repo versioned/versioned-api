@@ -1,4 +1,4 @@
-const {notEmpty, filter, deepMerge, merge, concat, compact, validInt, setIn, getIn, values, keys} = require('lib/util')
+const {notEmpty, filter, deepMerge, merge, concat, compact, setIn, getIn, values, keys} = require('lib/util')
 const config = require('app/config')
 const {logger, mongo} = config.modules
 const modelApi = require('lib/model_api')
@@ -19,8 +19,9 @@ const collSchema = getIn(modelSchema, ['properties', 'coll'])
 async function getColl (model) {
   const space = model.spaceId && (await requireSpaces().get(model.spaceId))
   if (space && model.coll) {
-    const prefix = validInt(model.spaceId) ? `s${model.spaceId}` : space.key
-    return [prefix, model.coll].join('_')
+    const prefix = 'm'
+    const qualifier = space.databaseUrl ? undefined : space.dbKey
+    return compact([prefix, qualifier, model.coll]).join('_')
   } else {
     return undefined
   }
