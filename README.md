@@ -4,7 +4,13 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 
 ## Backlog (Sprint)
 
+* Get rid of accounts/spaces key implementation unless:
+  * Uniqueness is guaranteed
+  * Length of keys is under control (same length but one is prefix?)
+  * You can deal with updates
+
 * use accounts/spaces key in URLs as scopes instead of id?
+  Rename the path params, make them support both ID and key for now?
 
 * API test accounts/spaces writable key?
 

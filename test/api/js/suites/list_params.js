@@ -15,7 +15,7 @@ module.exports = async function (c) {
   c.assertEqual(result.data.length, 1)
   c.assertEqualKeys(['id', 'name'], result.data[0], space)
 
-  result = await c.get('list spaces filter.name=&filter.key=', `/${account.id}/spaces?filter.name=${space.name}&filter.key=${space.key}`)
+  result = await c.get('list spaces filter.name=&filter.dbKey=', `/${account.id}/spaces?filter.name=${space.name}&filter.dbKey=${space.dbKey}`)
   c.assertEqual(result.data.length, 1)
   c.assertEqualKeys(['id', 'name'], result.data[0], space)
 

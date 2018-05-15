@@ -1,4 +1,4 @@
-const {urlFriendly, notEmpty, empty, toString, find, getIn, concat, merge, property} = require('lib/util')
+const {toString, find, getIn, concat, merge, property} = require('lib/util')
 const {logger, mongo} = require('app/config').modules
 const modelApi = require('lib/model_api')
 const users = require('app/models/users')
@@ -7,14 +7,6 @@ const requireSpaces = () => require('app/models/spaces')
 
 const PLANS = ['shared', 'dedicated']
 const DEFAULT_PLAN = 'shared'
-
-const keySchema = {
-  type: 'string',
-  pattern: `^[a-z0-9-]*$`,
-  minLength: 1,
-  maxLength: 40,
-  'x-meta': {unique: true}
-}
 
 // ///////////////////////////////////////
 // CALLBACKS
@@ -28,13 +20,6 @@ function checkAccess (doc, options) {
     throw accessError('You must be granted admin privileges to update or delete an account')
   }
   return doc
-}
-
-function setDefaultKey (doc, options) {
-  if (empty(doc.key) && notEmpty(doc.name)) {
-    const key = urlFriendly(doc.name).substring(0, keySchema.maxLength)
-    return merge(doc, {key})
-  }
 }
 
 function setDefaultPlan (doc, options) {
@@ -69,7 +54,6 @@ const model = {
     type: 'object',
     properties: {
       name: {type: 'string'},
-      key: keySchema,
       plan: {enum: PLANS},
       spaces: {
         type: 'array',
@@ -108,7 +92,7 @@ const model = {
   },
   callbacks: {
     create: {
-      beforeValidation: [setDefaultKey, setDefaultPlan, setDefaultAdmin, validateOneAdmin],
+      beforeValidation: [setDefaultPlan, setDefaultAdmin, validateOneAdmin],
       afterSave: [createDefaultSpace]
     },
     update: {

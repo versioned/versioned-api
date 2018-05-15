@@ -1,19 +1,18 @@
 const config = require('app/config')
-const {dbFriendly, urlFriendly, empty, notEmpty, getIn, property, uuid, merge} = require('lib/util')
+const {getIn, property, merge} = require('lib/util')
 const modelApi = require('lib/model_api')
 const {logger, mongo} = require('app/config').modules
 const MongoClient = require('mongodb').MongoClient
 const mongoModule = require('lib/mongo')
 const accounts = require('app/models/accounts')
 const {validationError} = require('lib/errors')
+const {findAvailableKey} = require('lib/unique_key')
 
 const coll = 'spaces'
 const DB_KEY_LENGTH = 8 // 16^8 ~ 1 billion
 const DB_KEY_PREFIX = 's'
 
 const mongoCache = {}
-
-const keySchema = getIn(accounts, 'model.schema.properties.key')
 
 async function getMongo (space) {
   if (space.databaseUrl) {
@@ -27,35 +26,8 @@ async function getMongo (space) {
   }
 }
 
-async function findAvailableKey (propertyName, startKey) {
-  let key, keyExists
-  const MAX_ATTEMPTS = 1000
-  let attempts = 0
-  do {
-    if (attempts === 0 && notEmpty(startKey)) {
-      key = DB_KEY_PREFIX + (dbFriendly(startKey, DB_KEY_LENGTH) || uuid(DB_KEY_LENGTH))
-    } else {
-      key = DB_KEY_PREFIX + uuid(DB_KEY_LENGTH)
-    }
-    const query = {[propertyName]: key}
-    keyExists = await modelApi({coll}, mongo).get(query)
-    attempts += 1
-    if (attempts > MAX_ATTEMPTS) throw new Error(`Could not find available space key after ${MAX_ATTEMPTS} attempts`)
-  } while (keyExists)
-  return key
-}
-
-async function setDefaultKey (doc, options) {
-  if (empty(doc.key) && notEmpty(doc.name)) {
-    const account = doc.accountId && (await accounts.get(doc.accountId))
-    let prefix = account ? `${account.key}-` : ''
-    const key = (prefix + urlFriendly(doc.name)).substring(0, keySchema.maxLength).replace(/^-+|-+$/g, '')
-    return merge(doc, {key})
-  }
-}
-
 async function setDbKey (doc, options) {
-  const dbKey = await findAvailableKey('dbKey', doc.key)
+  const dbKey = await findAvailableKey(mongo, coll, 'dbKey', {length: DB_KEY_LENGTH, prefix: DB_KEY_PREFIX})
   return merge(doc, {dbKey})
 }
 
@@ -120,15 +92,14 @@ const model = {
         maxLength: (DB_KEY_LENGTH + DB_KEY_PREFIX.length),
         'x-meta': {writable: false, unique: true}
       },
-      key: keySchema,
       databaseUrl: {type: 'string'}
     },
-    required: ['name', 'accountId', 'dbKey', 'key'],
+    required: ['name', 'accountId', 'dbKey'],
     additionalProperties: false
   },
   callbacks: {
     create: {
-      beforeValidation: [setDefaultKey, setDbKey, validateDatabaseUrl, checkAccess]
+      beforeValidation: [setDbKey, validateDatabaseUrl, checkAccess]
     }
   },
   indexes: [
