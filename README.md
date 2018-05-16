@@ -4,18 +4,6 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 
 ## Backlog (Sprint)
 
-* Get rid of accounts/spaces key implementation unless:
-  * Uniqueness is guaranteed
-  * Length of keys is under control (same length but one is prefix?)
-  * You can deal with updates
-
-* use accounts/spaces key in URLs as scopes instead of id?
-  Rename the path params, make them support both ID and key for now?
-
-* API test accounts/spaces writable key?
-
-* register endpoint
-
 * SQS
   https://docs.aws.amazon.com/sdk-for-javascript/v2/developer-guide/sqs-examples-send-receive-messages.html
   https://youtu.be/lQvTubduQwQ
@@ -114,6 +102,13 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 * Put space_id in header instead of in path?
 
 * Contentful data types and constraints (short text, long text)
+
+* accounts/spaces key implementation unless for use in URLs instead of IDs has complexities:
+  * Uniqueness is guaranteed
+  * Length of keys is under control (same length but one is prefix?)
+  * You can deal with updates
+  * use accounts/spaces key in URLs as scopes instead of id?
+    Rename the path params, make them support both ID and key for now?
 
 ## Launch
 

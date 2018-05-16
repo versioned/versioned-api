@@ -1,4 +1,4 @@
-const {notEmpty, getIn, concat, merge} = require('lib/util')
+const {json, notEmpty, getIn, concat, merge} = require('lib/util')
 const modelApi = require('lib/model_api')
 const config = require('app/config')
 const {logger, mongo} = config.modules
@@ -101,8 +101,25 @@ function generateToken (doc) {
   return jwt.encode(payload, config.JWT_SECRET)
 }
 
+async function login (email, password, options = {}) {
+  const relationshipLevels = options.getUser ? 2 : 0
+  const user = await api.get({email}, {queryParams: {relationshipLevels}})
+  const success = await authenticate(user, password)
+  if (success) {
+    logger.debug(`users.login - auth successful email=${email}`)
+    const token = generateToken(user)
+    const data = {token}
+    if (options.getUser) data.user = user
+    return data
+  } else {
+    logger.info(`users.login - auth failed email=${email} password=${password} user=${json(user)}`)
+    return undefined
+  }
+}
+
 module.exports = merge(api, {
   ROLES,
   authenticate,
-  generateToken
+  generateToken,
+  login
 })

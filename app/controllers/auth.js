@@ -1,21 +1,13 @@
-const {json} = require('lib/util')
 const users = require('app/models/users')
-const {logger, response} = require('app/config').modules
+const {response} = require('app/config').modules
 const {jsonResponse} = response
 
 async function login (req, res) {
   const {email, password, getUser} = req.params
-  const relationshipLevels = getUser ? 2 : 0
-  const user = await users.get({email}, {queryParams: {relationshipLevels}})
-  const success = await users.authenticate(user, password)
-  if (success) {
-    logger.debug(`controllers.login - auth successful email=${email}`)
-    const token = users.generateToken(user)
-    const data = {token}
-    if (getUser) data.user = user
+  const data = await users.login(email, password, {getUser})
+  if (data) {
     jsonResponse(req, res, {data})
   } else {
-    logger.debug(`controllers.login - auth failed email=${email} password=${password} user=${json(user)}`)
     res.writeHead(401, {'Content-Type': 'application/json'})
     res.end()
   }
