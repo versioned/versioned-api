@@ -182,7 +182,7 @@ async function validateSwagger (doc, options) {
 async function validateCollAvailable (doc, options) {
   const coll = getIn(doc, ['model', 'coll'])
   if (coll && (await mongo.getColls()).includes(coll)) {
-    throw validationError(options.model, doc, `coll '${doc.coll}' is not available - please choose another name`, 'coll')
+    throw validationError(options.model, doc, `'${doc.coll}' is not available - please choose another name`, 'coll')
   } else {
     return doc
   }

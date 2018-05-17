@@ -4,6 +4,25 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 
 ## Backlog (Sprint)
 
+```javascript
+// Enum unit test
+const {validate} = require('lib/json_schema')
+const schema = {
+  type: 'object',
+  properties: {
+    foo: {enum: ['bla', 'baz']}
+  },
+  additionalProperties: false,
+  required: ['foo']
+}
+const doc = {
+  foo: 'foobar'
+}
+validate(schema, doc)
+```
+
+* Annotate validation errors with field property and improve message
+
 * SQS
   https://docs.aws.amazon.com/sdk-for-javascript/v2/developer-guide/sqs-examples-send-receive-messages.html
   https://youtu.be/lQvTubduQwQ

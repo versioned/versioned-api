@@ -254,7 +254,7 @@ async function validateRelationshipIds (doc, options) {
       const foundIds = (await api.list({id: {$in: ids}}, {limit: ids.length, projection: {id: 1}})).map(d => d.id)
       const invalidIds = difference(ids, foundIds)
       if (notEmpty(invalidIds)) {
-        throw validationError(options.model, doc, `The ${name} relationship has the following invalid ids: ${invalidIds.join(', ')}`)
+        throw validationError(options.model, doc, `contains the following invalid ids: ${invalidIds.join(', ')}`, name)
       }
     }
   }

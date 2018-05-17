@@ -37,7 +37,7 @@ function setDefaultAdmin (doc, options) {
 
 function validateOneAdmin (doc, options) {
   if (!(doc.users || []).find(u => u.role === 'admin')) {
-    throw validationError(options.model, doc, 'Each account must have at least one administrator')
+    throw validationError(options.model, doc, 'Each account must have at least one administrator', 'users')
   }
   return doc
 }
