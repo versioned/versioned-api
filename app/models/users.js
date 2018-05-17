@@ -65,7 +65,7 @@ const model = {
       },
       superUser: {type: 'boolean', 'x-meta': {writable: false}}
     },
-    required: ['name', 'email'],
+    required: ['email'],
     additionalProperties: false
   },
   callbacks: {
