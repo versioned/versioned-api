@@ -32,8 +32,14 @@ const model = {
   schema: {
     type: 'object',
     properties: {
-      name: {type: 'string'},
-      email: {type: 'string', format: 'email', 'x-meta': {unique: true}},
+      name: {type: 'string', minLength: 1, maxLength: 100},
+      email: {
+        type: 'string',
+        format: 'email',
+        minLength: 3,
+        maxLength: 100,
+        'x-meta': {unique: true}
+      },
       accounts: {
         type: 'array',
         items: {
