@@ -53,7 +53,7 @@ const model = {
   schema: {
     type: 'object',
     properties: {
-      name: {type: 'string'},
+      name: {type: 'string', 'x-meta': {unique: true}},
       plan: {enum: PLANS},
       spaces: {
         type: 'array',
