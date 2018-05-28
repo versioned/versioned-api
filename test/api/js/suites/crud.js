@@ -45,7 +45,7 @@ module.exports = async function (c) {
   c.assertEqual(createdUser.createdAt, result.data.createdAt)
   c.assert(!result.data.createdBy)
   c.assert(elapsedSeconds(result.data.updatedAt) < 1)
-  c.assertEqual(result.data.updatedBy, id)
+  c.assertEqual(result.data.updatedBy.id, id)
 
   result = await c.put({it: 'same update again yields 204', status: 204}, `/users/${id}`, {name: 'changed name'}, {headers})
 
@@ -56,7 +56,7 @@ module.exports = async function (c) {
   c.assert(!result.data.createdBy)
   c.assert(elapsedSeconds(result.data.updatedAt) < 1)
   c.assert(result.data.updatedAt > result.data.createdAt)
-  c.assertEqual(result.data.updatedBy, id)
+  c.assertEqual(result.data.updatedBy.id, id)
 
   result = await c.delete({it: 'cannot delete user without auth', status: 401}, `/users/${id}`, {headers: {authorization: null}})
 
@@ -88,7 +88,7 @@ module.exports = async function (c) {
   c.assertEqual(result.data.name, anotherUser.name)
   c.assertEqual(result.data.email, anotherUser.email)
   c.assert(elapsedSeconds(result.data.createdAt) < 1)
-  c.assertEqual(result.data.createdBy, adminUser.id)
+  c.assertEqual(result.data.createdBy.id, adminUser.id)
   c.assert(!result.data.updatedAt)
   c.assert(!result.data.updatedBy)
 }

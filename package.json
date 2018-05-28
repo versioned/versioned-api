@@ -3,6 +3,9 @@
   "version": "0.0.1",
   "description": "A CMS REST API on Node/Mongodb, similar to contentful",
   "main": "app/index.js",
+  "engines" : {
+    "node": "8.11.2"
+  },
   "scripts": {
     "start": "NODE_PATH=. node app/index.js",
     "dev": "NODE_PATH=. $(npm bin)/nodemon app/index.js",

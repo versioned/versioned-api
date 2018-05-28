@@ -22,7 +22,7 @@ async function crudTest (c, prefix, coll, doc, updateDoc) {
   }
   // c.assert(c.isMongoId(created.id))
   c.assert(elapsedSeconds(created.createdAt) < 1)
-  c.assertEqual(created.createdBy, c.data.user.id)
+  c.assertEqual(created.createdBy.id, c.data.user.id)
   c.assert(!created.updatedAt)
   c.assert(!created.updatedBy)
 
@@ -71,7 +71,7 @@ async function crudTest (c, prefix, coll, doc, updateDoc) {
     }
   }
   c.assert(elapsedSeconds(result.data.updatedAt) < 1)
-  c.assertEqual(result.data.updatedBy, c.data.user.id)
+  c.assertEqual(result.data.updatedBy.id, c.data.user.id)
 
   await c.put({it: 'same update again yields 204', status: 204}, getPath, updateDoc)
 
@@ -88,7 +88,7 @@ async function crudTest (c, prefix, coll, doc, updateDoc) {
     }
   }
   c.assert(elapsedSeconds(result.data.updatedAt) < 1)
-  c.assertEqual(result.data.updatedBy, c.data.user.id)
+  c.assertEqual(result.data.updatedBy.id, c.data.user.id)
 
   await c.delete({it: 'cannot delete without auth', status: 401}, getPath, c.anonymous)
 

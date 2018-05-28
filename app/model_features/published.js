@@ -53,11 +53,14 @@ function versionedModel (model) {
       properties: {
         docId: {type: 'string'},
         createdAt: {type: 'string', format: 'date-time', 'x-meta': {writable: false, index: -1}},
-        createdBy: {type: 'string', 'x-meta': {writable: false, index: 1}}
+        createdBy: {type: 'object', 'x-meta': {writable: false}}
       }
     },
     features: [],
     indexes: [
+      {
+        keys: {'createdBy.id': 1}
+      },
       {
         keys: {docId: 1, version: 1},
         options: {unique: true}

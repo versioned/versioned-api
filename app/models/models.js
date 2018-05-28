@@ -1,4 +1,4 @@
-const {notEmpty, filter, deepMerge, merge, concat, compact, setIn, getIn, values, keys} = require('lib/util')
+const {dbFriendly, notEmpty, empty, filter, deepMerge, merge, concat, compact, setIn, getIn, values, keys} = require('lib/util')
 const config = require('app/config')
 const {logger, mongo} = config.modules
 const modelApi = require('lib/model_api')
@@ -56,7 +56,13 @@ async function validateSpace (doc, options) {
   }
 }
 
-async function setColl (doc, options) {
+function setDefaultColl (doc, options) {
+  if (notEmpty(doc.name) && empty(doc.coll)) {
+    return merge(doc, {coll: dbFriendly(doc.name)})
+  }
+}
+
+async function setModelColl (doc, options) {
   const coll = await getColl(doc)
   if (coll) {
     return deepMerge(doc, {
@@ -227,7 +233,7 @@ const model = {
   },
   callbacks: {
     save: {
-      beforeValidation: [validateSpace, setColl, setAccountId, setFeatures, setSchema, validatePropertyNames, validateModel, validatePropertiesLimit],
+      beforeValidation: [validateSpace, setDefaultColl, setModelColl, setAccountId, setFeatures, setSchema, validatePropertyNames, validateModel, validatePropertiesLimit],
       afterValidation: [validateXMeta, validateSwagger]
     },
     create: {

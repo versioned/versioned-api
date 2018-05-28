@@ -25,7 +25,7 @@ module.exports = async function (c) {
     model
   }
 
-  const requiredProperties = ['name', 'spaceId', 'coll', 'model']
+  const requiredProperties = ['name', 'spaceId', 'model']
   for (let property of requiredProperties) {
     await c.post({it: `create article model with missing required property ${property}`, status: 422}, `/${accountId}/models`, omit(articleModel, [property]))
   }

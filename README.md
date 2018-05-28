@@ -4,6 +4,11 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 
 ## Backlog (Sprint)
 
+* To make it easier to write forms:
+  * Rename coll to key?
+  * Make the required models attributes like schema be at the top level?
+* Make createdBy/updateBy objects?
+
 ```javascript
 // Enum unit test
 const {validate} = require('lib/json_schema')

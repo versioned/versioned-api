@@ -50,7 +50,7 @@ async function getMergableUpdate (api, doc, changes, options) {
   const userId = getUserId(options)
   if (lastUpdate &&
     mergableChanges(lastUpdate.changes, options) &&
-    toString(lastUpdate.createdBy) === toString(userId) &&
+    toString(getIn(lastUpdate, 'createdBy.id')) === toString(userId) &&
     elapsedSeconds(lastUpdate.createdAt) < RECENT_SECONDS) {
     return lastUpdate
   } else {

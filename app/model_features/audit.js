@@ -1,19 +1,20 @@
-const {merge} = require('lib/util')
-const modelMeta = require('lib/model_meta')
+const {pick, merge} = require('lib/util')
+
+function auditUser (user) {
+  return pick(user, ['id', 'name', 'email'])
+}
 
 function auditCreateCallback (doc, options) {
-  const users = require('app/models/users')
   return merge(doc, {
     createdAt: new Date(),
-    createdBy: modelMeta.getId(users.model, options.user)
+    createdBy: auditUser(options.user)
   })
 }
 
 function auditUpdateCallback (doc, options) {
-  const users = require('app/models/users')
   return merge(doc, {
     updatedAt: new Date(),
-    updatedBy: modelMeta.getId(users.model, options.user)
+    updatedBy: auditUser(options.user)
   })
 }
 
@@ -22,9 +23,9 @@ const model = {
     type: 'object',
     properties: {
       createdAt: {type: 'string', format: 'date-time', 'x-meta': {writable: false, versioned: false, index: -1}},
-      createdBy: {type: 'string', 'x-meta': {writable: false, versioned: false, index: 1}},
+      createdBy: {type: 'object', 'x-meta': {writable: false, versioned: false}},
       updatedAt: {type: 'string', format: 'date-time', 'x-meta': {writable: false, versioned: false, index: -1}},
-      updatedBy: {type: 'string', 'x-meta': {writable: false, versioned: false, index: 1}}
+      updatedBy: {type: 'object', 'x-meta': {writable: false, versioned: false}}
     },
     required: ['createdAt']
   },
@@ -35,7 +36,15 @@ const model = {
     update: {
       beforeValidation: [auditUpdateCallback]
     }
-  }
+  },
+  indexes: [
+    {
+      keys: {'createdBy.id': 1}
+    },
+    {
+      keys: {'updatedBy.id': 1}
+    }
+  ]
 }
 
 module.exports = model
