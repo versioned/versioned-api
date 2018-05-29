@@ -1,4 +1,4 @@
-const {filter, keys, empty, intersection, first, getIn, toString} = require('lib/util')
+const {compact, pick, filter, keys, empty, intersection, first, getIn, toString} = require('lib/util')
 const {elapsedSeconds} = require('lib/date_util')
 const config = require('app/config')
 const {logger} = config.modules
@@ -62,6 +62,10 @@ async function changelogCallback (doc, options) {
   const {user, action} = options
   const accountId = toString(getIn(options, 'account.id'))
   const spaceId = toString(getIn(options, 'space.id'))
+  const model = compact({
+    type: getIn(options, 'model.type'),
+    schema: pick(getIn(options, 'model.schema'), ['x-meta'])
+  })
   const existingDoc = readableDoc(options.model, options.existingDoc)
   const toDoc = readableDoc(options.model, doc)
   const changes = mongoFriendlyChanges(existingDoc, toDoc)
@@ -77,6 +81,7 @@ async function changelogCallback (doc, options) {
     await api.create({
       accountId,
       spaceId,
+      model,
       coll: getColl(options),
       action,
       existingDoc,

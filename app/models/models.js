@@ -94,7 +94,8 @@ async function setFeatures (doc, options) {
 async function setSchema (doc, options) {
   if (doc.model) {
     const xMeta = {
-      writeRequiresAdmin: false
+      writeRequiresAdmin: false,
+      dataModel: true
     }
     return setIn(doc, ['model', 'schema', 'x-meta'], xMeta)
   } else {

@@ -30,6 +30,7 @@ const model = {
       accountId: {type: 'string', 'x-meta': {write: false, index: true}},
       spaceId: {type: 'string', 'x-meta': {write: false, index: true}},
       action: {enum: ['create', 'update', 'delete']},
+      model: {type: 'object'},
       coll: {type: 'string'},
       existingDoc: {type: 'object'},
       doc: {type: 'object'},
