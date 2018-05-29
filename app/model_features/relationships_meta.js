@@ -1,19 +1,7 @@
 const {pick, last, notEmpty, merge, updateIn, setIn, getIn, keys, keyValues, filter} = require('lib/util')
-const {relationshipProperties, getSpaceModel} = require('app/relationships_helper')
+const {isTwoWayRelationship, twoWayRelationships, getSpaceModel} = require('app/relationships_helper')
 const {changes} = require('lib/model_api')
 const requireModels = () => require('app/models/models')
-
-function twoWayRelationships (model) {
-  return filter(relationshipProperties(model), (property) => {
-    const {toType, toField} = getIn(property, 'x-meta.relationship')
-    return toType && toField
-  })
-}
-
-function isTwoWayRelationship (property) {
-  const {toType, toField} = getIn(property, 'x-meta.relationship', {})
-  return toType && toField
-}
 
 function twoWayRelationshipChanges (existingDoc, doc) {
   return filter(changes(existingDoc, doc), (change, path) => {

@@ -151,7 +151,8 @@ const X_META_SCHEMA = {
         // NOTE: the presence of a toField means the relationship is two-way
         toField: {type: 'string', pattern: PROPERTY_NAME_PATTERN},
         // NOTE: the name is the optional property name used when fetching relationships
-        name: {type: 'string'}
+        name: {type: 'string'},
+        oneWay: {type: 'boolean'}
       },
       required: ['toType', 'type'],
       additionalProperties: false

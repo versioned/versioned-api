@@ -23,9 +23,31 @@ const model = {
     type: 'object',
     properties: {
       createdAt: {type: 'string', format: 'date-time', 'x-meta': {writable: false, versioned: false, index: -1}},
-      createdBy: {type: 'object', 'x-meta': {writable: false, versioned: false}},
+      createdBy: {
+        type: 'object',
+        'x-meta': {
+          writable: false,
+          versioned: false,
+          relationship: {
+            toType: 'users',
+            type: 'many-to-one',
+            oneWay: true
+          }
+        }
+      },
       updatedAt: {type: 'string', format: 'date-time', 'x-meta': {writable: false, versioned: false, index: -1}},
-      updatedBy: {type: 'object', 'x-meta': {writable: false, versioned: false}}
+      updatedBy: {
+        type: 'object',
+        'x-meta': {
+          writable: false,
+          versioned: false,
+          relationship: {
+            toType: 'users',
+            type: 'many-to-one',
+            oneWay: true
+          }
+        }
+      }
     },
     required: ['createdAt']
   },

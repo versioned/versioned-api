@@ -7,6 +7,15 @@ function relationshipProperties (model) {
   })
 }
 
+function isTwoWayRelationship (property) {
+  const {toType, toField, oneWay} = getIn(property, 'x-meta.relationship', {})
+  return toType && toField && oneWay !== true
+}
+
+function twoWayRelationships (model) {
+  return filter(relationshipProperties(model), isTwoWayRelationship)
+}
+
 function getStaticApi (toType) {
   return require(`app/models/${toType}`)
 }
@@ -28,6 +37,8 @@ async function getApi (toType, space) {
 
 module.exports = {
   relationshipProperties,
+  isTwoWayRelationship,
+  twoWayRelationships,
   getSpaceModel,
   getApi
 }

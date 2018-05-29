@@ -2,7 +2,7 @@ const config = require('app/config')
 const {logger} = config.modules
 const {deepMerge, pick, difference, filter, notEmpty, evolve, compact, keys, isArray, groupBy, flatten, first, json, array, keyValues, isObject, getIn, merge, concat, empty} = require('lib/util')
 const diff = require('lib/diff')
-const {relationshipProperties, getApi} = require('app/relationships_helper')
+const {relationshipProperties, twoWayRelationships, getApi} = require('app/relationships_helper')
 const {readableDoc} = require('lib/model_access')
 const {validationError} = require('lib/errors')
 
@@ -261,7 +261,7 @@ async function validateRelationshipIds (doc, options) {
 }
 
 async function updateAllRelationships (doc, options) {
-  for (let [name, property] of keyValues(relationshipProperties(options.model))) {
+  for (let [name, property] of keyValues(twoWayRelationships(options.model))) {
     await updateRelationship(doc, name, property, options)
   }
   return doc
