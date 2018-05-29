@@ -159,7 +159,7 @@ async function fetchAllRelationships (data, options) {
       const isMany = (getIn(options, `model.schema.properties.${name}.type`, 'array') === 'array')
       const orderedDocs = compact(array(doc[name]).map(v => {
         const doc = getIn(relationshipDocs[name], getId(v))
-        return typeof v === 'object' ? merge(doc, v) : doc
+        return typeof v === 'object' ? merge(v, doc) : doc
       }))
       const relationshipName = getIn(properties, `${name}.x-meta.relationship.name`, name)
       if (notEmpty(orderedDocs)) {
