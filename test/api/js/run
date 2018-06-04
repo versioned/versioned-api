@@ -26,7 +26,10 @@ function suites () {
   const suitesPath = path.join(__dirname, '/suites')
   const allSuites = fs.readdirSync(suitesPath).map(filename => path.parse(filename).name)
   const setup = (process.env['SETUP'] !== '0' && allSuites.includes('setup')) ? ['setup'] : []
-  const allSuitesWithoutSetup = allSuites.filter(s => s !== 'setup').sort()
+  const skipSuites = process.env.SKIP_SUITES ? process.env.SKIP_SUITES.split(',') : []
+  const allSuitesWithoutSetup = allSuites.filter((suite) => {
+    return suite !== 'setup' && !skipSuites.includes(suite)
+  }).sort()
   const customSuites = process.env.SUITES && process.env.SUITES.split(',')
   return concat(setup, (customSuites || allSuitesWithoutSetup))
 }
@@ -54,19 +57,29 @@ async function run () {
   const dedicatedMongo = mongo(DEDICATED_MONGODB_URL)
   await dedicatedMongo.connect()
   await dedicatedMongo.db().dropDatabase()
+  const completedSuites = []
+  const failedSuites = []
   for (let suiteName of suites()) {
     printSuiteHeader(suiteName)
     client.suite = suiteName
     const suite = require(`./suites/${suiteName}`)
     try {
       await suite(client)
+      completedSuites.push(suiteName)
     } catch (err) {
       if (!(err instanceof AssertionError)) {
         client.printLastResult()
         client.logRequests()
       }
-      throw err
+      failedSuites.push(suiteName)
+      console.log(`\nFAILURE!!! Suite failed: ${suiteName}\n`)
+      if (process.env.HALT_ON_FAILURE !== '0') throw err
     }
+  }
+  if (failedSuites.length > 0) {
+    console.log(`Failed suites: ${failedSuites.length} - ${failedSuites.join(', ')}`)
+    console.log(`Successful suites: ${completedSuites.length} - ${completedSuites.join(', ')}`)
+    throw new Error(`The following ${failedSuites.length} suites failed: ${failedSuites.join(', ')}`)
   }
   printResults(client, startTime)
   client.logRequests()

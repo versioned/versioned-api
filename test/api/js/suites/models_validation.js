@@ -51,7 +51,7 @@ module.exports = async function (c) {
     }
   }))
 
-  await c.post({it: 'cannot create article model with invalid schema - x-meta property', status: 422}, `/${accountId}/models`, merge(articleModel, {
+  result = await c.post({it: 'cannot create article model with invalid x-meta property', status: 422}, `/${accountId}/models`, merge(articleModel, {
     coll: c.uuid(),
     model: {
       schema: {
@@ -65,6 +65,7 @@ module.exports = async function (c) {
       }
     }
   }))
+  c.assertEqual(result.body.errors[0].field, 'model.schema.properties.title.x-meta.foobar')
 
   await c.post({it: 'cannot create article model with reserved property name sys', status: 422}, `/${accountId}/models`, merge(articleModel, {
     name: c.uuid(),

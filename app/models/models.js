@@ -1,4 +1,4 @@
-const {dbFriendly, notEmpty, empty, filter, deepMerge, merge, concat, compact, setIn, getIn, values, keys} = require('lib/util')
+const {keyValues, difference, dbFriendly, notEmpty, empty, filter, deepMerge, merge, concat, compact, setIn, getIn, keys} = require('lib/util')
 const config = require('app/config')
 const {logger, mongo} = config.modules
 const modelApi = require('lib/model_api')
@@ -103,6 +103,17 @@ async function setSchema (doc, options) {
   }
 }
 
+function setPropertiesOrder (doc, options) {
+  const properties = getIn(doc, 'model.schema.properties')
+  if (empty(properties)) return
+  const valid = filter((doc.propertiesOrder || []), (key) => keys(properties).includes(key))
+  const missing = difference(keys(properties), valid)
+  const propertiesOrder = concat(valid, missing)
+  if (notEmpty(propertiesOrder)) {
+    return merge(doc, {propertiesOrder})
+  }
+}
+
 function validatePropertyNames (doc, options) {
   const propertyNames = keys(getIn(doc, 'model.schema.properties'))
   const invalidNames = filter(propertyNames, name => !name.match(new RegExp(PROPERTY_NAME_PATTERN)))
@@ -144,6 +155,14 @@ const X_META_SCHEMA = {
     index: {type: ['boolean', 'integer']},
     unique: {type: 'boolean'},
     mergeChangelog: {type: 'boolean'},
+    field: {
+      type: 'object',
+      properties: {
+        name: {type: 'string'},
+        type: {type: 'string'}
+      },
+      additionalProperties: false
+    },
     relationship: {
       type: 'object',
       properties: {
@@ -162,16 +181,28 @@ const X_META_SCHEMA = {
   additionalProperties: false
 }
 
+function uniqueAllowed (property) {
+  return !getIn(property, 'x-meta.relationship') &&
+    ((property.type === 'string' && property.maxLength && property.maxLength <= 256) ||
+     ['integer', 'number'].includes(property.type))
+}
+
 // NOTE: Using this special case validation instead of patternProperties since
 // patternProperties is not supported by OpenAPI
 async function validateXMeta (doc, options) {
   const properties = getIn(doc, ['model', 'schema', 'properties'])
-  const xMetaList = compact(values(properties).map(p => p['x-meta']))
-  for (let xMeta of xMetaList) {
-    const errors = jsonSchema.validate(X_META_SCHEMA, xMeta)
-    if (errors) throw errors
+  if (empty(properties)) return
+  for (let [key, property] of keyValues(properties)) {
+    const xMeta = property['x-meta']
+    if (xMeta) {
+      const path = `model.schema.properties.${key}.x-meta`
+      const errors = jsonSchema.validate(X_META_SCHEMA, xMeta, {path})
+      if (errors) throw errors
+      if (xMeta.unique && !uniqueAllowed(property)) {
+        throw validationError(options.model, doc, `unique is not allowed for field`, path)
+      }
+    }
   }
-  return doc
 }
 
 async function validateSwagger (doc, options) {
@@ -228,6 +259,7 @@ const model = {
       },
       coll: merge(collSchema, {'x-meta': {update: false, index: true}}),
       features: {type: 'array', items: {enum: ['published']}},
+      propertiesOrder: {type: 'array', items: {type: 'string'}},
       model: withoutRefs(modelSchema)
     },
     required: ['name', 'spaceId', 'accountId', 'coll', 'model'],
@@ -235,7 +267,7 @@ const model = {
   },
   callbacks: {
     save: {
-      beforeValidation: [validateSpace, setDefaultColl, setModelColl, setAccountId, setFeatures, setSchema, validatePropertyNames, validateModel, validatePropertiesLimit],
+      beforeValidation: [validateSpace, setDefaultColl, setModelColl, setAccountId, setFeatures, setSchema, validatePropertyNames, validateModel, validatePropertiesLimit, setPropertiesOrder],
       afterValidation: [validateXMeta, validateSwagger]
     },
     create: {
