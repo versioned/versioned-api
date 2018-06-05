@@ -1,4 +1,4 @@
-const {json, pick, last, notEmpty, merge, updateIn, setIn, getIn, keys, keyValues, filter} = require('lib/util')
+const {compact, json, pick, last, notEmpty, merge, updateIn, setIn, getIn, keys, keyValues, filter} = require('lib/util')
 const {isTwoWayRelationship, twoWayRelationships, getSpaceModel} = require('app/relationships_helper')
 const {changes} = require('lib/model_api')
 const requireModels = () => require('app/models/models')
@@ -27,6 +27,7 @@ function twoWayRelationshipChanges (existingDoc, doc) {
 }
 
 const TYPES = {
+  'one-to-one': 'one-to-one',
   'one-to-many': 'many-to-one',
   'many-to-one': 'one-to-many',
   'many-to-many': 'many-to-many'
@@ -40,13 +41,14 @@ function toProperty (fromField, fromType, property) {
   const relationship = getIn(property, 'x-meta.relationship')
   const type = TYPES[relationship.type]
   const schema = property.items || pick(property, ['type'])
-  const xMeta = {
+  const xMeta = compact({
+    unique: (relationship.type === 'one-to-one' ? true : undefined),
     relationship: {
       toType: fromType,
       toField: fromField,
       type
     }
-  }
+  })
   if (isArrayProperty(type)) {
     return {
       type: 'array',

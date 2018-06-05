@@ -4,9 +4,11 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 
 ## Backlog (Sprint)
 
+* one-to-one relationships should have unique property enforced
+
 * validateXMeta
   * Add path
-  * Validate unique - 
+  * Validate unique -
 
 * To make it easier to write forms:
   * Rename coll to key?

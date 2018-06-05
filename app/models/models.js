@@ -167,7 +167,7 @@ const X_META_SCHEMA = {
       type: 'object',
       properties: {
         toType: collSchema,
-        type: {enum: ['one-to-many', 'many-to-one', 'many-to-many']},
+        type: {enum: ['one-to-one', 'one-to-many', 'many-to-one', 'many-to-many']},
         // NOTE: the presence of a toField means the relationship is two-way
         toField: {type: 'string', pattern: PROPERTY_NAME_PATTERN},
         // NOTE: the name is the optional property name used when fetching relationships
@@ -182,9 +182,7 @@ const X_META_SCHEMA = {
 }
 
 function uniqueAllowed (property) {
-  return !getIn(property, 'x-meta.relationship') &&
-    ((property.type === 'string' && property.maxLength && property.maxLength <= 256) ||
-     ['integer', 'number'].includes(property.type))
+  return ['string', 'integer', 'number'].includes(property.type)
 }
 
 // NOTE: Using this special case validation instead of patternProperties since
