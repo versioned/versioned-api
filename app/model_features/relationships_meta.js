@@ -1,15 +1,29 @@
-const {pick, last, notEmpty, merge, updateIn, setIn, getIn, keys, keyValues, filter} = require('lib/util')
+const {json, pick, last, notEmpty, merge, updateIn, setIn, getIn, keys, keyValues, filter} = require('lib/util')
 const {isTwoWayRelationship, twoWayRelationships, getSpaceModel} = require('app/relationships_helper')
 const {changes} = require('lib/model_api')
 const requireModels = () => require('app/models/models')
+const {logger} = require('app/config').modules
 
 function twoWayRelationshipChanges (existingDoc, doc) {
-  return filter(changes(existingDoc, doc), (change, path) => {
-    const isPropertyPath = path.match(/model\.schema\.properties\./)
-    const fromValue = getIn(change, 'changed.from') || getIn(change, 'deleted')
-    const toValue = getIn(change, 'changed.to') || getIn(change, 'added')
-    return isPropertyPath && (isTwoWayRelationship(fromValue) || isTwoWayRelationship(toValue))
-  })
+  return keys(changes(existingDoc, doc)).reduce((acc, path) => {
+    const match = path.match(/model\.schema\.properties\.([^.]+)/)
+    if (match) {
+      const property = match[1]
+      const propertyPath = `model.schema.properties.${property}`
+      const fromValue = getIn(existingDoc, propertyPath)
+      const toValue = getIn(doc, propertyPath)
+      if (isTwoWayRelationship(fromValue) || isTwoWayRelationship(toValue)) {
+        if (fromValue && toValue) {
+          acc[propertyPath] = {changed: {from: fromValue, to: toValue}}
+        } else if (!fromValue && toValue) {
+          acc[propertyPath] = {added: toValue}
+        } else if (fromValue && !toValue) {
+          acc[propertyPath] = {deleted: fromValue}
+        }
+      }
+    }
+    return acc
+  }, {})
 }
 
 const TYPES = {
@@ -51,7 +65,10 @@ async function updateRelationship (doc, path, change, options) {
   const property = change.added || change.deleted || getIn(change, 'changed.to')
   let {toType, toField} = getIn(property, 'x-meta.relationship')
   const fromType = getIn(doc, 'model.type')
-  if (!toType || !toField || !fromType || !doc.spaceId) return
+  if (!toType || !toField || !fromType || !doc.spaceId) {
+    logger.info(`relationships_meta.updateRelationship - cannot update, missing fields totype=${toType} toField=${toField} fromType=${fromType} spaceId=${doc.spaceId}`)
+    return
+  }
   const model = await getSpaceModel(toType, doc.spaceId)
   if (!model) return
   const updatedProperty = change.deleted ? null : toProperty(name, fromType, property)
@@ -86,6 +103,7 @@ async function setTwoWayRelationships (doc, options) {
 async function updateTwoWayRelationships (doc, options) {
   const {existingDoc} = options
   const changes = twoWayRelationshipChanges(existingDoc, doc)
+  logger.verbose(`relationships_meta.updateTwoWayRelationships changes=${json(changes)}`)
   for (let [path, change] of keyValues(changes)) {
     await updateRelationship(doc, path, change, options)
   }
