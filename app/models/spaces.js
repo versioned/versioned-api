@@ -90,9 +90,17 @@ const model = {
         type: 'string',
         pattern: `^${DB_KEY_PREFIX}[a-z0-9_]+$`,
         maxLength: (DB_KEY_LENGTH + DB_KEY_PREFIX.length),
-        'x-meta': {writable: false, unique: true}
+        'x-meta': {writable: false, unique: {index: true}}
       },
-      databaseUrl: {type: 'string'}
+      databaseUrl: {type: 'string'},
+      config: {
+        type: 'object',
+        properties: {
+          ALGOLIASEARCH_APPLICATION_ID: {type: 'string'},
+          ALGOLIASEARCH_API_KEY: {type: 'string'}
+        },
+        additionalProperties: false
+      }
     },
     required: ['name', 'accountId', 'dbKey'],
     additionalProperties: false

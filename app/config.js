@@ -13,7 +13,10 @@ const defaultConfig = {
   JWT_EXPIRY: (3600 * 24 * 30),
   PROPERTY_LIMIT: 50,
   MODELS_LIMIT: 100,
-  DATA_LIMIT: 5000
+  DATA_LIMIT: 5000,
+  ALGOLIASEARCH_APPLICATION_ID: null,
+  ALGOLIASEARCH_API_KEY: null,
+  ALGOLIASEARCH_INDEX_NAME: `versioned2-${NODE_ENV}`
 }
 const envConfig = pick(process.env, Object.keys(defaultConfig))
 const config = merge(defaultConfig, envConfig)

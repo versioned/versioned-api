@@ -13,7 +13,7 @@ const PARAMS = [
     required: false,
     schema: {
       type: 'integer',
-      minimum: 1,
+      minimum: 0,
       maximum: 10
     }
   },

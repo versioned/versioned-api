@@ -1,11 +1,12 @@
-const {concat, getIn, keys, keyValues, merge} = require('lib/util')
+const {zipObj, rename, property, concat, getIn, keys, keyValues, merge} = require('lib/util')
 const models = require('app/models/models')
 const modelController = require('lib/model_controller')
 const config = require('app/config')
-const {logger} = config.modules
+const {logger, mongo} = config.modules
 const responseModule = config.modules.response
 const {notFound} = config.modules.response
 const swaggerHandler = require('app/controllers/swagger').index
+const {wrapData, jsonResponse} = config.modules.response
 const {idType} = require('lib/model_meta')
 const {requestSchema, responseSchema} = require('lib/model_access')
 const {LIST_PARAMETERS} = require('app/model_routes')
@@ -69,6 +70,10 @@ function swaggerPath (prefix, options) {
   return withParams(`/${prefix}/:spaceId/swagger.json`, options)
 }
 
+function dbStatsPath (prefix, options) {
+  return withParams(`/${prefix}/:spaceId/dbStats.json`, options)
+}
+
 function dataHandler (coll, endpoint) {
   async function _dataHandler (req, res) {
     const query = {
@@ -94,6 +99,27 @@ function swaggerRoute (prefix, options) {
     method: 'get',
     path: swaggerPath(prefix),
     handler: swaggerHandler,
+    parameters: [spaceIdParameter()]
+  }
+}
+
+async function dbStatsHandler (req, res) {
+  const modelSpecs = await models.list({spaceId: req.space.id})
+  const colls = modelSpecs.map(model => getIn(model, 'model.coll'))
+  const types = modelSpecs.map(property('coll'))
+  const collsToTypes = zipObj(colls, types)
+  const stats = await mongo.dbStats({colls})
+  const statsByType = rename(stats, collsToTypes)
+  jsonResponse(req, res, wrapData(statsByType))
+}
+
+function dbStatsRoute (prefix, options) {
+  return {
+    summary: 'Database stats (number of documents per collection) for the space',
+    tags: ['data'],
+    method: 'get',
+    path: dbStatsPath(prefix),
+    handler: dbStatsHandler,
     parameters: [spaceIdParameter()]
   }
 }
@@ -159,7 +185,7 @@ async function routes (prefix, options = {}) {
   if (options.space) {
     let spaceModels = await models.list({spaceId: options.space.id})
     if (options.models) spaceModels = spaceModels.concat(options.models)
-    let result = [swaggerRoute(prefix, options)]
+    let result = [swaggerRoute(prefix, options), dbStatsRoute(prefix, options)]
     for (let model of spaceModels) {
       const api = await models.getApi(options.space, model)
       const routes = await modelRoutes(prefix, merge(options, {model, api}))

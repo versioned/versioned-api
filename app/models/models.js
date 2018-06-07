@@ -1,4 +1,4 @@
-const {keyValues, difference, dbFriendly, notEmpty, empty, filter, deepMerge, merge, concat, compact, setIn, getIn, keys} = require('lib/util')
+const {isObject, intersection, array, keyValues, difference, dbFriendly, notEmpty, empty, filter, deepMerge, merge, concat, compact, setIn, getIn, keys} = require('lib/util')
 const config = require('app/config')
 const {logger, mongo} = config.modules
 const modelApi = require('lib/model_api')
@@ -35,9 +35,48 @@ async function validateDataLimit (doc, options) {
   return doc
 }
 
+function shouldCheckUnique (property) {
+  return getIn(property, 'x-meta.unique') === true ||
+    ['one-to-one', 'one-to-many'].includes(getIn(property, 'x-meta.relationship.type'))
+}
+
+function getId (value) {
+  return isObject(value) ? getIn(value, 'id') : value
+}
+
+async function checkUnique (doc, options) {
+  if (empty(doc)) return
+  const properties = getIn(options, 'model.schema.properties')
+  for (let key of keys(properties)) {
+    const property = getIn(options, `model.schema.properties.${key}`)
+    const isRelationship = getIn(options, `model.schema.properties.${key}.x-meta.relationship`)
+    const getValue = (v) => isRelationship ? getId(v) : v
+    if (shouldCheckUnique(property)) {
+      const values = array(doc[key]).map(getValue)
+      if (notEmpty(values)) {
+        const query = {[key]: {$in: values}, id: {$ne: doc.id}}
+        const projection = {id: 1, [key]: 1, title: 1}
+        const duplicates = await options.api.list(query, {projection})
+        if (duplicates.length > 0) {
+          const allDuplicatesValues = duplicates.map(d => d[key]).reduce((acc, value) => {
+            acc = acc.concat(array(value).map(getValue))
+            return acc
+          }, [])
+          const duplicatedValues = intersection(allDuplicatesValues, values)
+          const prettyDuplicates = duplicates.map(d => `"${d.title || d.id}"`)
+          throw validationError(options.model, doc, `already exists (must be unique): ${duplicatedValues.join(', ')}. Documents with duplicates: ${prettyDuplicates.join(', ')}`, key)
+        }
+      }
+    }
+  }
+}
+
 async function getApi (space, model) {
   const modelInstance = merge(model.model, {
     callbacks: {
+      save: {
+        afterValidation: [checkUnique]
+      },
       create: {
         beforeValidation: [validateDataLimit]
       }
@@ -153,7 +192,19 @@ const X_META_SCHEMA = {
     update: {type: 'boolean'},
     versioned: {type: 'boolean'},
     index: {type: ['boolean', 'integer']},
-    unique: {type: 'boolean'},
+    unique: {
+      anyOf: [
+        {type: 'boolean'},
+        {
+          type: 'object',
+          properties: {
+            index: {enum: [true]}
+          },
+          additionalProperties: false,
+          required: ['index']
+        }
+      ]
+    },
     mergeChangelog: {type: 'boolean'},
     field: {
       type: 'object',
@@ -182,7 +233,7 @@ const X_META_SCHEMA = {
 }
 
 function uniqueAllowed (property) {
-  return ['string', 'integer', 'number'].includes(property.type)
+  return ['string', 'integer', 'number'].includes(property.type) && !getIn(property, 'x-meta.relationship')
 }
 
 // NOTE: Using this special case validation instead of patternProperties since
@@ -256,7 +307,10 @@ const model = {
         }
       },
       coll: merge(collSchema, {'x-meta': {update: false, index: true}}),
-      features: {type: 'array', items: {enum: ['published']}},
+      features: {
+        type: 'array',
+        items: {enum: ['search', 'published']}
+      },
       propertiesOrder: {type: 'array', items: {type: 'string'}},
       model: withoutRefs(modelSchema)
     },

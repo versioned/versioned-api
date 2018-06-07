@@ -38,7 +38,7 @@ const model = {
         format: 'email',
         minLength: 3,
         maxLength: 100,
-        'x-meta': {unique: true}
+        'x-meta': {unique: {index: true}}
       },
       accounts: {
         type: 'array',

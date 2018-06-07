@@ -4,6 +4,14 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 
 ## Backlog (Sprint)
 
+* Check two way relationship update works
+  Broken for one-to-one (add slot to relationships API test)
+  Works for one-to-many and many-to-many?
+
+* one-to-one unique doesn't work with null, see: https://stackoverflow.com/questions/35755628/unique-index-in-mongodb-3-2-ignoring-null-values/39848209
+
+* Move spaces.databaseUrl to spaces.config
+
 * one-to-one relationships should have unique property enforced
 
 * validateXMeta

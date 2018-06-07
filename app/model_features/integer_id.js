@@ -17,7 +17,7 @@ const model = {
     type: 'object',
     properties: {
       _id: {type: 'string', pattern: '^[a-z0-9]{24}$', 'x-meta': {writable: false}},
-      id: {type: 'integer', 'x-meta': {id: true, writable: false, unique: true, index: -1}}
+      id: {type: 'integer', 'x-meta': {id: true, writable: false, unique: {index: true}, index: -1}}
     },
     required: ['id']
   },

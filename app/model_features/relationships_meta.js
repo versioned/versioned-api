@@ -42,7 +42,6 @@ function toProperty (fromField, fromType, property) {
   const type = TYPES[relationship.type]
   const schema = property.items || pick(property, ['type'])
   const xMeta = compact({
-    unique: (relationship.type === 'one-to-one' ? true : undefined),
     relationship: {
       toType: fromType,
       toField: fromField,
