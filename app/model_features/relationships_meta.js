@@ -74,7 +74,9 @@ async function updateRelationship (doc, path, change, options) {
   if (!model) return
   const updatedProperty = change.deleted ? null : toProperty(name, fromType, property)
   const updatedModel = setIn(model.model, `schema.properties.${toField}`, updatedProperty)
-  return requireModels().update(model.id, {model: updatedModel}, {callbacks: false, rejectUnchanged: false})
+  const skipCallbacks = ['updateTwoWayRelationships']
+  const updateOptions = merge(options, {skipCallbacks, rejectUnchanged: false})
+  return requireModels().update(model.id, {model: updatedModel}, updateOptions)
 }
 
 async function setTwoWayRelationships (doc, options) {

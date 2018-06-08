@@ -40,6 +40,12 @@ function shouldCheckUnique (property) {
     ['one-to-one', 'one-to-many'].includes(getIn(property, 'x-meta.relationship.type'))
 }
 
+function shouldCreateIndex (property) {
+  return getIn(property, 'x-meta.unique') === true ||
+    getIn(property, 'x-meta.relationship') ||
+    ['string', 'integer', 'number'].includes(property.type)
+}
+
 function getId (value) {
   return isObject(value) ? getIn(value, 'id') : value
 }
@@ -54,9 +60,9 @@ async function checkUnique (doc, options) {
     if (shouldCheckUnique(property)) {
       const values = array(doc[key]).map(getValue)
       if (notEmpty(values)) {
-        const query = {[key]: {$in: values}, id: {$ne: doc.id}}
+        const query = {[key]: {$in: values}}
         const projection = {id: 1, [key]: 1, title: 1}
-        const duplicates = await options.api.list(query, {projection})
+        const duplicates = (await options.api.list(query, {projection})).filter(d => d.id !== doc.id)
         if (duplicates.length > 0) {
           const allDuplicatesValues = duplicates.map(d => d[key]).reduce((acc, value) => {
             acc = acc.concat(array(value).map(getValue))
@@ -130,15 +136,23 @@ async function setFeatures (doc, options) {
   }
 }
 
-async function setSchema (doc, options) {
-  if (doc.model) {
-    const xMeta = {
-      writeRequiresAdmin: false,
-      dataModel: true
-    }
-    return setIn(doc, ['model', 'schema', 'x-meta'], xMeta)
-  } else {
-    return doc
+async function setModelSchema (doc, options) {
+  if (empty(doc.model)) return
+  const xMeta = {
+    writeRequiresAdmin: false,
+    dataModel: true
+  }
+  return setIn(doc, ['model', 'schema', 'x-meta'], xMeta)
+}
+
+function setModelIndexes (doc, options) {
+  const properties = getIn(doc, 'model.schema.properties')
+  if (empty(properties)) return
+  const indexes = keyValues(properties)
+    .filter(([key, property]) => shouldCreateIndex(property))
+    .map(([key, property]) => ({keys: {[key]: 1}}))
+  if (notEmpty(indexes)) {
+    return setIn(doc, ['model', 'indexes'], indexes)
   }
 }
 
@@ -319,7 +333,7 @@ const model = {
   },
   callbacks: {
     save: {
-      beforeValidation: [validateSpace, setDefaultColl, setModelColl, setAccountId, setFeatures, setSchema, validatePropertyNames, validateModel, validatePropertiesLimit, setPropertiesOrder],
+      beforeValidation: [validateSpace, setDefaultColl, setModelColl, setAccountId, setFeatures, setModelSchema, setModelIndexes, validatePropertyNames, validateModel, validatePropertiesLimit, setPropertiesOrder],
       afterValidation: [validateXMeta, validateSwagger]
     },
     create: {
