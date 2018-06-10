@@ -141,7 +141,8 @@ async function setModelSchema (doc, options) {
   const xMeta = compact({
     writeRequiresAdmin: false,
     dataModel: true,
-    titleProperty: doc.titleProperty
+    titleProperty: doc.titleProperty,
+    propertiesOrder: doc.propertiesOrder
   })
   return setIn(doc, ['model', 'schema', 'x-meta'], xMeta)
 }
@@ -335,7 +336,7 @@ const model = {
   },
   callbacks: {
     save: {
-      beforeValidation: [validateSpace, setDefaultColl, setModelColl, setAccountId, setFeatures, setModelSchema, setModelIndexes, validatePropertyNames, validateModel, validatePropertiesLimit, setPropertiesOrder],
+      beforeValidation: [validateSpace, setDefaultColl, setPropertiesOrder, setModelColl, setAccountId, setFeatures, setModelSchema, setModelIndexes, validatePropertyNames, validateModel, validatePropertiesLimit],
       afterValidation: [validateXMeta, validateSwagger]
     },
     create: {
