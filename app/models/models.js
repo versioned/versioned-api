@@ -138,10 +138,11 @@ async function setFeatures (doc, options) {
 
 async function setModelSchema (doc, options) {
   if (empty(doc.model)) return
-  const xMeta = {
+  const xMeta = compact({
     writeRequiresAdmin: false,
-    dataModel: true
-  }
+    dataModel: true,
+    titleProperty: doc.titleProperty
+  })
   return setIn(doc, ['model', 'schema', 'x-meta'], xMeta)
 }
 
@@ -302,6 +303,7 @@ async function deleteColl (doc, options) {
 const model = {
   coll,
   features: concat(DEFAULTS.features, ['relationships_meta']),
+  titleProperty: {type: 'string'},
   schema: {
     type: 'object',
     properties: {

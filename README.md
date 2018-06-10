@@ -4,6 +4,8 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 
 ## Backlog (Sprint)
 
+* When spaces.config.ALGOLIA_* is changed, run search(config, {space}).setup()
+
 * Check two way relationship update works
   Broken for one-to-one (add slot to relationships API test)
   Works for one-to-many and many-to-many?
