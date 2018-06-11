@@ -59,11 +59,12 @@ function idParameter (model) {
 }
 
 function parameters (model, endpoint) {
-  const listParameters = concat(LIST_PARAMETERS, [tokenParameter(), spaceIdParameter()])
+  const readParameters = [tokenParameter()]
+  const listParameters = concat(LIST_PARAMETERS, [spaceIdParameter()])
   const getParameters = concat(listParameters, idParameter(model))
   return {
-    list: listParameters,
-    get: getParameters,
+    list: concat(readParameters, listParameters),
+    get: concat(readParameters, getParameters),
     create: listParameters,
     update: getParameters,
     delete: getParameters
