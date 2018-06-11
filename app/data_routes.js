@@ -24,6 +24,18 @@ function withParams (path, options = {}) {
   }, path)
 }
 
+function tokenParameter () {
+  return {
+    name: 'token',
+    description: 'User auth header with JWT token on the format "Bearer {token}"',
+    in: 'query',
+    required: false,
+    schema: {
+      type: 'string'
+    }
+  }
+}
+
 function spaceIdParameter () {
   return {
     name: 'spaceId',
@@ -47,7 +59,7 @@ function idParameter (model) {
 }
 
 function parameters (model, endpoint) {
-  const listParameters = concat(LIST_PARAMETERS, [spaceIdParameter()])
+  const listParameters = concat(LIST_PARAMETERS, [tokenParameter(), spaceIdParameter()])
   const getParameters = concat(listParameters, idParameter(model))
   return {
     list: listParameters,
