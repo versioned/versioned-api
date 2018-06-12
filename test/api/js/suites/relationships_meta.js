@@ -51,6 +51,48 @@ module.exports = async function (c) {
   result = await c.get('authors model should still have articles relationship', `/${accountId}/models/${Author.id}`)
   c.assertEqual(result.data.model.schema.properties.articles, relationships.authors.articles)
 
+  const Tag = {
+    name: 'Tag',
+    spaceId: spaceId,
+    coll: 'tags',
+    features: ['published'],
+    model: {
+      schema: {
+        type: 'object',
+        properties: {
+          name: {type: 'string'},
+          articles: {
+            type: 'array',
+            items: {type: 'string'},
+            'x-meta': {
+              relationship: {
+                toType: 'articles',
+                toField: 'tags',
+                type: 'many-to-many'
+              }
+            }
+          }
+        },
+        required: ['name'],
+        additionalProperties: false
+      }
+    }
+  }
+  result = await c.post('create tag model with many-to-many article relationship', `/${accountId}/models`, Tag)
+
+  result = await c.get('articles model should now have tags relationship', `/${accountId}/models/${Article.id}`)
+  c.assertEqual(result.data.model.schema.properties.tags, {
+    type: 'array',
+    items: {type: 'string'},
+    'x-meta': {
+      relationship: {
+        toType: 'tags',
+        toField: 'articles',
+        type: 'many-to-many'
+      }
+    }
+  })
+
   await c.delete('remove articles model', `/${accountId}/models/${Article.id}`)
 
   await c.get({it: 'articles model is gone', status: 404}, `/${accountId}/models/${Article.id}`)

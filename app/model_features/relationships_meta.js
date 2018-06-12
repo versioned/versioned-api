@@ -5,7 +5,8 @@ const requireModels = () => require('app/models/models')
 const {logger} = require('app/config').modules
 
 function twoWayRelationshipChanges (existingDoc, doc) {
-  return keys(changes(existingDoc, doc)).reduce((acc, path) => {
+  const emptyModel = {model: {schema: {properties: {}}}}
+  return keys(changes(existingDoc || emptyModel, doc)).reduce((acc, path) => {
     const match = path.match(/model\.schema\.properties\.([^.]+)/)
     if (match) {
       const property = match[1]
