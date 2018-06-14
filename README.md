@@ -4,6 +4,10 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 
 ## Backlog (Sprint)
 
+* API test req.queryParam.apiKey for read-only data access
+
+* Rate limiting
+
 * When spaces.config.ALGOLIA_* is changed, run search(config, {space}).setup()
 
 * Check two way relationship update works
@@ -447,7 +451,7 @@ async function crudTestPromises() {
       return users.find({}).toArray()
     })
     .then((results) => {
-      console.log('find results after update', results)      
+      console.log('find results after update', results)
       return users.remove({id: 1})
     })
     .then(({result}) => {
