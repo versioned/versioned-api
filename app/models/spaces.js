@@ -9,6 +9,7 @@ const {validationError} = require('lib/errors')
 const {findAvailableKey} = require('lib/unique_key')
 
 const coll = 'spaces'
+const API_KEY_LENGTH = 16
 const DB_KEY_LENGTH = 8 // 16^8 ~ 1 billion
 const DB_KEY_PREFIX = 's'
 
@@ -29,6 +30,11 @@ async function getMongo (space) {
 async function setDbKey (doc, options) {
   const dbKey = await findAvailableKey(mongo, coll, 'dbKey', {length: DB_KEY_LENGTH, prefix: DB_KEY_PREFIX})
   return merge(doc, {dbKey})
+}
+
+async function setApiKey (doc, options) {
+  const apiKey = await findAvailableKey(mongo, coll, 'apiKey', {length: API_KEY_LENGTH})
+  return merge(doc, {apiKey})
 }
 
 async function validateDatabaseUrl (doc, options) {
@@ -92,6 +98,12 @@ const model = {
         maxLength: (DB_KEY_LENGTH + DB_KEY_PREFIX.length),
         'x-meta': {writable: false, unique: {index: true}}
       },
+      apiKey: {
+        type: 'string',
+        pattern: `^[a-z0-9_]+$`,
+        maxLength: API_KEY_LENGTH,
+        'x-meta': { writable: false, unique: { index: true } }
+      },
       databaseUrl: {type: 'string'},
       config: {
         type: 'object',
@@ -107,7 +119,7 @@ const model = {
   },
   callbacks: {
     create: {
-      beforeValidation: [setDbKey, validateDatabaseUrl, checkAccess]
+      beforeValidation: [setDbKey, setApiKey, validateDatabaseUrl, checkAccess]
     }
   },
   indexes: [

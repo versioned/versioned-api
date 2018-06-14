@@ -24,10 +24,10 @@ function withParams (path, options = {}) {
   }, path)
 }
 
-function tokenParameter () {
+function apiKeyParameter () {
   return {
-    name: 'token',
-    description: 'User auth header with JWT token on the format "Bearer {token}"',
+    name: 'apiKey',
+    description: 'The API Key provides read-only data access for clients - mobile/web apps etc',
     in: 'query',
     required: false,
     schema: {
@@ -59,7 +59,7 @@ function idParameter (model) {
 }
 
 function parameters (model, endpoint) {
-  const readParameters = [tokenParameter()]
+  const readParameters = [apiKeyParameter()]
   const listParameters = concat(LIST_PARAMETERS, [spaceIdParameter()])
   const getParameters = concat(listParameters, idParameter(model))
   return {
