@@ -4,7 +4,7 @@
   "description": "A CMS REST API on Node/Mongodb, similar to contentful",
   "main": "app/index.js",
   "engines": {
-    "node": "8.11.2"
+    "node": "8.11.1"
   },
   "scripts": {
     "start": "NODE_PATH=. node app/index.js",

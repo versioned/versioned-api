@@ -34,7 +34,8 @@ const model = {
       coll: {type: 'string'},
       existingDoc: {type: 'object'},
       doc: {type: 'object'},
-      changes: {type: 'array', items: {type: 'object'}}
+      changes: {type: 'array', items: {type: 'object'}},
+      publishEvent: {type: 'boolean'}
     },
     required: ['action', 'coll', 'doc'],
     additionalProperties: false

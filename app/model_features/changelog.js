@@ -19,6 +19,11 @@ function getColl (options) {
   return getIn(options, 'model.coll')
 }
 
+function isPublishEvent (action, existingDoc, toDoc) {
+  return (action === 'create' && getIn(toDoc, 'publishedVersion')) ||
+    (action === 'update' && getIn(toDoc, 'publishedVersion') !== getIn(existingDoc, 'publishedVerison'))
+}
+
 // Changes have dotted paths as keys which does not work well with MongoDB, see:
 // https://stackoverflow.com/questions/30014243/mongoerror-the-dotted-field-is-not-valid-for-storage
 function mongoFriendlyChanges (existingDoc, doc) {
@@ -71,6 +76,7 @@ async function changelogCallback (doc, options) {
   const changes = mongoFriendlyChanges(existingDoc, toDoc)
   const api = modelApi(changelog.model, options.api.mongo, logger)
   const mergableUpdate = await getMergableUpdate(api, doc, changes, options)
+  const publishEvent = isPublishEvent(action, existingDoc, toDoc)
   if (mergableUpdate && diff(mergableUpdate.doc, toDoc)) {
     await api.update(mergableUpdate.id, {
       doc: toDoc,
@@ -88,7 +94,8 @@ async function changelogCallback (doc, options) {
       doc: toDoc,
       changes,
       createdBy: getUserId(options),
-      createdAt: new Date()
+      createdAt: new Date(),
+      publishEvent
     }, {user})
   }
   return doc
