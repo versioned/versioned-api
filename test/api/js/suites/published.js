@@ -231,7 +231,7 @@ module.exports = async function (c) {
   c.assertEqual(result.data[0].action, 'update')
   c.assertEqual(result.data[0].doc.id, id)
   c.assertEqual(result.data[0].doc.version, 2)
-  c.assertEqual(result.data[0].changes, {publishedVersion: {deleted: 1}})
+  c.assertEqual(result.data[0].changes.publishedVersion, {deleted: 1})
 
   result = await c.get('get item', `/data/${spaceId}/items/${id}`)
   c.assertEqual(result.data.id, id)

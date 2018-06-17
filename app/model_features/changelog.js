@@ -7,6 +7,7 @@ const modelApi = require('lib/model_api')
 const {readableDoc} = require('lib/model_access')
 const modelMeta = require('lib/model_meta')
 const diff = require('lib/diff')
+const {getPublishEvent} = require('app/publish_helper')
 
 const RECENT_SECONDS = 3600
 
@@ -17,11 +18,6 @@ function getUserId (options) {
 
 function getColl (options) {
   return getIn(options, 'model.coll')
-}
-
-function isPublishEvent (action, existingDoc, toDoc) {
-  return (action === 'create' && getIn(toDoc, 'publishedVersion')) ||
-    (action === 'update' && getIn(toDoc, 'publishedVersion') !== getIn(existingDoc, 'publishedVerison'))
 }
 
 // Changes have dotted paths as keys which does not work well with MongoDB, see:
@@ -76,12 +72,13 @@ async function changelogCallback (doc, options) {
   const changes = mongoFriendlyChanges(existingDoc, toDoc)
   const api = modelApi(changelog.model, options.api.mongo, logger)
   const mergableUpdate = await getMergableUpdate(api, doc, changes, options)
-  const publishEvent = isPublishEvent(action, existingDoc, toDoc)
+  const publishEvent = getPublishEvent(action, existingDoc, toDoc)
   if (mergableUpdate && diff(mergableUpdate.doc, toDoc)) {
     await api.update(mergableUpdate.id, {
       doc: toDoc,
       changes: mongoFriendlyChanges(mergableUpdate.existingDoc, toDoc),
-      createdAt: new Date()
+      createdAt: new Date(),
+      publishEvent
     }, {user})
   } else {
     await api.create({

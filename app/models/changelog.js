@@ -35,7 +35,7 @@ const model = {
       existingDoc: {type: 'object'},
       doc: {type: 'object'},
       changes: {type: 'array', items: {type: 'object'}},
-      publishEvent: {type: 'boolean'}
+      publishEvent: {enum: ['first-publish', 'republish', 'publish-change', 'unpublish']}
     },
     required: ['action', 'coll', 'doc'],
     additionalProperties: false

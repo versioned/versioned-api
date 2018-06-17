@@ -217,12 +217,25 @@ function isPublishing (doc, options) {
   }
 }
 
+function isUnpublishing (doc, options) {
+  if (options.action === 'update') {
+    return !doc.publishedVersion && getIn(changes(options.existingDoc, doc), ['publishedVersion'])
+  } else {
+    return false
+  }
+}
+
 function setPublishAudit (doc, options) {
+  const now = new Date()
   if (isPublishing(doc, options)) {
-    const now = new Date()
     return merge(doc, compact({
       firstPublishedAt: (doc.firstPublishedAt || now),
-      lastPublishedAt: (doc.publishedVersion && now)
+      lastPublishedAt: now
+    }))
+  } else if (isUnpublishing(doc, options)) {
+    return merge(doc, compact({
+      firstUnpublishedAt: (doc.firstUnpublishedAt || now),
+      lastUnpublishedAt: now
     }))
   } else {
     return doc
@@ -238,6 +251,8 @@ const model = {
       publishedVersion: {type: 'integer', minimum: 1, 'x-meta': {versioned: false, mergeChangelog: false}},
       firstPublishedAt: {type: 'string', format: 'date-time', 'x-meta': {api_writable: false, versioned: false}},
       lastPublishedAt: {type: 'string', format: 'date-time', 'x-meta': {api_writable: false, versioned: false}},
+      firstUnpublishedAt: {type: 'string', format: 'date-time', 'x-meta': {api_writable: false, versioned: false}},
+      lastUnpublishedAt: {type: 'string', format: 'date-time', 'x-meta': {api_writable: false, versioned: false}},
       publishAt: {type: 'string', format: 'date-time', 'x-meta': {versioned: false}},
       unpublishAt: {type: 'string', format: 'date-time', 'x-meta': {versioned: false}},
       versions: {type: 'array', items: {type: 'object'}, 'x-meta': {writable: false, versioned: false, readable: true}}

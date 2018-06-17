@@ -4,6 +4,11 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 
 ## Backlog (Sprint)
 
+* Control cache header from UI. Use published param? Set to zero for now.
+
+* Måste kunna visa publicerad version och rulla tillbaka i DataEdit
+  Även visa diffen
+
 * API test req.queryParam.apiKey for read-only data access
 
 * Rate limiting
