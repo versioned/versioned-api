@@ -1,0 +1,33 @@
+#!/usr/bin/env node
+
+process.env.LOG_LEVEL = 'verbose'
+
+const assert = require('assert')
+
+const env = process.env.NODE_ENV || 'development'
+const VALID_ENVS = ['test', 'development', 'production']
+assert(VALID_ENVS.includes(env), `env=${env} is not valid`)
+
+const config = require('app/config')
+const {mongo} = config.modules
+const search = require('lib/search')
+
+if (env === 'production') {
+  assert(process.env.MONGODB_URL, 'process.env.MONGODB_URL needs to be set')
+}
+
+assert(process.env.ALGOLIASEARCH_API_KEY, 'process.env.ALGOLIASEARCH_API_KEY needs to be set')
+
+console.log(`bin/reset-db starting env=${env} MONGODB_URL=${config.MONGODB_URL}`)
+
+async function resetDb () {
+  await mongo.connect()
+  console.log(`bin/reset-db drop database...`)
+  await mongo.db().dropDatabase()
+  console.log(`bin/reset-db drop clear search index...`)
+  await search(config).clearIndex()
+  console.log(`bin/reset-db finished`)
+  process.exit(0)
+}
+
+resetDb()
