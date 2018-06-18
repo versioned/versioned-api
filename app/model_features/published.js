@@ -5,6 +5,7 @@ const modelApi = require('lib/model_api')
 const config = require('app/config')
 const {logger} = config.modules
 const {readableDoc} = require('lib/model_access')
+const {sortedCallback} = require('lib/model_callbacks_helper')
 
 const VERSION_TOKEN_LENGTH = 10
 
@@ -269,7 +270,9 @@ const model = {
       after: [mergePublishedDocs, findVersions]
     },
     save: {
-      beforeValidation: [setVersion, adjustPublishedVersion, setPublishAudit],
+      // NOTE: sorting setVersion et al callbacks last as especially setVersion needs to make decisions based on if
+      // anything has changed.
+      beforeValidation: [setVersion, adjustPublishedVersion, setPublishAudit].map(c => sortedCallback('last', c)),
       afterSave: [updateVersion, createVersion]
     },
     delete: {

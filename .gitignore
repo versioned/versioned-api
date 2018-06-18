@@ -2,3 +2,4 @@ node_modules
 npm-debug.log
 test/api/httpie/log
 test/api/js/log.json
+yarn-error.log

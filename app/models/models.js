@@ -11,6 +11,7 @@ const swaggerSchema = require('public/openapi-schema')
 const {withoutRefs} = require('lib/json_schema')
 const {validationError} = require('lib/errors')
 const DEFAULTS = require('lib/model_spec').DEFAULTS
+const {sortedCallback} = require('lib/model_callbacks_helper')
 
 const PROPERTY_NAME_PATTERN = '^[a-zA-Z0-9_-]{1,30}$'
 const coll = 'models'
@@ -137,7 +138,7 @@ async function setFeatures (doc, options) {
   }
 }
 
-async function convertRelObjectsToIds (doc, options) {
+const convertRelObjectsToIds = sortedCallback('first', async (doc, options) => {
   const properties = getIn(options.model, 'schema.properties')
   if (empty(properties)) return
   const converted = keys(doc).reduce((acc, key) => {
@@ -156,7 +157,7 @@ async function convertRelObjectsToIds (doc, options) {
   if (notEmpty(converted)) {
     return merge(doc, converted)
   }
-}
+})
 
 async function setModelSchema (doc, options) {
   if (empty(doc.model)) return
