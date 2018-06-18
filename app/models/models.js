@@ -81,6 +81,7 @@ async function getApi (space, model) {
   const modelInstance = merge(model.model, {
     callbacks: {
       save: {
+        beforeValidation: [convertRelObjectsToIds],
         afterValidation: [checkUnique]
       },
       create: {
@@ -133,6 +134,27 @@ async function setFeatures (doc, options) {
     return setIn(doc, ['model', 'features'], features)
   } else {
     return doc
+  }
+}
+
+async function convertRelObjectsToIds (doc, options) {
+  const properties = getIn(options.model, 'schema.properties')
+  if (empty(properties)) return
+  const converted = keys(doc).reduce((acc, key) => {
+    const value = doc[key]
+    const valueHasObject = array(value || []).find(v => typeof v === 'object')
+    const isRelationship = getIn(properties, `${key}.x-meta.relationship.toType`)
+    const type = getIn(properties, `${key}.type`)
+    const itemsType = getIn(properties, `${key}.items.type`)
+    if (isRelationship && type === 'string' && valueHasObject) {
+      acc[key] = value.id
+    } else if (isRelationship && type === 'array' && itemsType === 'string' && valueHasObject) {
+      acc[key] = value.map(item => typeof item === 'object' ? item.id : item)
+    }
+    return acc
+  }, {})
+  if (notEmpty(converted)) {
+    return merge(doc, converted)
   }
 }
 
