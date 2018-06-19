@@ -92,7 +92,7 @@ async function fetchRelationshipDocs (docs, name, property, options) {
     graph: (g) => nestedGraph(name, property, g)
   })
   const relationshipParent = {type: docs[0].type, field: name}
-  const listOptions = {queryParams, space: options.space, relationshipParent}
+  const listOptions = {queryParams, space: options.space, relationshipParent, user: options.user}
   const query = {id: {$in: ids}}
   const relationshipDocs = (await api.list(query, listOptions)).map(d => readableDoc(api.model, d))
   logger.verbose(`fetchRelationshipDocs name=${name} docs.length=${relationshipDocs.length}`)
@@ -253,7 +253,8 @@ async function validateRelationshipIds (doc, options) {
     const api = await getApi(toType, options.space)
     if (api) {
       const query = {id: {$in: ids}}
-      const foundIds = (await api.list(query, {limit: ids.length, projection: {id: 1}})).map(d => d.id)
+      const listOptions = {limit: ids.length, projection: {id: 1}, user: options.user}
+      const foundIds = (await api.list(query, listOptions)).map(d => d.id)
       const invalidIds = difference(ids, foundIds)
       if (notEmpty(invalidIds)) {
         throw validationError(options.model, doc, `contains the following invalid ids: ${invalidIds.join(', ')}`, name)

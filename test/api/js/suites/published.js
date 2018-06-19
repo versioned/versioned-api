@@ -99,6 +99,7 @@ module.exports = async function (c) {
   c.assertEqual(result.data.title, 'foobar1')
   c.assertEqual(result.data.version, 1)
   c.assertEqual(result.data.publishedVersion, 1)
+  const versionToken = result.data.versionToken
 
   result = await c.put('update published item', `/data/${spaceId}/items/${id}`, {title: 'foobar2'})
   c.assertEqual(result.data.title, 'foobar2')
@@ -138,6 +139,10 @@ module.exports = async function (c) {
   c.assertEqual(result.data.sys.versions[0].version, 2)
   c.assertEqual(result.data.sys.versions[1].title, 'foobar1')
   c.assertEqual(result.data.sys.versions[1].version, 1)
+
+  result = await c.get('get first version of item via the versionToken', `/data/${spaceId}/items/${id}?versionToken=${versionToken}`)
+  c.assertEqual(result.data.title, 'foobar1')
+  c.assertEqual(result.data.version, 1)
 
   result = await c.get('list items', `/data/${spaceId}/items`)
   c.assertEqual(result.data.length, 1)

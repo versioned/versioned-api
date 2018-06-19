@@ -6,6 +6,7 @@ const config = require('app/config')
 const {logger} = config.modules
 const {readableDoc} = require('lib/model_access')
 const {sortedCallback} = require('lib/model_callbacks_helper')
+const {missingError} = require('lib/errors')
 
 const VERSION_TOKEN_LENGTH = 10
 
@@ -17,6 +18,15 @@ const PARAMS = {
     required: false,
     schema: {
       type: 'boolean'
+    }
+  },
+  versionToken: {
+    name: 'versionToken',
+    in: 'query',
+    description: 'Use to fetch a specific version. Can be used for preview by clients or for revert in admin UI',
+    required: false,
+    schema: {
+      type: 'string'
     }
   },
   versions: {
@@ -34,7 +44,7 @@ function parameters (route) {
   if (route.action === 'list') {
     return [PARAMS.published]
   } else if (route.action === 'get') {
-    return [PARAMS.published, PARAMS.versions]
+    return [PARAMS.published, PARAMS.versionToken, PARAMS.versions]
   } else {
     return []
   }
@@ -144,7 +154,7 @@ function addPublishedQuery (doc, options) {
 }
 
 async function mergePublishedDocs (doc, options) {
-  if (empty(doc) || !getIn(options, ['queryParams', 'published'])) return doc
+  if (empty(doc) || !getIn(options, ['queryParams', 'published']) || getIn(options, ['queryParams', 'versionToken'])) return
   const {model, api} = options
   const publishedIds = array(doc).filter(d => d.publishedVersion !== d.version).map(d => ({docId: d.id, version: d.publishedVersion}))
   if (empty(publishedIds)) return doc
@@ -154,6 +164,18 @@ async function mergePublishedDocs (doc, options) {
     return mergeVersion(model, d, publishedDocs[d.id][0])
   })
   return isArray(doc) ? result : result[0]
+}
+
+async function findAndMergeVersionByToken (doc, options) {
+  const versionToken = getIn(options, ['queryParams', 'versionToken'])
+  if (empty(doc) || !versionToken || versionToken === doc.versionToken) return
+  const {model, api} = options
+  const query = {versionToken}
+  const versionDoc = await modelApi(versionedModel(model), api.mongo, logger).get(query)
+  if (!versionDoc) {
+    throw missingError(versionedModel(model), query)
+  }
+  return mergeVersion(model, doc, versionDoc)
 }
 
 async function findVersions (doc, options) {
@@ -267,7 +289,7 @@ const model = {
     },
     get: {
       before: [addPublishedQuery],
-      after: [mergePublishedDocs, findVersions]
+      after: [mergePublishedDocs, findAndMergeVersionByToken, findVersions]
     },
     save: {
       // NOTE: sorting setVersion et al callbacks last as especially setVersion needs to make decisions based on if

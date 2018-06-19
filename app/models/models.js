@@ -9,7 +9,7 @@ const requireSwagger = () => require('app/swagger')
 const jsonSchema = require('lib/json_schema')
 const swaggerSchema = require('public/openapi-schema')
 const {withoutRefs} = require('lib/json_schema')
-const {validationError} = require('lib/errors')
+const {validationError, accessError} = require('lib/errors')
 const DEFAULTS = require('lib/model_spec').DEFAULTS
 const {sortedCallback} = require('lib/model_callbacks_helper')
 
@@ -81,6 +81,12 @@ async function checkUnique (doc, options) {
 async function getApi (space, model) {
   const modelInstance = merge(model.model, {
     callbacks: {
+      list: {
+        before: [checkPublishedQueryForClients]
+      },
+      get: {
+        before: [checkPublishedQueryForClients]
+      },
       save: {
         beforeValidation: [convertRelObjectsToIds],
         afterValidation: [checkUnique]
@@ -158,6 +164,20 @@ const convertRelObjectsToIds = sortedCallback('first', async (doc, options) => {
     return merge(doc, converted)
   }
 })
+
+function checkPublishedQueryForClients (doc, options) {
+  if (options.user || !options.queryParams) return
+  // NOTE: when not authenticated as a user, i.e. when a client uses an apiToken,
+  // the client is only allowed to fetch the published version and specific versions for
+  // preview by versionToken
+  const explanation = 'As a client using an API token you may fetch either the published version (i.e. add published=1 to the query) or preview specific versions with the versionToken param'
+  if (options.queryParams.versions) {
+    throw accessError(`The versions query parameter is now allowed. ${explanation}`)
+  }
+  if (!options.queryParams.published && !options.queryParams.versionToken) {
+    throw accessError(`Missing one of the published or versionToken query parameters. ${explanation}`)
+  }
+}
 
 async function setModelSchema (doc, options) {
   if (empty(doc.model)) return
