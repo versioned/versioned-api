@@ -269,13 +269,13 @@ const model = {
   schema: {
     type: 'object',
     properties: {
-      version: {type: 'integer', minimum: 1, 'x-meta': {api_writable: false}},
-      versionToken: {type: 'string', 'x-meta': {api_writable: false}},
+      version: {type: 'integer', minimum: 1, 'x-meta': {writable: false}},
+      versionToken: {type: 'string', 'x-meta': {writable: false}},
       publishedVersion: {type: 'integer', minimum: 1, 'x-meta': {versioned: false, mergeChangelog: false}},
-      firstPublishedAt: {type: 'string', format: 'date-time', 'x-meta': {api_writable: false, versioned: false}},
-      lastPublishedAt: {type: 'string', format: 'date-time', 'x-meta': {api_writable: false, versioned: false}},
-      firstUnpublishedAt: {type: 'string', format: 'date-time', 'x-meta': {api_writable: false, versioned: false}},
-      lastUnpublishedAt: {type: 'string', format: 'date-time', 'x-meta': {api_writable: false, versioned: false}},
+      firstPublishedAt: {type: 'string', format: 'date-time', 'x-meta': {writable: false, versioned: false}},
+      lastPublishedAt: {type: 'string', format: 'date-time', 'x-meta': {writable: false, versioned: false}},
+      firstUnpublishedAt: {type: 'string', format: 'date-time', 'x-meta': {writable: false, versioned: false}},
+      lastUnpublishedAt: {type: 'string', format: 'date-time', 'x-meta': {writable: false, versioned: false}},
       publishAt: {type: 'string', format: 'date-time', 'x-meta': {versioned: false}},
       unpublishAt: {type: 'string', format: 'date-time', 'x-meta': {versioned: false}},
       versions: {type: 'array', items: {type: 'object'}, 'x-meta': {writable: false, versioned: false, readable: true}}
