@@ -184,6 +184,7 @@ function checkPublishedQueryForClients (doc, options) {
 async function setModelSchema (doc, options) {
   if (empty(doc.model)) return
   const xMeta = compact({
+    spaceId: doc.spaceId,
     writeRequiresAdmin: false,
     dataModel: true,
     titleProperty: doc.titleProperty,

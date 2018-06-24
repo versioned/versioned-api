@@ -4,6 +4,8 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 
 ## Backlog (Sprint)
 
+* Need to scope Algolia searches by spaceId
+
 * Control cache header from UI. Use published param? Set to zero for now.
 
 * Måste kunna visa publicerad version och rulla tillbaka i DataEdit

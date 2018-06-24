@@ -224,14 +224,15 @@ async function updateRelationship (doc, name, property, options) {
   logger.verbose(`updateRelationship ${options.model.type}.${name} -> ${toType}.${toField} toMany=${toMany} added=${json(added)} removed=${json(removed)} changed=${json(changed)}`)
 
   const skipCallbacks = ['updateAllRelationships', 'checkAccess', 'validateRelationshipIds']
+  const apiOptions = {skipCallbacks, user: options.user, space: options.space}
   for (let fromValue of added) {
     const toValue = makeToValue(fromValue, doc.id)
     const addValue = (values) => toMany ? concat(values, [toValue]) : toValue
-    await api.update(getId(fromValue), {}, {skipCallbacks, evolve: {[toField]: addValue}})
+    await api.update(getId(fromValue), {}, merge(apiOptions, {evolve: {[toField]: addValue}}))
   }
   for (let fromValue of removed) {
     const removeValue = (values) => toMany ? values.filter(v => getId(v) !== doc.id) : undefined
-    await api.update(getId(fromValue), {}, {skipCallbacks, evolve: {[toField]: removeValue}})
+    await api.update(getId(fromValue), {}, merge(apiOptions, {evolve: {[toField]: removeValue}}))
   }
   for (let fromValue of changed) {
     const updateValue = (values) => {
@@ -241,7 +242,7 @@ async function updateRelationship (doc, name, property, options) {
         return updateToValue(values, fromValue)
       }
     }
-    await api.update(getId(fromValue), {}, {skipCallbacks, evolve: {[toField]: updateValue}})
+    await api.update(getId(fromValue), {}, merge(apiOptions, {evolve: {[toField]: updateValue}}))
   }
 }
 
