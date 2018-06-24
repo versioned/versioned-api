@@ -41,10 +41,12 @@ function shouldCheckUnique (property) {
     ['one-to-one', 'one-to-many'].includes(getIn(property, 'x-meta.relationship.type'))
 }
 
+// NOTE: MongoDB will not create a normal index with more than 1024 chars:
+// https://stackoverflow.com/questions/27792706/cannot-create-index-in-mongodb-key-too-large-to-index
 function shouldCreateIndex (property) {
   return getIn(property, 'x-meta.unique') === true ||
     getIn(property, 'x-meta.relationship') ||
-    ['string', 'integer', 'number'].includes(property.type)
+    (['string', 'integer', 'number'].includes(property.type) && !(getIn(property, 'x-meta.field.type') === 'text'))
 }
 
 function getId (value) {
