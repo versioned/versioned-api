@@ -21,6 +21,7 @@
   "license": "ISC",
   "dependencies": {
     "ajv": "6.4.0",
+    "algoliasearch": "3.29.0",
     "axios": "0.18.0",
     "mongodb": "3.0.4",
     "swagger-ui-dist": "3.13.3"

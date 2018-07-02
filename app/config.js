@@ -16,7 +16,7 @@ const defaultConfig = {
   DATA_LIMIT: 5000,
   ALGOLIASEARCH_APPLICATION_ID: 'P043S7HG2J',
   ALGOLIASEARCH_API_KEY: null,
-  ALGOLIASEARCH_INDEX_NAME: `versioned2-${NODE_ENV}`
+  ALGOLIASEARCH_API_KEY_SEARCH: null
 }
 const envConfig = pick(process.env, Object.keys(defaultConfig))
 const config = merge(defaultConfig, envConfig)

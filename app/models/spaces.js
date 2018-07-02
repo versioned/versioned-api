@@ -1,5 +1,5 @@
 const config = require('app/config')
-const {getIn, property, merge} = require('lib/util')
+const {map, getIn, property, merge} = require('lib/util')
 const modelApi = require('lib/model_api')
 const {logger, mongo} = require('app/config').modules
 const MongoClient = require('mongodb').MongoClient
@@ -7,6 +7,7 @@ const mongoModule = require('lib/mongo')
 const accounts = require('app/models/accounts')
 const {validationError} = require('lib/errors')
 const {findAvailableKey} = require('lib/unique_key')
+const search = require('lib/search')
 
 const coll = 'spaces'
 const API_KEY_LENGTH = 16
@@ -61,6 +62,21 @@ async function checkAccess (doc, options) {
   return doc
 }
 
+async function setupSearch (doc, options) {
+  await search(config, {space: doc}).setup()
+}
+
+function addAlgoliaFields (data, options) {
+  function addFields (doc) {
+    const _search = search(config, {space: doc})
+    return merge(doc, {
+      algoliaApiKey: _search.spaceApiKey,
+      algoliaIndexName: _search.indexName
+    })
+  }
+  return data ? map(data, addFields) : data
+}
+
 const model = {
   coll,
   schema: {
@@ -102,24 +118,34 @@ const model = {
         type: 'string',
         pattern: `^[a-z0-9_]+$`,
         maxLength: API_KEY_LENGTH,
-        'x-meta': { writable: false, unique: { index: true } }
+        'x-meta': {writable: false, unique: {index: true}}
       },
       databaseUrl: {type: 'string'},
       config: {
         type: 'object',
         properties: {
           ALGOLIASEARCH_APPLICATION_ID: {type: 'string'},
-          ALGOLIASEARCH_API_KEY: {type: 'string'}
+          ALGOLIASEARCH_API_KEY: {type: 'string'},
+          ALGOLIASEARCH_INDEX_NAME: {type: 'string'}
         },
         additionalProperties: false
-      }
+      },
+      algoliaApiKey: {type: 'string', 'x-meta': {writable: false}},
+      algoliaIndexName: {type: 'string', 'x-meta': {writable: false}}
     },
     required: ['name', 'accountId', 'dbKey'],
     additionalProperties: false
   },
   callbacks: {
+    list: {
+      after: [addAlgoliaFields]
+    },
+    get: {
+      after: [addAlgoliaFields]
+    },
     create: {
-      beforeValidation: [setDbKey, setApiKey, validateDatabaseUrl, checkAccess]
+      beforeValidation: [setDbKey, setApiKey, validateDatabaseUrl, checkAccess],
+      afterSave: [setupSearch]
     }
   },
   indexes: [

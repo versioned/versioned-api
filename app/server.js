@@ -13,7 +13,6 @@ const validateParams = require('lib/middleware/validate_params').validateParams
 const setCacheHeader = require('lib/middleware/cache').setCacheHeader
 const auth = require('lib/middleware/auth').auth
 const users = require('app/models/users')
-const search = require('lib/search')
 
 const AUTH_CONFIG = {
   JWT_SECRET: config.JWT_SECRET,
@@ -48,9 +47,6 @@ function start () {
   return new Promise((resolve, reject) => {
     logger.info(`Starting server with config=${JSON.stringify(config, null, 4)}`)
     mongo.connect()
-      .then(() => {
-        return search(config).setup()
-      })
       .then(() => {
         setupMiddleware(app)
         app.listen(config['PORT'])
