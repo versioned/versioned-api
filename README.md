@@ -4,6 +4,12 @@ A CMS REST API on MongoDB/Node.js - similar to Contentful
 
 ## Backlog (Sprint)
 
+* Unique Mongodb index for field that is not required?
+  Need to add partialFilterExpression if field not required?
+  https://stackoverflow.com/questions/7955040/mongodb-mongoose-unique-if-not-null
+
+* validate_params middleware should process body params. Need schemaToParameters function in swagger_util
+
 * Need to scope Algolia searches by spaceId
 
 * Control cache header from UI. Use published param? Set to zero for now.

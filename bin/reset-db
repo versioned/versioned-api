@@ -24,7 +24,7 @@ async function resetDb () {
   await mongo.connect()
   console.log(`bin/reset-db drop database...`)
   await mongo.db().dropDatabase()
-  console.log(`bin/reset-db drop clear search index...`)
+  console.log(`bin/reset-db clear search index...`)
   await search(config).clearIndex()
   console.log(`bin/reset-db finished`)
   process.exit(0)

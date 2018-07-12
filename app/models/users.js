@@ -7,8 +7,14 @@ const passwordHash = require('lib/password_hash')
 const DEFAULTS = require('lib/model_spec').DEFAULTS
 const {accessError} = require('lib/errors')
 const requireSpaces = () => require('app/models/spaces')
+const emails = require('app/models/emails')
+const {findAvailableKey} = require('lib/unique_key')
+const assert = require('assert')
+const {urlWithQuery} = require('lib/server_util')
 
+const coll = 'users'
 const ROLES = ['read', 'write', 'admin']
+const FORGOT_PASSWORD_TOKEN_LENGTH = 16
 
 function checkAccess (doc, options) {
   if (getIn(options, 'user.superUser')) return doc
@@ -27,7 +33,7 @@ async function setDefaultSpace (doc, options) {
 }
 
 const model = {
-  type: 'users',
+  type: coll,
   features: concat(DEFAULTS.features, ['password']),
   schema: {
     type: 'object',
@@ -69,6 +75,7 @@ const model = {
           }
         }
       },
+      forgotPasswordToken: {type: 'string', 'x-meta': {readable: false, writable: false}},
       superUser: {type: 'boolean', 'x-meta': {writable: false}}
     },
     required: ['email'],
@@ -123,9 +130,35 @@ async function login (email, password, options = {}) {
   }
 }
 
+async function setForgotPasswordToken (user) {
+  const forgotPasswordToken = await findAvailableKey(mongo, coll, 'forgotPasswordToken', {length: FORGOT_PASSWORD_TOKEN_LENGTH})
+  const result = await mongo.db().collection(coll).update({_id: user.id}, {$set: {forgotPasswordToken}})
+  logger.verbose(`users.setForgotPasswordToken id=${user.id} email=${user.email} forgotPasswordToken=${forgotPasswordToken} result`, result.result)
+  assert(result.result.nModified === 1)
+  return forgotPasswordToken
+}
+
+async function forgotPasswordDeliver (user) {
+  const from = config.FROM_EMAIL
+  const to = user.email
+  const subject = `Forgotten password`
+  const forgotPasswordToken = await setForgotPasswordToken(user)
+  const forgotPasswordUrl = urlWithQuery(`${config.UI_BASE_URL}/forgot-password/change`, {email: user.email, token: forgotPasswordToken})
+  const body = `Click the following link to choose a new password: ${forgotPasswordUrl}`
+  await emails.deliver({from, to, subject, body})
+  return {message: `Forgot password email delivered to ${user.email} - please check your inbox`}
+}
+
+async function forgotPasswordChange (user, password) {
+  const result = await api.update(user.id, {password, forgotPasswordToken: null}, {skipCallbacks: ['checkAccess']})
+  return result
+}
+
 module.exports = merge(api, {
   ROLES,
   authenticate,
   generateToken,
-  login
+  login,
+  forgotPasswordDeliver,
+  forgotPasswordChange
 })

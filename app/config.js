@@ -2,7 +2,7 @@ const {pick, merge} = require('lib/util')
 
 const NODE_ENV = process.env.NODE_ENV || 'development'
 const defaultConfig = {
-  TITLE: 'CMS Rest API',
+  TITLE: 'Versioned CMS',
   DESCRIPTION: 'Supports custom content types and versioning',
   NODE_ENV,
   PORT: 3000,
@@ -16,7 +16,10 @@ const defaultConfig = {
   DATA_LIMIT: 5000,
   ALGOLIASEARCH_APPLICATION_ID: 'P043S7HG2J',
   ALGOLIASEARCH_API_KEY: null,
-  ALGOLIASEARCH_API_KEY_SEARCH: null
+  ALGOLIASEARCH_API_KEY_SEARCH: null,
+  SENDGRID_API_KEY: null,
+  UI_BASE_URL: 'https://versioned2-ui.herokuapp.com',
+  FROM_EMAIL: 'noreply@versioned.io'
 }
 const envConfig = pick(process.env, Object.keys(defaultConfig))
 const config = merge(defaultConfig, envConfig)

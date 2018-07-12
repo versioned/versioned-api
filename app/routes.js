@@ -54,6 +54,64 @@ const systemRoutes = [
     ]
   },
   {
+    tags: ['auth'],
+    summary: 'Send email with a link to a webpage where you can choose a new password',
+    method: 'post',
+    path: `${PREFIX}/forgot-password/deliver`,
+    handler: auth.forgotPasswordDeliver,
+    requireAuth: false,
+    parameters: [
+      {
+        name: 'email',
+        in: 'body',
+        description: 'The address to deliver forgotten password link to',
+        required: true,
+        schema: {
+          type: 'string',
+          format: 'email'
+        }
+      }
+    ]
+  },
+  {
+    tags: ['auth'],
+    summary: 'Change password for a user with the token from a forgot password email',
+    method: 'post',
+    path: `${PREFIX}/forgot-password/change`,
+    handler: auth.forgotPasswordChange,
+    requireAuth: false,
+    parameters: [
+      {
+        name: 'email',
+        in: 'body',
+        description: 'The email address of the user to change password for',
+        required: true,
+        schema: {
+          type: 'string',
+          format: 'email'
+        }
+      },
+      {
+        name: 'token',
+        in: 'body',
+        description: 'The forgot password token from the email',
+        required: true,
+        schema: {
+          type: 'string'
+        }
+      },
+      {
+        name: 'password',
+        in: 'body',
+        description: 'The new password for the user',
+        required: true,
+        schema: {
+          type: 'string'
+        }
+      }
+    ]
+  },
+  {
     tags: ['system'],
     summary: 'Get statistics on database data',
     method: 'get',

@@ -144,7 +144,9 @@ const model = {
       after: [addAlgoliaFields]
     },
     create: {
-      beforeValidation: [setDbKey, setApiKey, validateDatabaseUrl, checkAccess],
+      beforeValidation: [setDbKey, setApiKey, validateDatabaseUrl, checkAccess]
+    },
+    save: {
       afterSave: [setupSearch]
     }
   },

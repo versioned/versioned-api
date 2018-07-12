@@ -4,7 +4,16 @@ const passwordHash = require('lib/password_hash')
 async function setPasswordHashCallback (doc, options) {
   if (doc.password) {
     return merge(doc, {
-      passwordHash: (await passwordHash.generate(doc.password)),
+      passwordHash: (await passwordHash.generate(doc.password))
+    })
+  } else {
+    return doc
+  }
+}
+
+async function removePassword (doc, options) {
+  if (doc.password) {
+    return merge(doc, {
       password: undefined
     })
   } else {
@@ -23,7 +32,8 @@ const model = {
   },
   callbacks: {
     save: {
-      beforeValidation: [setPasswordHashCallback]
+      beforeValidation: [setPasswordHashCallback],
+      afterValidation: [removePassword]
     }
   }
 }
