@@ -1,3 +1,4 @@
+const {pick, nth, json} = require('lib/util')
 const modelApi = require('lib/model_api')
 const config = require('app/config')
 const {logger, mongo} = config.modules
@@ -12,7 +13,8 @@ const model = {
       from: {type: 'string'},
       subject: {type: 'string'},
       body: {type: 'string'},
-      error: {type: 'string'}
+      error: {type: 'string'},
+      result: {type: 'object'}
     },
     required: ['to', 'from', 'subject', 'body'],
     additionalProperties: false
@@ -34,7 +36,9 @@ async function deliver ({to, subject, body}) {
   } catch (e) {
     error = e.toString()
   }
-  await api.create({from, to, subject, body, error})
+  const saveResult = result && pick(nth(result, 0), ['statusCode', 'statusMessage'])
+  logger.debug(`emails.deliver to=${to} subject="${subject}" error=${error} saveResult=${json(saveResult)}`)
+  await api.create({from, to, subject, body, error, result: saveResult})
   return error ? {error} : result
 }
 

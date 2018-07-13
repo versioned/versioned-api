@@ -19,6 +19,7 @@ const defaultConfig = {
   ALGOLIASEARCH_API_KEY_SEARCH: null,
   SENDGRID_API_KEY: null,
   UI_BASE_URL: 'https://versioned2-ui.herokuapp.com',
+  EMAIL_ENABLED: (NODE_ENV === 'production'),
   FROM_EMAIL: 'noreply@versioned.io'
 }
 const envConfig = pick(process.env, Object.keys(defaultConfig))

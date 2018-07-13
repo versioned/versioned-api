@@ -31,7 +31,9 @@ module.exports = async function (c) {
   c.assert(emailDoc)
   c.assertEqual(emailDoc.to, user.email)
   c.assert(!emailDoc.error)
-  const url = parseUrl(emailDoc.body.match(/https:\S+/)[0])
+
+  // NOTE: turns out parseUrl can't handle the anchor in the path
+  const url = parseUrl(emailDoc.body.match(/https:\S+/)[0].replace(/\/#\//, '/'))
   const {token, email} = parseQuery(url.query)
   c.assert(token)
   c.assertEqual(email, user.email)
@@ -45,6 +47,8 @@ module.exports = async function (c) {
   await c.post({it: 'change password with missing email', status: 404}, '/forgot-password/change', {token, email: `${c.uuid()}@example.com`, password}, {headers: {authorization: null}})
 
   await c.post({it: 'change password with invalid password', status: 422}, '/forgot-password/change', {token, email, password: '1'}, {headers: {authorization: null}})
+
+  await c.post('Login with old password still works', '/login', user)
 
   await c.post('change password successfully', '/forgot-password/change', {token, email, password}, {headers: {authorization: null}})
 

@@ -143,7 +143,7 @@ async function forgotPasswordDeliver (user) {
   const to = user.email
   const subject = `Forgotten password`
   const forgotPasswordToken = await setForgotPasswordToken(user)
-  const forgotPasswordUrl = urlWithQuery(`${config.UI_BASE_URL}/forgot-password/change`, {email: user.email, token: forgotPasswordToken})
+  const forgotPasswordUrl = urlWithQuery(`${config.UI_BASE_URL}/#/forgot-password/change`, {email: user.email, token: forgotPasswordToken})
   const body = `Click the following link to choose a new password: ${forgotPasswordUrl}`
   await emails.deliver({from, to, subject, body})
   return {message: `Forgot password email delivered to ${user.email} - please check your inbox`}
