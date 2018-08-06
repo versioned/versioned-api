@@ -26,7 +26,9 @@ const model = {
     type: 'object',
     properties: {
       password: {type: 'string', minLength: 4, maxLength: 100, 'x-meta': {readable: false}},
-      passwordHash: {type: 'string', 'x-meta': {readable: false, writable: false}}
+      passwordHash: {type: 'string', 'x-meta': {readable: false, writable: false}},
+      forgotPasswordToken: {type: 'string', 'x-meta': {readable: false, writable: false}},
+      forgotPasswordTokenCreatedAt: {type: 'string', format: 'date-time', 'x-meta': {readable: false, writable: false}}
     },
     required: ['passwordHash']
   },

@@ -75,7 +75,6 @@ const model = {
           }
         }
       },
-      forgotPasswordToken: {type: 'string', 'x-meta': {readable: false, writable: false}},
       superUser: {type: 'boolean', 'x-meta': {writable: false}}
     },
     required: ['email'],
@@ -132,7 +131,8 @@ async function login (email, password, options = {}) {
 
 async function setForgotPasswordToken (user) {
   const forgotPasswordToken = await findAvailableKey(mongo, coll, 'forgotPasswordToken', {length: FORGOT_PASSWORD_TOKEN_LENGTH})
-  const result = await mongo.db().collection(coll).update({_id: user.id}, {$set: {forgotPasswordToken}})
+  const forgotPasswordTokenCreatedAt = new Date()
+  const result = await mongo.db().collection(coll).update({_id: user.id}, {$set: {forgotPasswordToken, forgotPasswordTokenCreatedAt}})
   logger.verbose(`users.setForgotPasswordToken id=${user.id} email=${user.email} forgotPasswordToken=${forgotPasswordToken} result`, result.result)
   assert(result.result.nModified === 1)
   return forgotPasswordToken
