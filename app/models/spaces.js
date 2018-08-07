@@ -158,6 +158,15 @@ const model = {
   ]
 }
 
+async function deleteSearchIndexes (_mongo = mongo) {
+  const spacesList = await modelApi(model, _mongo, logger).list()
+  for (let space of spacesList) {
+    logger.info(`spaces.deleteSearchIndexes - delete search index for space ${space.name}...`)
+    await search(config, {space}).deleteIndex()
+  }
+}
+
 module.exports = Object.assign(modelApi(model, mongo, logger), {
-  getMongo
+  getMongo,
+  deleteSearchIndexes
 })

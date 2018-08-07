@@ -10,6 +10,7 @@ const {elapsedSeconds} = require('lib/date_util')
 const config = require('app/config')
 const mongo = require('lib/mongo')
 const {AssertionError} = require('assert')
+const spaces = require('app/models/spaces')
 
 const BASE_URL = `http://localhost:${process.env.PORT}/v1`
 const DEDICATED_MONGODB_URL = `${config.MONGODB_URL}_dedicated`
@@ -53,9 +54,11 @@ async function run () {
 
   const client = apiClient({BASE_URL, DEDICATED_MONGODB_URL})
   await server.start()
+  await spaces.deleteSearchIndexes()
   await config.modules.mongo.db().dropDatabase()
   const dedicatedMongo = mongo(DEDICATED_MONGODB_URL)
   await dedicatedMongo.connect()
+  await spaces.deleteSearchIndexes(dedicatedMongo)
   await dedicatedMongo.db().dropDatabase()
   const completedSuites = []
   const failedSuites = []

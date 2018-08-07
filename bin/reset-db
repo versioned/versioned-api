@@ -10,7 +10,6 @@ assert(VALID_ENVS.includes(env), `env=${env} is not valid`)
 
 const config = require('app/config')
 const {mongo} = config.modules
-const search = require('lib/search')
 const spaces = require('app/models/spaces')
 
 if (env === 'production') {
@@ -23,11 +22,8 @@ console.log(`bin/reset-db starting env=${env} MONGODB_URL=${config.MONGODB_URL}`
 
 async function resetDb () {
   await mongo.connect()
-  const spacesList = await spaces.list()
-  for (let space of spacesList) {
-    console.log(`bin/reset-db delete search index for space ${space.name}...`)
-    await search(config, {space}).deleteIndex()
-  }
+  console.log(`bin/reset-db deleteSearchIndexes...`)
+  spaces.deleteSearchIndexes()
   console.log(`bin/reset-db drop database...`)
   await mongo.db().dropDatabase()
   console.log(`bin/reset-db finished`)
