@@ -248,6 +248,12 @@ Verbose mode:
 LOG_LEVEL=verbose npm test
 ```
 
+## Connect to Production Mongo
+
+```bash
+mongo $(heroku config:get MONGODB_URL)
+```
+
 ## API Examples
 
 For local/Heroku:
