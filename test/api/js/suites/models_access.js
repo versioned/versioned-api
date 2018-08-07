@@ -13,7 +13,7 @@ module.exports = async function (c) {
   const createdAt = result.data.createdAt
   const id = result.data.id
   c.assert(id)
-  c.assert(elapsedSeconds(createdAt) < 1)
+  c.assert(elapsedSeconds(createdAt) < 2)
 
   result = await c.post('valid login', '/login', user)
   const headers = {authorization: `Bearer ${result.data.token}`}

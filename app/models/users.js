@@ -150,7 +150,7 @@ async function forgotPasswordDeliver (user) {
 }
 
 async function forgotPasswordChange (user, password) {
-  const result = await api.update(user.id, {password, forgotPasswordToken: null}, {skipCallbacks: ['checkAccess']})
+  const result = await api.update(user.id, {password, forgotPasswordToken: null, forgotPasswordTokenCreatedAt: null}, {skipCallbacks: ['checkAccess']})
   return result
 }
 
