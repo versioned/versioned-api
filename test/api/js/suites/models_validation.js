@@ -8,6 +8,9 @@ module.exports = async function (c) {
   const model = {
     schema: {
       type: 'object',
+      'x-meta': {
+        titleProperty: 'title'
+      },
       properties: {
         title: {type: 'string'},
         body: {type: 'string'}

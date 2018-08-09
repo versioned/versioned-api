@@ -1,4 +1,4 @@
-const {isObject, intersection, array, keyValues, difference, dbFriendly, notEmpty, empty, filter, deepMerge, merge, concat, compact, setIn, getIn, keys} = require('lib/util')
+const {isObject, intersection, array, keyValues, difference, dbFriendly, notEmpty, empty, filter, deepMerge, merge, concat, compact, setIn, mergeIn, getIn, keys} = require('lib/util')
 const config = require('app/config')
 const {logger, mongo} = config.modules
 const modelApi = require('lib/model_api')
@@ -12,6 +12,7 @@ const {withoutRefs} = require('lib/json_schema')
 const {validationError, accessError} = require('lib/errors')
 const DEFAULTS = require('lib/model_spec').DEFAULTS
 const {sortedCallback} = require('lib/model_callbacks_helper')
+const modelMeta = require('lib/model_meta')
 
 const PROPERTY_NAME_PATTERN = '^[a-zA-Z0-9_-]{1,30}$'
 const coll = 'models'
@@ -117,6 +118,13 @@ function setDefaultColl (doc, options) {
   }
 }
 
+function setDefaultTitleProperty (doc, options) {
+  const path = 'model.schema.x-meta.titleProperty'
+  const titleProperty = getIn(doc, path)
+  if (keys(doc.properties).includes(titleProperty)) return
+  return setIn(doc, path, modelMeta.titleProperty(doc.model))
+}
+
 async function setModelColl (doc, options) {
   const coll = await getColl(doc)
   if (coll) {
@@ -134,7 +142,9 @@ async function setModelColl (doc, options) {
 async function setAccountId (doc, options) {
   if (!doc.spaceId) return doc
   const space = await requireSpaces().get(doc.spaceId)
-  return merge(doc, {accountId: space.accountId})
+  if (space) {
+    return merge(doc, {accountId: space.accountId})
+  }
 }
 
 async function setFeatures (doc, options) {
@@ -187,10 +197,9 @@ async function setModelSchema (doc, options) {
     spaceId: doc.spaceId,
     writeRequiresAdmin: false,
     dataModel: true,
-    titleProperty: doc.titleProperty,
     propertiesOrder: doc.propertiesOrder
   })
-  return setIn(doc, ['model', 'schema', 'x-meta'], xMeta)
+  return mergeIn(doc, ['model', 'schema', 'x-meta'], xMeta)
 }
 
 function setModelIndexes (doc, options) {
@@ -350,7 +359,6 @@ async function deleteColl (doc, options) {
 const model = {
   coll,
   features: concat(DEFAULTS.features, ['relationships_meta']),
-  titleProperty: {type: 'string'},
   schema: {
     type: 'object',
     properties: {
@@ -382,7 +390,7 @@ const model = {
   },
   callbacks: {
     save: {
-      beforeValidation: [validateSpace, setDefaultColl, setPropertiesOrder, setModelColl, setAccountId, setFeatures, setModelSchema, setModelIndexes, validatePropertyNames, validateModel, validatePropertiesLimit],
+      beforeValidation: [validateSpace, setDefaultColl, setPropertiesOrder, setModelColl, setAccountId, setFeatures, setModelSchema, setModelIndexes, validatePropertyNames, validateModel, validatePropertiesLimit, setDefaultTitleProperty],
       afterValidation: [validateXMeta, validateSwagger]
     },
     create: {
