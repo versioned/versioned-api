@@ -22,6 +22,10 @@ const AUTH_CONFIG = {
 }
 
 function setupMiddleware (app) {
+  if (process.env.BUGSNAG_API_KEY) {
+    const bugsnag = require('bugsnag')
+    app.use(bugsnag.requestHandler)
+  }
   app.use(responseTime)
   app.use(serveStatic('public'))
   app.use(requestId)
@@ -38,9 +42,9 @@ process.on('uncaughtException', (err) => {
   logger.error('uncaugthException:', err)
 })
 
-if (config.BUGSNAG_API_KEY) {
+if (process.env.BUGSNAG_API_KEY) {
   const bugsnag = require('bugsnag')
-  bugsnag.register(config.BUGSNAG_API_KEY)
+  bugsnag.register(process.env.BUGSNAG_API_KEY)
 }
 
 function start () {
