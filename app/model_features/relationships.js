@@ -9,6 +9,7 @@ const {validationError} = require('lib/errors')
 const PARAMS = [
   {
     name: 'relationshipLevels',
+    description: 'How many relationship levels to fetch. Fetches all relationships unless the relationships/graph parameters are provided.',
     in: 'query',
     required: false,
     schema: {
@@ -20,6 +21,7 @@ const PARAMS = [
   {
     name: 'relationships',
     in: 'query',
+    description: 'Which relationships to fetch. Example for users: defaultSpace.models,accounts.spaces.models',
     required: false,
     schema: {
       type: 'array',
@@ -31,6 +33,7 @@ const PARAMS = [
   {
     name: 'graph',
     in: 'query',
+    description: 'Which fields/relationships to fetch. The syntax is a limited form of GraphQL. Example for users: {name,defaultSpace{name,models},accounts{name,spaces}}',
     required: false,
     schema: {
       'x-meta': {
