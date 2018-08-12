@@ -26,13 +26,13 @@ const model = {
 
 const api = modelApi(model, mongo, logger)
 
-async function deliver ({to, subject, body}) {
+async function deliver ({to, bcc, subject, body}) {
   const from = config.FROM_EMAIL
-  subject = `[${config.TITLE}] ${subject}`
+  subject = `[${config.EMAIL_PREFIX}] ${subject}`
   let result = null
   let error = null
   try {
-    result = await emailDelivery(config).send({from, to, subject, text: body})
+    result = await emailDelivery(config).send({from, to, bcc, subject, text: body})
   } catch (e) {
     error = e.toString()
   }

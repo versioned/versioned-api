@@ -14,6 +14,16 @@ async function login (req, res) {
   }
 }
 
+async function verifyEmail (req, res) {
+  const {email, token} = req.params
+  try {
+    const data = await users.verifyEmail(email, token)
+    jsonResponse(req, res, {data})
+  } catch (error) {
+    errorResponse(req, res, error, 'Could not verify email')
+  }
+}
+
 async function forgotPasswordDeliver (req, res) {
   const {email} = req.params
   try {
@@ -39,6 +49,7 @@ async function forgotPasswordChange (req, res) {
 
 module.exports = {
   login,
+  verifyEmail,
   forgotPasswordDeliver,
   forgotPasswordChange
 }

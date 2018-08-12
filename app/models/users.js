@@ -14,7 +14,12 @@ const {urlWithQuery} = require('lib/server_util')
 
 const coll = 'users'
 const ROLES = ['read', 'write', 'admin']
-const FORGOT_PASSWORD_TOKEN_LENGTH = 16
+const TOKEN_LENGTH = 16
+
+async function setVerifyEmailToken (doc, options) {
+  const verifyEmailToken = await findAvailableKey(mongo, coll, 'verifyEmailToken', {length: TOKEN_LENGTH})
+  return merge(doc, {verifyEmailToken})
+}
 
 function checkAccess (doc, options) {
   if (getIn(options, 'user.superUser')) return doc
@@ -30,6 +35,15 @@ async function setDefaultSpace (doc, options) {
     const spaces = await requireSpaces().list({accountId: doc.accounts[0].id}, {projection: {}})
     if (notEmpty(spaces)) return merge(doc, {defaultSpaceId: spaces[0].id})
   }
+}
+
+async function sendVerifyEmail (doc, options) {
+  const to = doc.email
+  const bcc = [config.CONTACT_EMAIL]
+  const subject = 'Please verify your email'
+  const verifyEmailUrl = urlWithQuery(`${config.UI_BASE_URL}/#/verify-email`, {email: doc.email, token: doc.verifyEmailToken})
+  const body = `Please click the following link to verify your email:\n\n${verifyEmailUrl}`
+  await emails.deliver({to, bcc, subject, body})
 }
 
 const model = {
@@ -75,6 +89,7 @@ const model = {
           }
         }
       },
+      verifyEmailToken: {type: 'string', 'x-meta': {readable: false, writable: false}},
       superUser: {type: 'boolean', 'x-meta': {writable: false}}
     },
     required: ['email'],
@@ -83,6 +98,10 @@ const model = {
   callbacks: {
     save: {
       afterValidation: [setDefaultSpace]
+    },
+    create: {
+      beforeValidation: [setVerifyEmailToken],
+      afterSave: [sendVerifyEmail]
     },
     update: {
       beforeValidation: [checkAccess]
@@ -129,8 +148,15 @@ async function login (email, password, options = {}) {
   }
 }
 
+async function verifyEmail (email, token) {
+  const user = await api.get({email, verifyEmailToken: token}, {allowMissing: false})
+  assert.equal(user.verifyEmailToken, token, 'verifyEmailToken must match')
+  const result = await mongo.db().collection(coll).update({_id: user.id}, {$unset: {verifyEmailToken: ''}})
+  return result
+}
+
 async function setForgotPasswordToken (user) {
-  const forgotPasswordToken = await findAvailableKey(mongo, coll, 'forgotPasswordToken', {length: FORGOT_PASSWORD_TOKEN_LENGTH})
+  const forgotPasswordToken = await findAvailableKey(mongo, coll, 'forgotPasswordToken', {length: TOKEN_LENGTH})
   const forgotPasswordTokenCreatedAt = new Date()
   const result = await mongo.db().collection(coll).update({_id: user.id}, {$set: {forgotPasswordToken, forgotPasswordTokenCreatedAt}})
   logger.verbose(`users.setForgotPasswordToken id=${user.id} email=${user.email} forgotPasswordToken=${forgotPasswordToken} result`, result.result)
@@ -139,13 +165,12 @@ async function setForgotPasswordToken (user) {
 }
 
 async function forgotPasswordDeliver (user) {
-  const from = config.FROM_EMAIL
   const to = user.email
   const subject = `Forgotten password`
   const forgotPasswordToken = await setForgotPasswordToken(user)
   const forgotPasswordUrl = urlWithQuery(`${config.UI_BASE_URL}/#/forgot-password/change`, {email: user.email, token: forgotPasswordToken})
   const body = `Click the following link to choose a new password:\n\n${forgotPasswordUrl}`
-  await emails.deliver({from, to, subject, body})
+  await emails.deliver({to, subject, body})
   return {message: `Forgot password email delivered to ${user.email} - please check your inbox`}
 }
 
@@ -159,6 +184,7 @@ module.exports = merge(api, {
   authenticate,
   generateToken,
   login,
+  verifyEmail,
   forgotPasswordDeliver,
   forgotPasswordChange
 })

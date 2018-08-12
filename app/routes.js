@@ -55,6 +55,35 @@ const systemRoutes = [
   },
   {
     tags: ['auth'],
+    summary: 'Verify email for a user with a token from a link delivered in an email',
+    method: 'post',
+    path: `${PREFIX}/verify-email`,
+    handler: auth.verifyEmail,
+    requireAuth: false,
+    parameters: [
+      {
+        name: 'email',
+        in: 'body',
+        description: 'The email address of the user to verify email for',
+        required: true,
+        schema: {
+          type: 'string',
+          format: 'email'
+        }
+      },
+      {
+        name: 'token',
+        in: 'body',
+        description: 'The verify email token from the email',
+        required: true,
+        schema: {
+          type: 'string'
+        }
+      }
+    ]
+  },
+  {
+    tags: ['auth'],
     summary: 'Send email with a link to a webpage where you can choose a new password',
     method: 'post',
     path: `${PREFIX}/forgot-password/deliver`,

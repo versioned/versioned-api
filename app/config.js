@@ -2,7 +2,7 @@ const {pick, merge} = require('lib/util')
 
 const NODE_ENV = process.env.NODE_ENV || 'development'
 const defaultConfig = {
-  TITLE: 'Versioned CMS',
+  TITLE: 'Versioned API',
   DESCRIPTION: 'Supports custom content types and versioning',
   NODE_ENV,
   PORT: 3000,
@@ -18,9 +18,11 @@ const defaultConfig = {
   ALGOLIASEARCH_API_KEY: null,
   ALGOLIASEARCH_API_KEY_SEARCH: null,
   SENDGRID_API_KEY: null,
-  UI_BASE_URL: 'https://versioned2-ui.herokuapp.com',
+  UI_BASE_URL: 'https://app.versioned.io',
+  EMAIL_PREFIX: 'Versioned',
   EMAIL_ENABLED: (NODE_ENV === 'production'),
   FROM_EMAIL: 'noreply@versioned.io',
+  CONTACT_EMAIL: 'info@versioned.io',
   SYS_ROUTE_KEY: '22b46b0da4'
 }
 const envConfig = pick(process.env, Object.keys(defaultConfig))
