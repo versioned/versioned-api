@@ -115,15 +115,41 @@ const systemRoutes = [
     tags: ['system'],
     summary: 'Get statistics on database data',
     method: 'get',
-    path: `${PREFIX}/sys/dbStats`,
-    handler: sys.dbStats
+    path: `${PREFIX}/sys/${config.SYS_ROUTE_KEY}/dbStats`,
+    handler: sys.dbStats,
+    requireAuth: false
   },
   {
     tags: ['system'],
     summary: 'Get routes',
     method: 'get',
-    path: `${PREFIX}/sys/routes`,
-    handler: sys.routes
+    path: `${PREFIX}/sys/${config.SYS_ROUTE_KEY}/routes`,
+    handler: sys.routes,
+    requireAuth: false
+  },
+  {
+    tags: ['system'],
+    summary: 'Test error notification',
+    method: 'get',
+    path: `${PREFIX}/sys/${config.SYS_ROUTE_KEY}/errorTest`,
+    handler: sys.errorTest,
+    requireAuth: false
+  },
+  {
+    tags: ['system'],
+    summary: 'Get Heroku release info',
+    method: 'get',
+    path: `${PREFIX}/sys/${config.SYS_ROUTE_KEY}/info`,
+    handler: sys.info,
+    requireAuth: false
+  },
+  {
+    tags: ['system'],
+    summary: 'Ping - connects to the database',
+    method: 'get',
+    path: `${PREFIX}/sys/${config.SYS_ROUTE_KEY}/ping`,
+    handler: sys.ping,
+    requireAuth: false
   }
 ]
 

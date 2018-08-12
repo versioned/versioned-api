@@ -5,7 +5,8 @@ const spaces = require('app/models/spaces')
 async function swagger (options = {}) {
   const routesModule = require('app/routes')
   const space = options.spaceId && (await spaces.get(options.spaceId))
-  const routes = await routesModule.getRoutes({space})
+  const allRoutes = await routesModule.getRoutes({space})
+  const routes = allRoutes.filter(route => !(route.tags || []).includes('system'))
   const title = space ? `${config.TITLE} - space: ${space.name}` : config.TITLE
   const swaggerOptions = {
     title,

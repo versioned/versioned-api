@@ -1,6 +1,5 @@
-module.exports = async function (c) {
-  await c.get({it: 'get db stats as regular user', status: 401}, '/sys/dbStats')
+const config = require('app/config')
 
-  let result = await c.get('get db stats as super user', '/sys/dbStats', {headers: c.data.superHeaders})
-  c.assert(result.data.users.count > 0)
+module.exports = async function (c) {
+  await c.get('get db stats as anonymous', `/sys/${config.SYS_ROUTE_KEY}/dbStats`)
 }

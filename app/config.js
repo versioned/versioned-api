@@ -20,7 +20,8 @@ const defaultConfig = {
   SENDGRID_API_KEY: null,
   UI_BASE_URL: 'https://versioned2-ui.herokuapp.com',
   EMAIL_ENABLED: (NODE_ENV === 'production'),
-  FROM_EMAIL: 'noreply@versioned.io'
+  FROM_EMAIL: 'noreply@versioned.io',
+  SYS_ROUTE_KEY: '22b46b0da4'
 }
 const envConfig = pick(process.env, Object.keys(defaultConfig))
 const config = merge(defaultConfig, envConfig)
