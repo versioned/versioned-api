@@ -21,8 +21,16 @@ module.exports = async function (c) {
 
   result = await c.put({it: 'attempted update of createdAt', status: 204}, `/users/${id}`, {createdAt: new Date()}, {headers})
 
-  result = await c.get('get user', `/users/${id}`, {headers})
+  result = await c.get('get user with relationships', `/users/${id}?relationshipLevels=2`, {headers})
   c.assertEqual(result.data.createdAt, createdAt)
   c.assert(!result.data.password)
   c.assert(!result.data.passwordHash)
+  const userWithRelationships = result.data
+  const newName = user.name + ' updated'
+  userWithRelationships.name = newName
+
+  result = await c.put('update user with relationships', `/users/${id}`, userWithRelationships, {headers})
+
+  result = await c.get('get user and check name was updated', `/users/${id}`, {headers})
+  c.assertEqual(result.data.name, newName)
 }
