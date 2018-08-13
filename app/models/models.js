@@ -13,6 +13,7 @@ const {validationError, accessError} = require('lib/errors')
 const DEFAULTS = require('lib/model_spec').DEFAULTS
 const {sortedCallback} = require('lib/model_callbacks_helper')
 const modelMeta = require('lib/model_meta')
+const {PLANS} = require('app/plans')
 
 const PROPERTY_NAME_PATTERN = '^[a-zA-Z0-9_-]{1,30}$'
 const coll = 'models'
@@ -30,11 +31,14 @@ async function getColl (model) {
 }
 
 async function validateDataLimit (doc, options) {
-  const count = await options.api.count()
-  if (count >= config.DATA_LIMIT) {
-    throw validationError(options.model, doc, `You cannot create more than ${config.DATA_LIMIT} documents in your current plan`)
+  if (!options.space.databaseUrl) {
+    const planKey = options.account.plan
+    const plan = PLANS[planKey]
+    const count = await options.api.count()
+    if (count >= plan.DATA_LIMIT) {
+      throw validationError(options.model, doc, `You cannot create more than ${plan.DATA_LIMIT} documents in your current plan (${planKey}). Please upgrade and/or use a dedicated database if you need more documents.`)
+    }
   }
-  return doc
 }
 
 function shouldCheckUnique (property) {
@@ -241,7 +245,7 @@ async function validateModel (doc, options) {
 async function validatePropertiesLimit (doc, options) {
   const properties = getIn(doc, ['model', 'schema', 'properties'])
   if (properties && keys(properties).length > config.PROPERTY_LIMIT) {
-    throw validationError(options.model, doc, `You can not have more than ${config.PROPERTY_LIMIT} properties`)
+    throw validationError(options.model, doc, `You can not have more than ${config.PROPERTY_LIMIT} properties. Please contact us if you think you need more properties.`)
   }
   return doc
 }
@@ -249,7 +253,7 @@ async function validatePropertiesLimit (doc, options) {
 async function validateModelsLimit (doc, options) {
   const modelsCount = doc.spaceId && (await modelApi({coll}, mongo).count({spaceId: doc.spaceId}))
   if (modelsCount && modelsCount >= config.MODELS_LIMIT) {
-    throw validationError(options.model, doc, `You cannot have more than ${config.MODELS_LIMIT} models per space`)
+    throw validationError(options.model, doc, `You cannot have more than ${config.MODELS_LIMIT} models per space. Please contact support if you think you need more models.`)
   }
   return doc
 }

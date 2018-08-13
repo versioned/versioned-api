@@ -1,12 +1,10 @@
-const {toString, find, getIn, concat, merge, property} = require('lib/util')
+const {toString, keys, find, getIn, concat, merge, property} = require('lib/util')
 const {logger, mongo} = require('app/config').modules
 const modelApi = require('lib/model_api')
 const users = require('app/models/users')
 const {validationError, accessError} = require('lib/errors')
+const {PLANS, DEFAULT_PLAN} = require('app/plans')
 const requireSpaces = () => require('app/models/spaces')
-
-const PLANS = ['shared', 'dedicated']
-const DEFAULT_PLAN = 'shared'
 
 // ///////////////////////////////////////
 // CALLBACKS
@@ -20,6 +18,14 @@ function checkAccess (doc, options) {
     throw accessError('You must be granted admin privileges to update or delete an account')
   }
   return doc
+}
+
+function checkNumberOfUsers (doc, options) {
+  if (!doc.users) return
+  const plan = PLANS[doc.plan]
+  if (doc.users.length > plan.USERS_LIMIT) {
+    throw validationError(options.model, doc, `You cannot have more than ${plan.USERS_LIMIT} users in your account on your current plan (${doc.plan}). Please upgrade or contact support if you need more users.`)
+  }
 }
 
 function setDefaultPlan (doc, options) {
@@ -54,7 +60,7 @@ const model = {
     type: 'object',
     properties: {
       name: {type: 'string', 'x-meta': {unique: {index: true}}},
-      plan: {enum: PLANS},
+      plan: {enum: keys(PLANS)},
       spaces: {
         type: 'array',
         items: {type: 'string'},
@@ -96,7 +102,7 @@ const model = {
       afterSave: [createDefaultSpace]
     },
     update: {
-      afterValidation: [checkAccess]
+      afterValidation: [checkAccess, checkNumberOfUsers]
     },
     delete: {
       before: [checkAccess]
