@@ -1,4 +1,5 @@
 const users = require('app/models/users')
+const userInvites = require('app/models/user_invites')
 const {response} = require('app/config').modules
 const {jsonResponse, errorResponse} = response
 const assert = require('assert')
@@ -47,9 +48,19 @@ async function forgotPasswordChange (req, res) {
   }
 }
 
+async function userInviteAccept (req, res) {
+  try {
+    const data = userInvites.accept(req.user, req.params.id)
+    jsonResponse(req, res, {data})
+  } catch (error) {
+    errorResponse(req, res, error, 'Could not accept user invite')
+  }
+}
+
 module.exports = {
   login,
   verifyEmail,
   forgotPasswordDeliver,
-  forgotPasswordChange
+  forgotPasswordChange,
+  userInviteAccept
 }

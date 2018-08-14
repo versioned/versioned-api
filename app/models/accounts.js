@@ -1,4 +1,4 @@
-const {toString, keys, find, getIn, concat, merge, property} = require('lib/util')
+const {keys, find, getIn, concat, merge, property} = require('lib/util')
 const {logger, mongo} = require('app/config').modules
 const modelApi = require('lib/model_api')
 const users = require('app/models/users')
@@ -11,9 +11,8 @@ const requireSpaces = () => require('app/models/spaces')
 // ///////////////////////////////////////
 
 function checkAccess (doc, options) {
-  if (getIn(options, 'user.superUser')) return doc
-  const userId = toString(getIn(options, 'user.id'))
-  const isAccountAdmin = find(doc.users, (u) => u.id === userId && u.role === 'admin')
+  if (getIn(options, 'user.superUser')) return
+  const isAccountAdmin = find(options.user.accounts, (a) => a.id === doc.id && a.role === 'admin')
   if (['update', 'delete'].includes(options.action) && !isAccountAdmin) {
     throw accessError('You must be granted admin privileges to update or delete an account')
   }
@@ -91,6 +90,18 @@ const model = {
             type: 'many-to-many'
           }
         }
+      },
+      userInvites: {
+        type: 'array',
+        items: {type: 'string'},
+        'x-meta': {
+          writable: false,
+          relationship: {
+            toType: 'user_invites',
+            toField: 'accountId',
+            type: 'one-to-many'
+          }
+        }
       }
     },
     required: ['name', 'plan', 'users'],
@@ -102,7 +113,7 @@ const model = {
       afterSave: [createDefaultSpace]
     },
     update: {
-      afterValidation: [checkAccess, checkNumberOfUsers]
+      afterValidation: [checkAccess, checkNumberOfUsers, validateOneAdmin]
     },
     delete: {
       before: [checkAccess]

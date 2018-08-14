@@ -141,6 +141,25 @@ const systemRoutes = [
     ]
   },
   {
+    tags: ['auth'],
+    summary: 'Accept invitation to an account',
+    method: 'post',
+    path: `${PREFIX}/user-invite-accept/:id`,
+    handler: auth.userInviteAccept,
+    superUser: false,
+    parameters: [
+      {
+        name: 'id',
+        in: 'path',
+        description: 'The invite ID from the link in the email',
+        required: true,
+        schema: {
+          type: 'string'
+        }
+      }
+    ]
+  },
+  {
     tags: ['system'],
     summary: 'Get statistics on database data',
     method: 'get',
@@ -218,7 +237,7 @@ function checkAccess (req) {
     getIn(user, 'superUser')) {
     return undefined
   }
-  const requireSuperUser = route.superUser || (!getIn(route, 'model') && !space)
+  const requireSuperUser = route.superUser || (!getIn(route, 'model') && !space && route.superUser !== false)
   if (requireSuperUser) return accessError('You must be super user to access that endpoint')
   const accountScope = req.pathParams.accountId
   return accountScope ? checkAccountAccess(req) : undefined
