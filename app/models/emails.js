@@ -26,8 +26,8 @@ const model = {
 
 const api = modelApi(model, mongo, logger)
 
-async function deliver ({to, bcc, subject, body}) {
-  const from = config.FROM_EMAIL
+async function deliver ({from, to, bcc, subject, body}) {
+  from = from || config.FROM_EMAIL
   subject = `[${config.EMAIL_PREFIX}] ${subject}`
   let result = null
   let error = null

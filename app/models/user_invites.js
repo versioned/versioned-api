@@ -1,7 +1,7 @@
 const assert = require('assert')
 const config = require('app/config')
 const modelApi = require('lib/model_api')
-const {merge, empty, notEmpty, property} = require('lib/util')
+const {getIn, merge, empty, notEmpty, property} = require('lib/util')
 const {validationError} = require('lib/errors')
 const {logger, mongo} = config.modules
 const accounts = require('app/models/accounts')
@@ -29,10 +29,11 @@ async function setUserExists (data, options) {
 async function sendEmail (doc, options) {
   const account = await accounts.get(doc.accountId)
   const to = doc.email
+  const from = getIn(options, 'user.email')
   const subject = `You have been invited to the ${account.name} account`
   const verifyEmailUrl = `${config.UI_BASE_URL}/#/accounts/${doc.accountId}/invite-user-accept/${doc.id}`
   const body = `Please click the following link to accept the invitation and get started:\n\n${verifyEmailUrl}`
-  await emails.deliver({to, subject, body})
+  await emails.deliver({from, to, subject, body})
 }
 
 const model = {
