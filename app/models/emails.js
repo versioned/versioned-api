@@ -52,6 +52,11 @@ function extractUrls (body) {
   })
 }
 
+async function emailIsVerified (email) {
+  const count = await api.count({to: email, linkClicks: {$exists: true}})
+  return count > 0
+}
+
 async function deliver ({from, to, bcc, subject, body}) {
   const id = mongo.createId()
   from = from || config.FROM_EMAIL
@@ -73,5 +78,6 @@ async function deliver ({from, to, bcc, subject, body}) {
 module.exports = Object.assign(api, {
   trackedUrl,
   deliver,
-  extractUrls
+  extractUrls,
+  emailIsVerified
 })
