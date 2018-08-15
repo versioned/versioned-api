@@ -1,4 +1,5 @@
 const {length, pick, property} = require('lib/util')
+const {extractUrls} = require('app/models/emails')
 
 module.exports = async function (c) {
   const accountId = c.data.account.id
@@ -22,8 +23,9 @@ module.exports = async function (c) {
   c.assertEqual(email.from, c.data.user.email)
   c.assertEqual(email.to, invitedUser.email)
   c.assertEqual(email.subject, `[Versioned] You have been invited to the ${c.data.account.name} account`)
+  const acceptUrl = extractUrls(email.body)[0]
   const acceptUrlPattern = new RegExp(`https://app.versioned.io/#/accounts/${accountId}/invite-user-accept/${userInvite.id}`)
-  c.assert(email.body.match(acceptUrlPattern), `Email body should contain URL ${acceptUrlPattern}`)
+  c.assert(acceptUrl.match(acceptUrlPattern), `Email body should contain URL ${acceptUrlPattern}`)
 
   result = await c.post('Create account as new user', '/users', invitedUserCredentials)
   invitedUser.id = result.data.id

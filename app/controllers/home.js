@@ -1,6 +1,7 @@
+const {redirect} = require('app/config').modules.response
+
 async function index (req, res) {
-  res.writeHead(301, {Location: '/swagger-ui/index.html?url=/v1/swagger.json'})
-  res.end('')
+  redirect(res, '/swagger-ui/index.html?url=/v1/swagger.json')
 }
 
 module.exports = {

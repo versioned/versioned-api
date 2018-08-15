@@ -1,5 +1,6 @@
 const parseUrl = require('url').parse
 const parseQuery = require('querystring').parse
+const {extractUrls} = require('app/models/emails')
 
 module.exports = async function (c) {
   const name = c.uuid()
@@ -32,8 +33,9 @@ module.exports = async function (c) {
   c.assertEqual(emailDoc.to, user.email)
   c.assert(!emailDoc.error)
 
+  const forgotUrl = extractUrls(emailDoc.body)[0]
   // NOTE: turns out parseUrl can't handle the anchor in the path
-  const url = parseUrl(emailDoc.body.match(/https:\S+/)[0].replace(/\/#\//, '/'))
+  const url = parseUrl(forgotUrl.replace(/\/#\//, '/'))
   const {token, email} = parseQuery(url.query)
   c.assert(token)
   c.assertEqual(email, user.email)

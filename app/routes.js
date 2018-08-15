@@ -1,6 +1,7 @@
 const home = require('app/controllers/home')
 const swagger = require('app/controllers/swagger')
 const auth = require('app/controllers/auth')
+const emails = require('app/controllers/emails')
 const sys = require('app/controllers/sys')
 const {nil, getIn, concat} = require('lib/util')
 const config = require('app/config')
@@ -158,6 +159,27 @@ const systemRoutes = [
         }
       }
     ]
+  },
+  {
+    method: 'get',
+    path: `${PREFIX}/email_link/:id/:url`,
+    handler: emails.emailLink,
+    requireAuth: false,
+    parameters: [
+      {
+        name: 'id',
+        in: 'path',
+        required: true,
+        schema: {type: 'string'}
+      },
+      {
+        name: 'url',
+        in: 'path',
+        required: true,
+        schema: {type: 'string'}
+      }
+    ],
+    swagger: false
   },
   {
     tags: ['system'],
