@@ -17,7 +17,7 @@ const defaultConfig = {
   ALGOLIASEARCH_API_KEY: null,
   ALGOLIASEARCH_API_KEY_SEARCH: null,
   SENDGRID_API_KEY: null,
-  API_BASE_URL: 'https://api.versioned.io',
+  API_BASE_URL: 'https://api.versioned.io/v1',
   UI_BASE_URL: 'https://app.versioned.io',
   EMAIL_PREFIX: 'Versioned',
   EMAIL_ENABLED: (NODE_ENV === 'production'),
