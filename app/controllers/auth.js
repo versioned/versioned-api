@@ -50,8 +50,8 @@ async function forgotPasswordChange (req, res) {
 
 async function userInviteAccept (req, res) {
   try {
-    const data = userInvites.accept(req.user, req.params.id)
-    jsonResponse(req, res, {data})
+    await userInvites.accept(req.user, req.params.id)
+    jsonResponse(req, res, {data: {result: 'Invite successfully accepted'}})
   } catch (error) {
     errorResponse(req, res, error, 'Could not accept user invite')
   }

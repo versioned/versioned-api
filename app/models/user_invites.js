@@ -1,4 +1,3 @@
-const assert = require('assert')
 const config = require('app/config')
 const modelApi = require('lib/model_api')
 const {getIn, merge, empty, notEmpty, property} = require('lib/util')
@@ -89,9 +88,12 @@ const model = {
 const api = modelApi(model, mongo, logger)
 
 async function accept (user, id) {
-  assert(user, 'Must be logged in to accept an invite')
   const invite = await api.get(id, {allowMissing: false})
-  assert.equal(invite.email, user.email, 'email must match')
+  if (!user || invite.email !== user.email) {
+    const error = new Error('You must be logged in as the invited user to accept the invite')
+    error.status = 401
+    throw error
+  }
   const account = await accounts.get(invite.accountId)
   const users = account.users.concat([{id: user.id, role: invite.role}])
   await accounts.update(invite.accountId, {users}, {skipCallbacks: ['checkAccess']})
