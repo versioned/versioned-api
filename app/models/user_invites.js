@@ -1,6 +1,7 @@
 const config = require('app/config')
 const modelApi = require('lib/model_api')
 const {getIn, merge, empty, notEmpty, property} = require('lib/util')
+const {makeError} = require('lib/server_util')
 const {validationError} = require('lib/errors')
 const {logger, mongo} = config.modules
 const accounts = require('app/models/accounts')
@@ -89,11 +90,7 @@ const api = modelApi(model, mongo, logger)
 
 async function accept (user, id) {
   const invite = await api.get(id, {allowMissing: false})
-  if (!user || invite.email !== user.email) {
-    const error = new Error('You must be logged in as the invited user to accept the invite')
-    error.status = 401
-    throw error
-  }
+  if (!user || invite.email !== user.email) throw makeError('You must be logged in as the invited user to accept the invite', {status: 401})
   const account = await accounts.get(invite.accountId)
   const users = account.users.concat([{id: user.id, role: invite.role}])
   await accounts.update(invite.accountId, {users}, {skipCallbacks: ['checkAccess']})

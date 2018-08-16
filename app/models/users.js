@@ -10,15 +10,17 @@ const requireSpaces = () => require('app/models/spaces')
 const emails = require('app/models/emails')
 const {findAvailableKey} = require('lib/unique_key')
 const assert = require('assert')
-const {urlWithQuery} = require('lib/server_util')
+const {makeError, urlWithQuery} = require('lib/server_util')
 
 const coll = 'users'
 const ROLES = ['read', 'write', 'admin']
 const TOKEN_LENGTH = 16
 
 async function setVerifyEmailToken (doc, options) {
-  const alreadyVerified = await emails.emailIsVerified(doc.email)
-  if (alreadyVerified) return
+  const emailVerified = await emails.emailIsVerified(doc.email)
+  if (emailVerified) {
+    return merge(doc, {emailVerified})
+  }
   const verifyEmailToken = await findAvailableKey(mongo, coll, 'verifyEmailToken', {length: TOKEN_LENGTH})
   return merge(doc, {verifyEmailToken})
 }
@@ -40,7 +42,7 @@ async function setDefaultSpace (doc, options) {
 }
 
 async function sendVerifyEmail (doc, options) {
-  if (!doc.verifyEmailToken) return
+  if (!doc.emailVerified) return
   const to = doc.email
   const bcc = [config.CONTACT_EMAIL]
   const subject = 'Please verify your email'
@@ -93,6 +95,7 @@ const model = {
         }
       },
       verifyEmailToken: {type: 'string', 'x-meta': {readable: false, writable: false}},
+      emailVerified: {type: 'boolean', 'x-meta': {writable: false}},
       superUser: {type: 'boolean', 'x-meta': {writable: false}}
     },
     required: ['email'],
@@ -152,9 +155,11 @@ async function login (email, password, options = {}) {
 }
 
 async function verifyEmail (email, token) {
-  const user = await api.get({email, verifyEmailToken: token}, {allowMissing: false})
+  const user = await api.get({email}, {allowMissing: false})
+  if (user.emailVerified) return
+  if (user.verifyEmailToken !== token) throw makeError('Verify email token from email must match', {status: 422})
   assert.equal(user.verifyEmailToken, token, 'verifyEmailToken must match')
-  const result = await mongo.db().collection(coll).update({_id: user.id}, {$unset: {verifyEmailToken: ''}})
+  const result = await mongo.db().collection(coll).update({_id: user.id}, {$set: {emailVerified: true}}, {$unset: {verifyEmailToken: ''}})
   return result
 }
 
