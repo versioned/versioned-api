@@ -42,7 +42,7 @@ async function setDefaultSpace (doc, options) {
 }
 
 async function sendVerifyEmail (doc, options) {
-  if (!doc.emailVerified) return
+  if (doc.emailVerified) return
   const to = doc.email
   const bcc = [config.CONTACT_EMAIL]
   const subject = 'Please verify your email'
