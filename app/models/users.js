@@ -158,7 +158,6 @@ async function verifyEmail (email, token) {
   const user = await api.get({email}, {allowMissing: false})
   if (user.emailVerified) return
   if (user.verifyEmailToken !== token) throw makeError('Verify email token from email must match', {status: 422})
-  assert.equal(user.verifyEmailToken, token, 'verifyEmailToken must match')
   const result = await mongo.db().collection(coll).update({_id: user.id}, {$set: {emailVerified: true}, $unset: {verifyEmailToken: ''}})
   return result
 }
