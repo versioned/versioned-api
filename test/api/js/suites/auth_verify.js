@@ -2,6 +2,7 @@ const {last} = require('lib/util')
 const parseUrl = require('url').parse
 const parseQuery = require('querystring').parse
 const {extractUrls} = require('app/models/emails')
+const users = require('app/models/users')
 
 module.exports = async function (c) {
   const credentials = {
@@ -19,7 +20,8 @@ module.exports = async function (c) {
 
   await c.post('verify email', '/verify-email', {email: credentials.email, token: verifyEmailToken})
 
-  result = await c.get('get user and check verified', `/users/${user.id}`, {headers: c.data.superHeaders})
-  c.assert(result.data.emailVerified)
-  c.assert(!result.data.verifyEmailToken)
+  const userAfter = await users.get(user.id, {allowMissing: false})
+  console.log('pm debug userAfter', userAfter)
+  c.assert(userAfter.emailVerified)
+  c.assert(!userAfter.verifyEmailToken)
 }
