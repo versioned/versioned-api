@@ -11,9 +11,9 @@ module.exports = async function (c) {
   result = await c.post('create model in space', `/${accountId}/models`, Article)
   const modelId = result.data.id
 
-  result = await c.delete({it: 'attempting to delete the space should yield a validation error as the model requires it', status: 422}, `/${accountId}/spaces/${spaceId}`)
+  result = await c.delete('deleting the space should also delete the model', `/${accountId}/spaces/${spaceId}`)
 
-  result = await c.get('the model is still there', `/${accountId}/models/${modelId}`)
+  result = await c.get({it: 'the model is gone', status: 404}, `/${accountId}/models/${modelId}`)
 
-  result = await c.get('the space is still there', `/${accountId}/spaces/${spaceId}`)
+  result = await c.get({it: 'the space is gone', status: 404}, `/${accountId}/spaces/${spaceId}`)
 }

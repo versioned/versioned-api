@@ -1,5 +1,10 @@
-const {filter, getIn} = require('lib/util')
+const {isObject, array, empty, compact, filter, getIn, keyValues} = require('lib/util')
 const requireModels = () => require('app/models/models')
+
+// NOTE: a relationship value is either an object with an id property or a string id
+function getId (value) {
+  return isObject(value) ? getIn(value, 'id') : value
+}
 
 function relationshipProperties (model) {
   return filter(getIn(model, 'schema.properties'), (p) => {
@@ -8,12 +13,48 @@ function relationshipProperties (model) {
 }
 
 function isTwoWayRelationship (property) {
-  const {toType, toField, oneWay} = getIn(property, 'x-meta.relationship', {})
-  return toType && toField && oneWay !== true
+  const {toType, toField} = getIn(property, 'x-meta.relationship', {})
+  return toType && toField
 }
 
 function twoWayRelationships (model) {
   return filter(relationshipProperties(model), isTwoWayRelationship)
+}
+
+async function canDelete (doc, model, space, mongo) {
+  return empty(await undeletableRelationships(doc, model, space))
+}
+
+async function undeletableRelationships (doc, model, space, mongo) {
+  const result = {cannotCascade: [], missingCascade: []}
+  for (let [name, property] of keyValues(twoWayRelationships(model))) {
+    const toIds = array(doc[name]).map(getId)
+    const toType = getIn(property, 'x-meta.relationship.toType')
+    const toField = getIn(property, 'x-meta.relationship.toField')
+    const toApi = await getApi(toType, model, space)
+    if (toApi && !empty(toIds)) {
+      const toModel = toApi.model
+      const required = getIn(toModel, `schema.required`, []).includes(toField)
+      const cascade = (getIn(toModel, `schema.properties.${toField}.x-meta.relationship.onDelete`) === 'cascade')
+      const relType = getIn(property, 'x-meta.relationship.type')
+      const constrainedType = ['one-to-many', 'one-to-one'].includes(relType)
+      if (constrainedType && required) {
+        if (cascade) {
+          const toDocs = await toApi.list({id: {$in: toIds}})
+          for (let toDoc of toDocs) {
+            const canDeleteTarget = await canDelete(toDoc, toModel, space, mongo)
+            if (!canDeleteTarget) {
+              result.cannotCascade.push({name, toType, relType, toField, toDoc})
+              break
+            }
+          }
+        } else {
+          result.missingCascade.push({name, toType, relType, toField})
+        }
+      }
+    }
+  }
+  return empty(compact(result)) ? undefined : result
 }
 
 function getStaticApi (toType) {
@@ -25,8 +66,8 @@ async function getSpaceModel (toType, spaceId) {
   return requireModels().get({spaceId, 'model.type': toType})
 }
 
-async function getApi (toType, space) {
-  if (space) {
+async function getApi (toType, model, space) {
+  if (getIn(model, 'schema.x-meta.dataModel')) {
     const model = await getSpaceModel(toType, getIn(space, 'id'))
     if (!model) return undefined
     return requireModels().getApi(space, model)
@@ -36,9 +77,12 @@ async function getApi (toType, space) {
 }
 
 module.exports = {
+  getId,
   relationshipProperties,
   isTwoWayRelationship,
   twoWayRelationships,
+  canDelete,
+  undeletableRelationships,
   getSpaceModel,
   getApi
 }

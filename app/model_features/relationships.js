@@ -1,8 +1,8 @@
 const config = require('app/config')
 const {logger} = config.modules
-const {deepMerge, pick, difference, filter, notEmpty, evolve, compact, keys, isArray, groupBy, flatten, first, json, array, keyValues, isObject, getIn, merge, concat, empty} = require('lib/util')
+const {values, property, deepMerge, pick, difference, filter, notEmpty, evolve, compact, keys, isArray, groupBy, flatten, first, json, array, keyValues, isObject, getIn, merge, concat, empty} = require('lib/util')
 const diff = require('lib/diff')
-const {relationshipProperties, twoWayRelationships, getApi} = require('app/relationships_helper')
+const {getId, undeletableRelationships, relationshipProperties, twoWayRelationships, getApi} = require('app/relationships_helper')
 const {readableDoc} = require('lib/model_access')
 const {validationError} = require('lib/errors')
 
@@ -85,7 +85,7 @@ async function fetchRelationshipDocs (docs, name, property, options) {
   logger.verbose(`fetchRelationshipDocs name=${name} property=${json(property)} parent=${json(getIn(options, 'relationshipParent'))}`)
   const {toType, toField} = getIn(property, 'x-meta.relationship')
   if (!toType || isParent(toType, toField, options)) return
-  const api = await getApi(toType, options.space)
+  const api = await getApi(toType, options.model, options.space)
   if (!api) return
   const ids = flatten(docs.map(doc => array(doc[name]).map(getId)))
   if (empty(ids)) return
@@ -188,11 +188,6 @@ function addRouteParameters (route) {
   }
 }
 
-// NOTE: a relationship value is either an object with an id property or a string id
-function getId (value) {
-  return isObject(value) ? getIn(value, 'id') : value
-}
-
 function makeToValue (fromValue, id) {
   return isObject(fromValue) ? merge(fromValue, {id}) : id
 }
@@ -217,9 +212,11 @@ function relationshipDiff (from, to) {
 async function updateRelationship (doc, name, property, options) {
   const {toType, toField} = getIn(property, 'x-meta.relationship')
   if (!toField) return
-  const api = await getApi(toType, options.space)
+  const api = await getApi(toType, options.model, options.space)
   if (!api) return
   const toMany = (getIn(api, `model.schema.properties.${toField}.type`, 'array') === 'array')
+  const toRequired = getIn(api, `model.schema.required`, []).includes(toField)
+  const toCascade = (getIn(api, `model.schema.properties.${toField}.x-meta.relationship.onDelete`) === 'cascade')
 
   const existingValues = getIn(options, ['existingDoc', name])
   const {added, removed, changed} = relationshipDiff(existingValues, doc[name])
@@ -235,7 +232,11 @@ async function updateRelationship (doc, name, property, options) {
   }
   for (let fromValue of removed) {
     const removeValue = (values) => toMany ? values.filter(v => getId(v) !== doc.id) : undefined
-    await api.update(getId(fromValue), {}, merge(apiOptions, {evolve: {[toField]: removeValue}}))
+    if (!toMany && toRequired && toCascade) {
+      await api.delete(getId(fromValue), apiOptions)
+    } else {
+      await api.update(getId(fromValue), {}, merge(apiOptions, {evolve: {[toField]: removeValue}}))
+    }
   }
   for (let fromValue of changed) {
     const updateValue = (values) => {
@@ -254,7 +255,7 @@ async function validateRelationshipIds (doc, options) {
   for (let [name, property] of keyValues(properties)) {
     const ids = array(doc[name]).map(getId)
     const {toType} = getIn(property, 'x-meta.relationship')
-    const api = await getApi(toType, options.space)
+    const api = await getApi(toType, options.model, options.space)
     if (api) {
       const query = {id: {$in: ids}}
       const listOptions = {limit: ids.length, projection: {id: 1}, user: options.user}
@@ -274,6 +275,15 @@ async function updateAllRelationships (doc, options) {
   return doc
 }
 
+async function checkCanDelete (doc, options) {
+  const undeletable = await undeletableRelationships(doc, options.model, options.space, options.mongo)
+  if (notEmpty(undeletable)) {
+    logger.info(`checkCanDelete rejected delete for ${options.model.coll}.${doc.id} undeletable=${json(undeletable)}`)
+    const relNames = flatten(values(undeletable)).map(property('name'))
+    throw validationError(options.model, doc, `Cannot be deleted due to the following relationships: ${relNames.join(', ')}`)
+  }
+}
+
 async function deleteAllRelationships (doc, options) {
   const toDoc = pick(doc, ['id', 'type'])
   await updateAllRelationships(toDoc, merge(options, {existingDoc: doc}))
@@ -287,7 +297,7 @@ const model = {
       afterSave: [updateAllRelationships]
     },
     delete: {
-      before: [deleteAllRelationships]
+      before: [checkCanDelete, deleteAllRelationships]
     },
     list: {
       before: [setGraphProjection],

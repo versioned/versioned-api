@@ -30,8 +30,7 @@ const model = {
           versioned: false,
           relationship: {
             toType: 'users',
-            type: 'many-to-one',
-            oneWay: true
+            type: 'many-to-one'
           }
         }
       },
@@ -43,8 +42,7 @@ const model = {
           versioned: false,
           relationship: {
             toType: 'users',
-            type: 'many-to-one',
-            oneWay: true
+            type: 'many-to-one'
           }
         }
       }

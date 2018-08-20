@@ -21,7 +21,6 @@ module.exports = async function (c) {
   await c.post('verify email', '/verify-email', {email: credentials.email, token: verifyEmailToken})
 
   const userAfter = await users.get(user.id, {allowMissing: false})
-  console.log('pm debug userAfter', userAfter)
   c.assert(userAfter.emailVerified)
   c.assert(!userAfter.verifyEmailToken)
 }

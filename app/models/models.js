@@ -298,7 +298,7 @@ const X_META_SCHEMA = {
         toField: {type: 'string', pattern: PROPERTY_NAME_PATTERN},
         // NOTE: the name is the optional property name used when fetching relationships
         name: {type: 'string'},
-        oneWay: {type: 'boolean'}
+        onDelete: {enum: ['cascade']}
       },
       required: ['toType', 'type'],
       additionalProperties: false
@@ -377,7 +377,8 @@ const model = {
             toType: 'spaces',
             toField: 'models',
             name: 'space',
-            type: 'many-to-one'
+            type: 'many-to-one',
+            onDelete: 'cascade'
           }
         }
       },

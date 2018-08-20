@@ -66,6 +66,10 @@ async function setupSearch (doc, options) {
   await search(config, {space: doc}).setup()
 }
 
+async function deleteSearch (doc, options) {
+  await search(config, {space: doc}).deleteIndex()
+}
+
 function addAlgoliaFields (data, options) {
   function addFields (doc) {
     const _search = search(config, {space: doc})
@@ -148,6 +152,9 @@ const model = {
     },
     save: {
       afterSave: [setupSearch]
+    },
+    delete: {
+      before: [deleteSearch]
     }
   },
   indexes: [
