@@ -352,12 +352,15 @@ async function validateCollAvailable (doc, options) {
 }
 
 async function deleteColl (doc, options) {
-  const coll = getIn(doc, ['model', 'coll'])
-  const colls = await mongo.getColls()
-  if (colls.includes(coll)) {
-    await mongo.db().collection(coll).drop()
+  const modelColl = getIn(doc, ['model', 'coll'])
+  const versionedColl = `${modelColl}_versions`
+  const colls = [modelColl, versionedColl]
+  const allColls = await mongo.getColls()
+  for (let coll of colls) {
+    if (allColls.includes(coll)) {
+      await mongo.db().collection(coll).drop()
+    }
   }
-  return doc
 }
 
 const model = {
