@@ -1,5 +1,5 @@
 const config = require('app/config')
-const {map, getIn, property, merge} = require('lib/util')
+const {map, getIn, property, merge, notEmpty, empty} = require('lib/util')
 const modelApi = require('lib/model_api')
 const {logger, mongo} = require('app/config').modules
 const MongoClient = require('mongodb').MongoClient
@@ -33,9 +33,23 @@ async function setDbKey (doc, options) {
   return merge(doc, {dbKey})
 }
 
+async function setDefaultAlgoliaIndexName (doc, options) {
+  if (notEmpty(doc.algoliaApiKey) && empty(doc.algoliaIndexName) && doc.dbKey) {
+    const algoliaIndexName = ['versioned', doc.dbKey].join('-')
+    return merge(doc, {algoliaIndexName})
+  }
+}
+
 async function setApiKey (doc, options) {
   const apiKey = await findAvailableKey(mongo, coll, 'apiKey', {length: API_KEY_LENGTH})
   return merge(doc, {apiKey})
+}
+
+function validateAlgoliaFields (doc, options) {
+  if (doc.mongodbUrl && (empty(doc.algoliaApplicationId) || empty(doc.algoliaApiKey)) && config.NODE_ENV !== 'test') {
+    throw validationError(options.model, doc, `If you specify a dedicated MongoDB URL you must also use specify Algolia Application ID and API Key for dedicated search`, 'mongodbUrl')
+  }
+  return doc
 }
 
 async function validateMongodbUrl (doc, options) {
@@ -56,7 +70,7 @@ async function checkAccess (doc, options) {
     const adminIds = account.users.filter(u => u.role === 'admin').map(property('id'))
     const userId = getIn(options, 'user.id')
     if (!adminIds.includes(userId)) {
-      throw validationError(options.model, doc, `to create a space you need to have the administrator role`)
+      throw validationError(options.model, doc, `to create or update a space you need to have the administrator role in the ${account.name} account`)
     }
   }
   return doc
@@ -125,9 +139,9 @@ const model = {
         'x-meta': {writable: false, unique: {index: true}}
       },
       mongodbUrl: {type: 'string'},
-      algoliaApplicationId: {type: 'string'},
-      algoliaApiKey: {type: 'string'},
-      algoliaIndexName: {type: 'string'},
+      algoliaApplicationId: {type: 'string', pattern: '^[a-zA-Z0-9]{10}$'},
+      algoliaApiKey: {type: 'string', pattern: '^[a-zA-Z0-9]{32}$'},
+      algoliaIndexName: {type: 'string', pattern: '^(?:\s|[.a-zA-Z0-9_-])+$', maxLength: 256},
       algoliaSharedApiKey: {type: 'string', 'x-meta': {writable: false}},
       algoliaSharedIndexName: {type: 'string', 'x-meta': {writable: false}}
     },
@@ -142,9 +156,10 @@ const model = {
       after: [addAlgoliaFields]
     },
     create: {
-      beforeValidation: [setDbKey, setApiKey, validateMongodbUrl, checkAccess]
+      beforeValidation: [setDbKey, setApiKey]
     },
     save: {
+      beforeValidation: [checkAccess, validateMongodbUrl, validateAlgoliaFields, setDefaultAlgoliaIndexName],
       afterSave: [setupSearch]
     },
     delete: {
