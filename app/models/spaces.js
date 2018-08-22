@@ -17,9 +17,9 @@ const DB_KEY_PREFIX = 's'
 const mongoCache = {}
 
 async function getMongo (space) {
-  if (space.databaseUrl) {
+  if (space.mongodbUrl) {
     if (mongoCache[space.id]) return mongoCache[space.id]
-    const mongo = mongoModule(space.databaseUrl)
+    const mongo = mongoModule(space.mongodbUrl)
     await mongo.connect()
     mongoCache[space.id] = mongo
     return mongo
@@ -38,12 +38,12 @@ async function setApiKey (doc, options) {
   return merge(doc, {apiKey})
 }
 
-async function validateDatabaseUrl (doc, options) {
-  if (doc.databaseUrl) {
+async function validateMongodbUrl (doc, options) {
+  if (doc.mongodbUrl) {
     try {
-      await MongoClient.connect(doc.databaseUrl)
+      await MongoClient.connect(doc.mongodbUrl)
     } catch (err) {
-      throw validationError(options.model, doc, `could not connect to '${doc.databaseUrl}'`, 'databaseUrl')
+      throw validationError(options.model, doc, `could not connect to '${doc.mongodbUrl}'`, 'mongodbUrl')
     }
   }
   return doc
@@ -124,7 +124,7 @@ const model = {
         maxLength: API_KEY_LENGTH,
         'x-meta': {writable: false, unique: {index: true}}
       },
-      databaseUrl: {type: 'string'},
+      mongodbUrl: {type: 'string'},
       algoliaApplicationId: {type: 'string'},
       algoliaApiKey: {type: 'string'},
       algoliaIndexName: {type: 'string'},
@@ -142,7 +142,7 @@ const model = {
       after: [addAlgoliaFields]
     },
     create: {
-      beforeValidation: [setDbKey, setApiKey, validateDatabaseUrl, checkAccess]
+      beforeValidation: [setDbKey, setApiKey, validateMongodbUrl, checkAccess]
     },
     save: {
       afterSave: [setupSearch]

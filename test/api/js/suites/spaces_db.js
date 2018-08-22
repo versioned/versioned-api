@@ -6,16 +6,16 @@ module.exports = async function (c) {
   const space = {
     name: 'My Dedicated CMS',
     accountId: c.data.account.id,
-    databaseUrl: c.DEDICATED_MONGODB_URL
+    mongodbUrl: c.DEDICATED_MONGODB_URL
   }
   const sharedSpace = {
     name: 'My Shared CMS',
     accountId: c.data.account.id
   }
 
-  await c.post({it: 'create space with invalid databaseUrl', status: 422}, `/${accountId}/spaces`, merge(space, {databaseUrl: 'foobar'}))
+  await c.post({it: 'create space with invalid mongodbUrl', status: 422}, `/${accountId}/spaces`, merge(space, {mongodbUrl: 'foobar'}))
 
-  let result = await c.post('create space with valid databaseUrl', `/${accountId}/spaces`, space)
+  let result = await c.post('create space with valid mongodbUrl', `/${accountId}/spaces`, space)
   c.assert(result.data.id)
   space.id = result.data.id
 

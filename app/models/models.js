@@ -23,7 +23,7 @@ async function getColl (model) {
   const space = model.spaceId && (await requireSpaces().get(model.spaceId))
   if (space && model.coll) {
     const prefix = 'm'
-    const qualifier = space.databaseUrl ? undefined : space.dbKey
+    const qualifier = space.mongodbUrl ? undefined : space.dbKey
     return compact([prefix, qualifier, model.coll]).join('_')
   } else {
     return undefined
@@ -31,7 +31,7 @@ async function getColl (model) {
 }
 
 async function validateDataLimit (doc, options) {
-  if (!options.space.databaseUrl) {
+  if (!options.space.mongodbUrl) {
     const planKey = options.account.plan
     const plan = PLANS[planKey]
     const count = await options.api.count()
