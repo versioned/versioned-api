@@ -74,8 +74,8 @@ function addAlgoliaFields (data, options) {
   function addFields (doc) {
     const _search = search(config, {space: doc})
     return merge(doc, {
-      algoliaApiKey: _search.spaceApiKey,
-      algoliaIndexName: _search.indexName
+      algoliaSharedApiKey: _search.sharedApiKey,
+      algoliaSharedIndexName: _search.sharedIndexName
     })
   }
   return data ? map(data, addFields) : data
@@ -125,17 +125,11 @@ const model = {
         'x-meta': {writable: false, unique: {index: true}}
       },
       databaseUrl: {type: 'string'},
-      config: {
-        type: 'object',
-        properties: {
-          ALGOLIASEARCH_APPLICATION_ID: {type: 'string'},
-          ALGOLIASEARCH_API_KEY: {type: 'string'},
-          ALGOLIASEARCH_INDEX_NAME: {type: 'string'}
-        },
-        additionalProperties: false
-      },
-      algoliaApiKey: {type: 'string', 'x-meta': {writable: false}},
-      algoliaIndexName: {type: 'string', 'x-meta': {writable: false}}
+      algoliaApplicationId: {type: 'string'},
+      algoliaApiKey: {type: 'string'},
+      algoliaIndexName: {type: 'string'},
+      algoliaSharedApiKey: {type: 'string', 'x-meta': {writable: false}},
+      algoliaSharedIndexName: {type: 'string', 'x-meta': {writable: false}}
     },
     required: ['name', 'accountId', 'dbKey'],
     additionalProperties: false
