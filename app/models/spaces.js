@@ -47,7 +47,7 @@ async function setApiKey (doc, options) {
 
 function validateAlgoliaFields (doc, options) {
   if (doc.mongodbUrl && (empty(doc.algoliaApplicationId) || empty(doc.algoliaApiKey)) && config.NODE_ENV !== 'test') {
-    throw validationError(options.model, doc, `If you specify a dedicated MongoDB URL you must also use specify Algolia Application ID and API Key for dedicated search`, 'mongodbUrl')
+    throw validationError(options.model, doc, `dedicated database requires dedicated search, i.e. if you specify MongoDB URL you must also specify Algolia Application ID and API Key`, 'mongodbUrl')
   }
   return doc
 }

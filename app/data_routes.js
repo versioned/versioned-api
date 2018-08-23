@@ -1,8 +1,9 @@
 const {zipObj, rename, property, concat, getIn, keys, keyValues, merge} = require('lib/util')
 const models = require('app/models/models')
+const spaces = require('app/models/spaces')
 const modelController = require('lib/model_controller')
 const config = require('app/config')
-const {logger, mongo} = config.modules
+const {logger} = config.modules
 const responseModule = config.modules.response
 const {notFound} = config.modules.response
 const swaggerHandler = require('app/controllers/swagger').index
@@ -121,7 +122,8 @@ async function dbStatsHandler (req, res) {
   const colls = modelSpecs.map(model => getIn(model, 'model.coll'))
   const types = modelSpecs.map(property('coll'))
   const collsToTypes = zipObj(colls, types)
-  const stats = await mongo.dbStats({colls})
+  const spaceMongo = await spaces.getMongo(req.space)
+  const stats = await spaceMongo.dbStats({colls})
   const statsByType = rename(stats, collsToTypes)
   jsonResponse(req, res, wrapData(statsByType))
 }
