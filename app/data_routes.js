@@ -1,5 +1,5 @@
 const {zipObj, rename, property, concat, getIn, keys, keyValues, merge} = require('lib/util')
-const models = require('app/models/models')
+const _models = require('app/models/models')
 const spaces = require('app/models/spaces')
 const modelController = require('lib/model_controller')
 const config = require('app/config')
@@ -17,6 +17,10 @@ const DEFAULTS = require('lib/model_spec').DEFAULTS
 const PARAMS = {
   // spaceId: ['spaceId'],
   model: ['model', 'coll']
+}
+
+async function getModels (space) {
+  return spaces.getApi(space, _models.model)
 }
 
 function withParams (path, options = {}) {
@@ -94,11 +98,13 @@ function dataHandler (coll, endpoint) {
       spaceId: req.params.spaceId,
       coll
     }
+    const models = await getModels(req.space)
     const model = await models.get(query)
     if (model) {
-      const api = await models.getApi(req.space, model)
       const options = {scope: 'spaceId'}
-      modelController(api, config.modules.response, options)[endpoint](req, res)
+      const api = await _models.getApi(req.space, model)
+      const getApi = () => api
+      modelController(api.model, getApi, config.modules.response, options)[endpoint](req, res)
     } else {
       notFound(res)
     }
@@ -118,6 +124,7 @@ function swaggerRoute (prefix, options) {
 }
 
 async function dbStatsHandler (req, res) {
+  const models = await getModels(req.space)
   const modelSpecs = await models.list({spaceId: req.space.id})
   const colls = modelSpecs.map(model => getIn(model, 'model.coll'))
   const types = modelSpecs.map(property('coll'))
@@ -189,7 +196,7 @@ async function modelRoutes (prefix, options = {}) {
 }
 
 async function getChangelogRoutes (prefix, options) {
-  const controller = modelController(changelog, responseModule, {scope: 'spaceId'})
+  const controller = modelController(changelog.model, spaces.getApi, responseModule, {scope: 'spaceId'})
   const handler = (endpoint) => controller[endpoint]
   const model = {coll: changelog.model.coll, model: changelog.model}
   const routes = await modelRoutes(prefix, merge(options, {handler, model, api: changelog}))
@@ -198,11 +205,12 @@ async function getChangelogRoutes (prefix, options) {
 
 async function routes (prefix, options = {}) {
   if (options.space) {
+    const models = await getModels(options.space)
     let spaceModels = await models.list({spaceId: options.space.id})
     if (options.models) spaceModels = spaceModels.concat(options.models)
     let result = [swaggerRoute(prefix, options), dbStatsRoute(prefix, options)]
     for (let model of spaceModels) {
-      const api = await models.getApi(options.space, model)
+      const api = await _models.getApi(options.space, model)
       const routes = await modelRoutes(prefix, merge(options, {model, api}))
       result = result.concat(routes)
     }

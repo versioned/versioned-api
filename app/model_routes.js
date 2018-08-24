@@ -4,14 +4,19 @@ const {keys, concat, flatten, keyValues, merge, pick} = require('lib/util')
 const modelController = require('lib/model_controller')
 const {idType} = require('lib/model_meta')
 const {requestSchema, responseSchema} = require('lib/model_access')
+const requireSpaces = () => require('app/models/spaces')
 
 const DEFAULT_VERSION = 'v1'
 const DEFAULT_REQUIRE_PATH = 'app/models'
 
 function getScope (model) {
-  const name = 'accountId'
-  const schema = model.schema.properties[name]
-  return schema && {name, schema}
+  const names = ['spaceId', 'accountId']
+  for (let name of names) {
+    const schema = model.schema.properties[name]
+    if (schema) {
+      return {name, schema}
+    }
+  }
 }
 
 function listPath (model, prefix) {
@@ -152,8 +157,9 @@ function modelRoutes (responseModule, logger) {
   async function routes (modelApi, prefix = DEFAULT_VERSION) {
     const model = modelApi.model
     if (!model.routes) return []
-    const options = {scope: 'accountId'}
-    const controller = modelController(modelApi, responseModule, options)
+    const scope = getScope(model)
+    const options = (scope ? {scope: scope.name} : {})
+    const controller = modelController(model, requireSpaces().getApi, responseModule, options)
     const result = []
     for (let [endpoint, route] of keyValues(pick(ROUTES, keys(model.routes)))) {
       let modelRoute = [

@@ -49,11 +49,11 @@ module.exports = async function (c) {
 
   const sharedModel = merge(model, {spaceId: sharedSpace.id})
 
-  await c.post('create model in dedicated space', `/${accountId}/models`, model)
+  await c.post('create model in dedicated space', `/${space.id}/models`, model)
   c.assert(result.data.id)
   model.id = result.data.id
 
-  await c.post('create same model in shared space', `/${accountId}/models`, sharedModel)
+  await c.post('create same model in shared space', `/${sharedSpace.id}/models`, sharedModel)
   c.assert(result.data.id)
   sharedModel.id = result.data.id
 

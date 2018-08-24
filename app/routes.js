@@ -12,10 +12,9 @@ const router = require('lib/router')
 const spaces = require('app/models/spaces')
 const accounts = require('app/models/accounts')
 const {accessError} = require('lib/errors')
+const {VERSION, PREFIX, DATA_PREFIX} = require('app/routes_helper')
+const {errorResponse} = config.modules.response
 
-const VERSION = 'v1'
-const PREFIX = `/${VERSION}`
-const DATA_PREFIX = `${VERSION}/data`
 const MODELS_DIR = path.join(__dirname, '/models')
 
 const systemRoutes = [
@@ -265,15 +264,23 @@ function checkAccess (req) {
   return accountScope ? checkAccountAccess(req) : undefined
 }
 
-async function lookupRoute (req) {
-  const spaceId = parseSpaceId(req)
-  const space = spaceId && (await spaces.get(spaceId))
-  if (space) req.space = space
-  const routesByMethod = router.groupByMethod(await getRoutes({space}))
-  const match = await router.lookupRoute(routesByMethod, req)
-  const accountId = getIn(space, 'accountId') || getIn(match, 'params.accountId')
-  if (accountId) req.account = await accounts.get(accountId)
-  return match
+async function lookupRoute (req, res) {
+  try {
+    const dataSpaceId = parseSpaceId(req)
+    let space = dataSpaceId && (await spaces.get(dataSpaceId, {allowMissing: false}))
+    if (space) req.space = space
+    const routesByMethod = router.groupByMethod(await getRoutes({space}))
+    const match = await router.lookupRoute(routesByMethod, req)
+    const spaceId = getIn(match, 'params.spaceId')
+    if (!dataSpaceId && spaceId) {
+      req.space = await spaces.get(spaceId, {allowMissing: false})
+    }
+    const accountId = getIn(req, 'space.accountId') || getIn(match, 'params.accountId')
+    if (accountId) req.account = await accounts.get(accountId, {allowMissing: false})
+    return match
+  } catch (error) {
+    errorResponse(req, res, error)
+  }
 }
 
 module.exports = {

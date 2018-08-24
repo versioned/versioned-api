@@ -1,11 +1,11 @@
 module.exports = async function (c) {
   const {account, model, space} = c.data
 
-  let result = await c.get('get model with relationships', `/${account.id}/models/${model.id}?relationshipLevels=1`)
+  let result = await c.get('get model with relationships', `/${space.id}/models/${model.id}?relationshipLevels=1`)
   c.assertEqual(result.data.spaceId, space.id)
   c.assertEqualKeys(['id', 'name'], result.data.space, space)
 
-  result = await c.get('list models with relationships', `/${account.id}/models?relationshipLevels=1`)
+  result = await c.get('list models with relationships', `/${space.id}/models?relationshipLevels=1`)
   let data = result.data.find(m => m.id === model.id)
   c.assertEqual(data.spaceId, space.id)
   c.assertEqualKeys(['id', 'name'], data.space, space)

@@ -28,6 +28,15 @@ async function getMongo (space) {
   }
 }
 
+async function getApi (space, model) {
+  if (getIn(space, 'mongodbUrl')) {
+    const dedicatedMongo = await getMongo(space)
+    return modelApi(model, dedicatedMongo, logger)
+  } else {
+    return modelApi(model, mongo, logger)
+  }
+}
+
 async function setDbKey (doc, options) {
   const dbKey = await findAvailableKey(mongo, coll, 'dbKey', {length: DB_KEY_LENGTH, prefix: DB_KEY_PREFIX})
   return merge(doc, {dbKey})
@@ -184,5 +193,6 @@ async function deleteSearchIndexes (_mongo = mongo) {
 
 module.exports = Object.assign(modelApi(model, mongo, logger), {
   getMongo,
+  getApi,
   deleteSearchIndexes
 })

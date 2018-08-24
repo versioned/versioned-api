@@ -4,5 +4,5 @@ module.exports = async function (c) {
   const space = result.data
   c.assertEqual(space.accountId, accountId)
 
-  result = await c.post({it: 'you cannot hack the spaceId scope when creating a model', status: 422}, `/${accountId}/models`, {name: 'Super Model', spaceId: 'foobar'})
+  result = await c.post({it: 'you cannot hack the spaceId scope when creating a model', status: 422}, `/${space.id}/models`, {name: 'Super Model', spaceId: 'foobar'})
 }

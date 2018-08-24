@@ -19,9 +19,8 @@ module.exports = async function (c) {
   result = await c.get('get default space', `/${account.id}/spaces/${account.spaces[0]}`)
   const space = result.data
 
-  result = await c.post('create model', `/${account.id}/models`, {
+  result = await c.post('create model', `/${space.id}/models`, {
     name: 'Posts',
-    spaceId: space.id,
     coll: 'posts',
     model: {
       schema: {

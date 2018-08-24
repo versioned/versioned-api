@@ -59,8 +59,8 @@ module.exports = async function (c) {
     {title: 'A farewell to arms'}
   ]
 
-  result = await c.post('create authors model', `/${accountId}/models`, Author)
-  result = await c.post('create articles model', `/${accountId}/models`, Article)
+  result = await c.post('create authors model', `/${spaceId}/models`, Author)
+  result = await c.post('create articles model', `/${spaceId}/models`, Article)
 
   result = await c.post('create author without relationships', `/data/${spaceId}/authors`, author)
   author.id = result.data.id

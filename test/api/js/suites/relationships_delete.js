@@ -8,12 +8,12 @@ module.exports = async function (c) {
 
   const {Article} = relationshipsModel(spaceId)
 
-  result = await c.post('create model in space', `/${accountId}/models`, Article)
+  result = await c.post('create model in space', `/${spaceId}/models`, Article)
   const modelId = result.data.id
 
   result = await c.delete('deleting the space should also delete the model', `/${accountId}/spaces/${spaceId}`)
 
-  result = await c.get({it: 'the model is gone', status: 404}, `/${accountId}/models/${modelId}`)
+  result = await c.get({it: 'the model is gone', status: 404}, `/${spaceId}/models/${modelId}`)
 
   result = await c.get({it: 'the space is gone', status: 404}, `/${accountId}/spaces/${spaceId}`)
 }
