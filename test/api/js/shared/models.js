@@ -21,7 +21,7 @@ async function crudTest (c, prefix, coll, doc, updateDoc) {
     }
   }
   // c.assert(c.isMongoId(created.id))
-  c.assert(elapsedSeconds(created.createdAt) < 2)
+  c.assert(elapsedSeconds(created.createdAt) < 3)
   c.assertEqual(created.createdBy.id, c.data.user.id)
   c.assert(!created.updatedAt)
   c.assert(!created.updatedBy)

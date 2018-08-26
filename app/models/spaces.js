@@ -18,10 +18,10 @@ const mongoCache = {}
 
 async function getMongo (space) {
   if (space.mongodbUrl) {
-    if (mongoCache[space.id]) return mongoCache[space.id]
+    if (mongoCache[space.mongodbUrl]) return mongoCache[space.mongodbUrl]
     const mongo = mongoModule(space.mongodbUrl)
     await mongo.connect()
-    mongoCache[space.id] = mongo
+    mongoCache[space.mongodbUrl] = mongo
     return mongo
   } else {
     return config.modules.mongo

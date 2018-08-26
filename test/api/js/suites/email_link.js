@@ -21,6 +21,6 @@ module.exports = async function (c) {
   email = await emails.get(email.id, {allowMissing: false})
   c.assertEqual(email.linkClicks.length, 2)
   click = email.linkClicks[1]
-  c.assert(elapsedSeconds(click.clickedAt) < 2)
+  c.assert(elapsedSeconds(click.clickedAt) < 3)
   c.assertEqual(click.url, url)
 }

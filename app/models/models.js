@@ -23,7 +23,7 @@ async function getColl (model) {
   const space = model.spaceId && (await requireSpaces().get(model.spaceId))
   if (space && model.coll) {
     const prefix = 'm'
-    const qualifier = space.mongodbUrl ? undefined : space.dbKey
+    const qualifier = space.dbKey
     return compact([prefix, qualifier, model.coll]).join('_')
   } else {
     return undefined
@@ -409,10 +409,6 @@ const model = {
     }
   },
   indexes: [
-    {
-      keys: {'model.coll': 1},
-      options: {unique: true}
-    },
     {
       keys: {spaceId: 1, coll: 1},
       options: {unique: true}
