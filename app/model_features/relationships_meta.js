@@ -1,7 +1,6 @@
 const {compact, json, pick, last, notEmpty, merge, updateIn, setIn, getIn, keys, keyValues, filter} = require('lib/util')
-const {isTwoWayRelationship, twoWayRelationships, getSpaceModel} = require('app/relationships_helper')
+const {getModelsApi, isTwoWayRelationship, twoWayRelationships, getDataModel} = require('app/relationships_helper')
 const {changes} = require('lib/model_api')
-const requireModels = () => require('app/models/models')
 const {logger} = require('app/config').modules
 
 function twoWayRelationshipChanges (existingDoc, doc) {
@@ -71,19 +70,21 @@ async function updateRelationship (doc, path, change, options) {
     logger.info(`relationships_meta.updateRelationship - cannot update, missing fields totype=${toType} toField=${toField} fromType=${fromType} spaceId=${doc.spaceId}`)
     return
   }
-  const model = await getSpaceModel(toType, doc.spaceId)
+  const model = await getDataModel(toType, options.space)
   if (!model) return
   const updatedProperty = change.deleted ? null : toProperty(name, fromType, property)
   const updatedModel = setIn(model.model, `schema.properties.${toField}`, updatedProperty)
   const skipCallbacks = ['updateTwoWayRelationships']
   const updateOptions = merge(options, {skipCallbacks, rejectUnchanged: false})
-  return requireModels().update(model.id, {model: updatedModel}, updateOptions)
+  const models = await getModelsApi(options.space)
+  return models.update(model.id, {model: updatedModel}, updateOptions)
 }
 
 async function setTwoWayRelationships (doc, options) {
   const spaceId = doc.spaceId
   if (!spaceId) return
-  const modelsInSpace = await requireModels().list({spaceId})
+  const models = await getModelsApi(options.space)
+  const modelsInSpace = await models.list({spaceId})
   const relationships = modelsInSpace.reduce((acc, model) => {
     const properties = filter(twoWayRelationships(model.model), (property) => {
       return getIn(property, 'x-meta.relationship.toType') === doc.coll

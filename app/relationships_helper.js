@@ -1,5 +1,6 @@
 const {isObject, array, empty, compact, filter, getIn, keyValues} = require('lib/util')
 const requireModels = () => require('app/models/models')
+const requireSpaces = () => require('app/models/spaces')
 
 // NOTE: a relationship value is either an object with an id property or a string id
 function getId (value) {
@@ -61,14 +62,19 @@ function getStaticApi (toType) {
   return require(`app/models/${toType}`)
 }
 
-async function getSpaceModel (toType, spaceId) {
-  if (!toType || !spaceId) return undefined
-  return requireModels().get({spaceId, 'model.type': toType})
+async function getModelsApi (space) {
+  return requireSpaces().getApi(space, requireModels().model)
+}
+
+async function getDataModel (toType, space) {
+  if (!toType || !space) return undefined
+  const models = await getModelsApi(space)
+  return models.get({spaceId: space.id, 'model.type': toType})
 }
 
 async function getApi (toType, model, space) {
   if (getIn(model, 'schema.x-meta.dataModel')) {
-    const model = await getSpaceModel(toType, getIn(space, 'id'))
+    const model = await getDataModel(toType, space)
     if (!model) return undefined
     return requireModels().getApi(space, model)
   } else {
@@ -83,6 +89,7 @@ module.exports = {
   twoWayRelationships,
   canDelete,
   undeletableRelationships,
-  getSpaceModel,
+  getModelsApi,
+  getDataModel,
   getApi
 }

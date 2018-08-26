@@ -231,7 +231,7 @@ async function updateRelationship (doc, name, property, options) {
     await api.update(getId(fromValue), {}, merge(apiOptions, {evolve: {[toField]: addValue}}))
   }
   for (let fromValue of removed) {
-    const removeValue = (values) => toMany ? values.filter(v => getId(v) !== doc.id) : undefined
+    const removeValue = (values) => (toMany && values) ? values.filter(v => getId(v) !== doc.id) : undefined
     if (!toMany && toRequired && toCascade) {
       await api.delete(getId(fromValue), apiOptions)
     } else {
