@@ -4,14 +4,12 @@ const spaces = require('app/models/spaces')
 const modelController = require('lib/model_controller')
 const config = require('app/config')
 const {logger} = config.modules
-const responseModule = config.modules.response
 const {notFound} = config.modules.response
 const swaggerHandler = require('app/controllers/swagger').index
 const {wrapData, jsonResponse} = config.modules.response
 const {idType} = require('lib/model_meta')
 const {requestSchema, responseSchema} = require('lib/model_access')
 const {LIST_PARAMETERS} = require('app/model_routes')
-const changelog = require('app/models/changelog')
 const DEFAULTS = require('lib/model_spec').DEFAULTS
 
 const PARAMS = {
@@ -195,14 +193,6 @@ async function modelRoutes (prefix, options = {}) {
   return result
 }
 
-async function getChangelogRoutes (prefix, options) {
-  const controller = modelController(changelog.model, spaces.getApi, responseModule, {scope: 'spaceId'})
-  const handler = (endpoint) => controller[endpoint]
-  const model = {coll: changelog.model.coll, model: changelog.model}
-  const routes = await modelRoutes(prefix, merge(options, {handler, model, api: changelog}))
-  return routes
-}
-
 async function routes (prefix, options = {}) {
   if (options.space) {
     const models = await getModels(options.space)
@@ -214,8 +204,6 @@ async function routes (prefix, options = {}) {
       const routes = await modelRoutes(prefix, merge(options, {model, api}))
       result = result.concat(routes)
     }
-    const changelogRoutes = await getChangelogRoutes(prefix, options)
-    result = result.concat(changelogRoutes)
     return result
   } else {
     return [swaggerRoute(prefix, options)]
