@@ -15,7 +15,7 @@ const {sortedCallback} = require('lib/model_callbacks_helper')
 const modelMeta = require('lib/model_meta')
 const {PLANS} = require('app/plans')
 
-const PROPERTY_NAME_PATTERN = '^[a-zA-Z0-9_-]{1,30}$'
+const PROPERTY_NAME_PATTERN = '^[a-zA-Z][a-zA-Z0-9_-]{0,30}$'
 const coll = 'models'
 const collSchema = getIn(modelSchema, ['properties', 'coll'])
 
