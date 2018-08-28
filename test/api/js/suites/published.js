@@ -42,8 +42,8 @@ module.exports = async function (c) {
   c.assert(!result.data.publishedVersion)
   c.assertRecent(result.data.createdAt)
   c.assertEqual(result.data.createdBy.id, c.data.user.id)
-  c.assert(!result.data.updatedAt)
-  c.assert(!result.data.updatedBy)
+  c.assertRecent(result.data.updatedAt)
+  c.assertEqual(result.data.updatedBy.id, c.data.user.id)
 
   result = await c.get('get changelog', `/${spaceId}/changelog`)
   c.assertEqual(result.data[0].action, 'create')
@@ -59,8 +59,8 @@ module.exports = async function (c) {
   c.assert(!result.data.publishedVersion)
   c.assertRecent(result.data.createdAt)
   c.assertEqual(result.data.createdBy.id, c.data.user.id)
-  c.assert(!result.data.updatedAt)
-  c.assert(!result.data.updatedBy)
+  c.assert(result.data.updatedAt)
+  c.assertEqual(result.data.updatedBy.id, c.data.user.id)
 
   result = await c.get('list items', `/data/${spaceId}/items`)
   c.assertEqual(result.data.length, 1)
@@ -70,8 +70,8 @@ module.exports = async function (c) {
   c.assert(!result.data[0].publishedVersion)
   c.assertRecent(result.data[0].createdAt)
   c.assertEqual(result.data[0].createdBy.id, c.data.user.id)
-  c.assert(!result.data[0].updatedAt)
-  c.assert(!result.data[0].updatedBy)
+  c.assert(result.data[0].updatedAt)
+  c.assertEqual(result.data[0].updatedBy.id, c.data.user.id)
 
   result = await c.get({it: 'ask for published version of item', status: 404}, `/data/${spaceId}/items/${id}?published=1`)
 

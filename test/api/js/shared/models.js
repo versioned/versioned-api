@@ -23,8 +23,8 @@ async function crudTest (c, prefix, coll, doc, updateDoc) {
   // c.assert(c.isMongoId(created.id))
   c.assert(elapsedSeconds(created.createdAt) < 3)
   c.assertEqual(created.createdBy.id, c.data.user.id)
-  c.assert(!created.updatedAt)
-  c.assert(!created.updatedBy)
+  c.assert(elapsedSeconds(created.updatedAt) < 3)
+  c.assertEqual(created.updatedBy.id, c.data.user.id)
 
   const getPath = `${listPath}/${id}`
 
@@ -38,8 +38,8 @@ async function crudTest (c, prefix, coll, doc, updateDoc) {
   }
   c.assertEqual(result.data.createdAt, created.createdAt)
   c.assertEqual(result.data.createdBy, created.createdBy)
-  c.assert(!result.data.updatedAt)
-  c.assert(!result.data.updatedBy)
+  c.assertEqual(result.data.updatedAt, created.createdAt)
+  c.assertEqual(result.data.updatedBy, created.createdBy)
 
   await c.get({it: 'cannot list without auth', status: 401}, listPath, c.anonymous)
 

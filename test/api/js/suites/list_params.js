@@ -5,11 +5,11 @@ module.exports = async function (c) {
   const {account, space, secondSpace} = c.data
   let result = await c.get('list spaces limit=1', `/${account.id}/spaces?limit=1`)
   c.assertEqual(result.data.length, 1)
-  c.assertEqualKeys(['id', 'name'], result.data[0], secondSpace)
+  c.assertEqualKeys(['id', 'name'], result.data[0], space)
 
   result = await c.get('list spaces limit=1&skip=1', `/${account.id}/spaces?limit=1&skip=1`)
   c.assertEqual(result.data.length, 1)
-  c.assertEqualKeys(['id', 'name'], result.data[0], space)
+  c.assertEqualKeys(['id', 'name'], result.data[0], secondSpace)
 
   result = await c.get('list spaces limit=1&sort=createdAt', `/${account.id}/spaces?limit=1&sort=createdAt`)
   c.assertEqual(result.data.length, 1)
@@ -39,8 +39,8 @@ module.exports = async function (c) {
     'filter.name[in]': `${space.name},${secondSpace.name}`
   }})
   c.assertEqual(result.data.length, 2)
-  c.assertEqualKeys(['id', 'name'], result.data[0], secondSpace)
-  c.assertEqualKeys(['id', 'name'], result.data[1], space)
+  c.assertEqualKeys(['id', 'name'], result.data[0], space)
+  c.assertEqualKeys(['id', 'name'], result.data[1], secondSpace)
 
   const compareTime = secondsFrom(new Date(space.createdAt), 1)
   result = await c.get('list spaces filter.createdAt[lt]=', `/${account.id}/spaces?filter.createdAt[lt]=${compareTime}`)

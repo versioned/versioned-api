@@ -12,9 +12,9 @@ module.exports = async function (c) {
   c.assertEqual(result.data.name, name)
   c.assertEqual(result.data.email, user.email)
   // c.assert(c.isMongoId(result.data.id))
-  c.assert(elapsedSeconds(result.data.createdAt) < 2)
+  c.assert(elapsedSeconds(result.data.createdAt) < 3)
   c.assert(!result.data.createdBy)
-  c.assert(!result.data.updatedAt)
+  c.assert(elapsedSeconds(result.data.updatedAt) < 3)
   c.assert(!result.data.updatedBy)
   const id = result.data.id
 
@@ -28,7 +28,7 @@ module.exports = async function (c) {
   c.assertEqual(result.data.email, user.email)
   c.assertEqual(createdUser.createdAt, result.data.createdAt)
   c.assert(!result.data.createdBy)
-  c.assert(!result.data.updatedAt)
+  c.assert(result.data.updatedAt)
   c.assert(!result.data.updatedBy)
 
   result = await c.get({it: 'cannot list users without auth', status: 401}, `/users`, {headers: {authorization: null}})
@@ -89,6 +89,6 @@ module.exports = async function (c) {
   c.assertEqual(result.data.email, anotherUser.email)
   c.assert(elapsedSeconds(result.data.createdAt) < 2)
   c.assertEqual(result.data.createdBy.id, adminUser.id)
-  c.assert(!result.data.updatedAt)
-  c.assert(!result.data.updatedBy)
+  c.assert(elapsedSeconds(result.data.updatedAt) < 2)
+  c.assertEqual(result.data.updatedBy.id, adminUser.id)
 }

@@ -5,9 +5,13 @@ function auditUser (user) {
 }
 
 function auditCreateCallback (doc, options) {
+  const now = new Date()
+  const user = auditUser(options.user)
   return merge(doc, {
-    createdAt: new Date(),
-    createdBy: auditUser(options.user)
+    createdAt: now,
+    createdBy: user,
+    updatedAt: now,
+    updatedBy: user
   })
 }
 
