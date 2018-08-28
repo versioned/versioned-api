@@ -8,6 +8,7 @@ const accounts = require('app/models/accounts')
 const {validationError} = require('lib/errors')
 const {findAvailableKey} = require('lib/unique_key')
 const search = require('lib/search')
+const webhook = require('app/webhook')
 
 const coll = 'spaces'
 const API_KEY_LENGTH = 16
@@ -58,7 +59,19 @@ function validateAlgoliaFields (doc, options) {
   if (doc.mongodbUrl && (empty(doc.algoliaApplicationId) || empty(doc.algoliaApiKey)) && config.NODE_ENV !== 'test') {
     throw validationError(options.model, doc, `dedicated database requires dedicated search, i.e. if you specify MongoDB URL you must also specify Algolia Application ID and API Key`, 'mongodbUrl')
   }
-  return doc
+}
+
+async function validateWebhookUrl (doc, options) {
+  if (doc.webhookUrl && doc.webhookUrl !== getIn(options, 'existingDoc.webhookUrl')) {
+    try {
+      await webhook.invoke(doc.webhookUrl, {}, {catchError: false})
+    } catch (error) {
+      let message = `Error when doing HTTP post with an empty JSON body (${error.message})`
+      // const status = getIn(error, 'response.status')
+      // if (status) message = message + ` ${status}`
+      throw validationError(options.model, doc, message, 'webhookUrl')
+    }
+  }
 }
 
 async function validateMongodbUrl (doc, options) {
@@ -152,7 +165,8 @@ const model = {
       algoliaApiKey: {type: 'string', pattern: '^[a-zA-Z0-9]{32}$'},
       algoliaIndexName: {type: 'string', pattern: '^(?:\s|[.a-zA-Z0-9_-])+$', maxLength: 256},
       algoliaSharedApiKey: {type: 'string', 'x-meta': {writable: false}},
-      algoliaSharedIndexName: {type: 'string', 'x-meta': {writable: false}}
+      algoliaSharedIndexName: {type: 'string', 'x-meta': {writable: false}},
+      webhookUrl: {type: 'string'}
     },
     required: ['name', 'accountId', 'dbKey'],
     additionalProperties: false
@@ -168,7 +182,7 @@ const model = {
       beforeValidation: [setDbKey, setApiKey]
     },
     save: {
-      beforeValidation: [checkAccess, validateMongodbUrl, validateAlgoliaFields, setDefaultAlgoliaIndexName],
+      beforeValidation: [checkAccess, validateMongodbUrl, validateAlgoliaFields, validateWebhookUrl, setDefaultAlgoliaIndexName],
       afterSave: [setupSearch]
     },
     delete: {

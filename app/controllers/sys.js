@@ -1,6 +1,6 @@
 const config = require('app/config')
-const {mongo} = config.modules
-const {pick} = require('lib/util')
+const {mongo, logger} = config.modules
+const {pick, prettyJson} = require('lib/util')
 const {wrapData, jsonResponse} = config.modules.response
 const spaces = require('app/models/spaces')
 
@@ -32,10 +32,17 @@ async function ping (req, res) {
   jsonResponse(req, res, wrapData({numberOfSpaces}))
 }
 
+async function webhook (req, res) {
+  logger.info(`sys/webhook invoked with params: ${prettyJson(req.params)}`)
+  const delay = parseInt(req.params.delay || 0) * 1000
+  setTimeout(() => jsonResponse(req, res, {result: 'OK'}), delay)
+}
+
 module.exports = {
   dbStats,
   routes,
   errorTest,
   info,
-  ping
+  ping,
+  webhook
 }

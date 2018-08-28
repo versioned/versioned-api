@@ -219,6 +219,22 @@ const systemRoutes = [
     path: `${PREFIX}/sys/${config.SYS_ROUTE_KEY}/ping`,
     handler: sys.ping,
     requireAuth: false
+  },
+  {
+    tags: ['system'],
+    summary: 'Webhook test endpoint',
+    method: 'post',
+    path: `${PREFIX}/sys/${config.SYS_ROUTE_KEY}/webhook`,
+    handler: sys.webhook,
+    requireAuth: false,
+    parameters: [
+      {
+        name: 'delay',
+        in: 'query',
+        required: false,
+        schema: {type: 'integer'}
+      }
+    ]
   }
 ]
 

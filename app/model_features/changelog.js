@@ -60,7 +60,7 @@ async function getMergableUpdate (api, doc, changes, options) {
 }
 
 async function changelogCallback (doc, options) {
-  const {user, action} = options
+  const {user, action, space} = options
   const accountId = toString(getIn(options, 'account.id'))
   const spaceId = toString(getIn(options, 'space.id'))
   const model = compact({
@@ -79,7 +79,7 @@ async function changelogCallback (doc, options) {
       changes: mongoFriendlyChanges(mergableUpdate.existingDoc, toDoc),
       createdAt: new Date(),
       publishEvent
-    }, {user})
+    }, {user, space})
   } else {
     await api.create({
       accountId,
@@ -93,7 +93,7 @@ async function changelogCallback (doc, options) {
       createdBy: getUserId(options),
       createdAt: new Date(),
       publishEvent
-    }, {user})
+    }, {user, space})
   }
   return doc
 }
