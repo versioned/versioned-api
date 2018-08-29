@@ -21,6 +21,13 @@ async function getModels (space) {
   return spaces.getApi(space, _models.model)
 }
 
+async function makeController (space, model) {
+  const options = {scope: 'spaceId'}
+  const api = await _models.getApi(space, model)
+  const getApi = () => api
+  return modelController(api.model, getApi, config.modules.response, options)
+}
+
 function withParams (path, options = {}) {
   return keys(PARAMS).reduce((result, param) => {
     return options[param] ? result.replace(`:${param}`, getIn(options, PARAMS[param])) : result
@@ -90,6 +97,10 @@ function dbStatsPath (prefix, options) {
   return withParams(`/${prefix}/:spaceId/dbStats.json`, options)
 }
 
+function importPath (prefix, options) {
+  return withParams(`/${prefix}/:spaceId/import/:model`, options)
+}
+
 function dataHandler (coll, endpoint) {
   async function _dataHandler (req, res) {
     const query = {
@@ -99,10 +110,8 @@ function dataHandler (coll, endpoint) {
     const models = await getModels(req.space)
     const model = await models.get(query)
     if (model) {
-      const options = {scope: 'spaceId'}
-      const api = await _models.getApi(req.space, model)
-      const getApi = () => api
-      modelController(api.model, getApi, config.modules.response, options)[endpoint](req, res)
+      const controller = await makeController(req.space, model)
+      controller[endpoint](req, res)
     } else {
       notFound(res)
     }
@@ -131,6 +140,56 @@ async function dbStatsHandler (req, res) {
   const stats = await spaceMongo.dbStats({colls})
   const statsByType = rename(stats, collsToTypes)
   jsonResponse(req, res, wrapData(statsByType))
+}
+
+async function importHandler (req, res) {
+  const models = await getModels(req.space)
+  const modelsQuery = {spaceId: req.params.spaceId, coll: req.params.model}
+  const model = await models.get(modelsQuery, {allowMissing: false})
+  const controller = await makeController(req.space, model)
+  const results = []
+  for (let doc of (req.params.docs || [])) {
+    try {
+      const result = await controller._create(req, res, doc)
+      results.push({result})
+    } catch (error) {
+      results.push({error})
+    }
+  }
+  jsonResponse(req, res, {results})
+}
+
+function importRoute (prefix, options) {
+  return {
+    summary: 'Import/create up to a 100 documents per request',
+    tags: ['data'],
+    method: 'post',
+    path: importPath(prefix),
+    handler: importHandler,
+    parameters: [
+      spaceIdParameter(),
+      {
+        name: 'model',
+        in: 'path',
+        description: 'Key of model to import',
+        required: true,
+        schema: {
+          type: 'string'
+        }
+      },
+      {
+        name: 'docs',
+        in: 'body',
+        description: 'Array of documents to import',
+        required: true,
+        schema: {
+          type: 'array',
+          maxItems: 100,
+          items: {type: 'object'}
+        }
+      }
+    ]
+  }
 }
 
 function dbStatsRoute (prefix, options) {
@@ -198,7 +257,7 @@ async function routes (prefix, options = {}) {
     const models = await getModels(options.space)
     let spaceModels = await models.list({spaceId: options.space.id})
     if (options.models) spaceModels = spaceModels.concat(options.models)
-    let result = [swaggerRoute(prefix, options), dbStatsRoute(prefix, options)]
+    let result = [swaggerRoute(prefix, options), dbStatsRoute(prefix, options), importRoute(prefix, options)]
     for (let model of spaceModels) {
       const api = await _models.getApi(options.space, model)
       const routes = await modelRoutes(prefix, merge(options, {model, api}))

@@ -87,7 +87,7 @@ export SPACE_ID=...
 Create Published Model in Space:
 
 ```
-echo "{\"name\": \"Published Items\", \"spaceId\": \"${SPACE_ID}\", \"coll\": \"items\", \"features\": [\"published\"], \"model\": {\"schema\": {\"type\": \"object\", \"properties\": {\"title\": {\"type\": \"string\"}, \"key\": {\"type\": \"string\", \"x-meta\": {\"update\": false}}}}}}" | http POST $BASE_URL/$ACCOUNT_ID/models Authorization:"Bearer $TOKEN"
+echo "{\"name\": \"Published Items\", \"spaceId\": \"${SPACE_ID}\", \"coll\": \"items\", \"features\": [\"published\"], \"model\": {\"schema\": {\"type\": \"object\", \"properties\": {\"title\": {\"type\": \"string\"}, \"key\": {\"type\": \"string\", \"x-meta\": {\"update\": false}}}}}}" | http POST $BASE_URL/$SPACE_ID/models Authorization:"Bearer $TOKEN"
 ```
 
 Create some content for that model:
@@ -127,6 +127,12 @@ Set defaultSpaceId for user:
 echo "{\"defaultSpaceId\": \"$SPACE_ID\"}" | http PUT $BASE_URL/users/$USER_ID Authorization:"Bearer $TOKEN"
 
 http $BASE_URL/users/$USER_ID?relationshipLevels=2 Authorization:"Bearer $TOKEN"
+```
+
+Import content:
+
+```
+echo '{"docs": [{"title": "foo"}, {"title": "bar"}]}' | http post $BASE_URL/data/$SPACE_ID/import/items Authorization:"Bearer $TOKEN"
 ```
 
 ## Other API Calls
