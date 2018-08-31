@@ -35,8 +35,8 @@ const model = {
   schema: {
     type: 'object',
     properties: {
-      accountId: {type: 'string', 'x-meta': {write: false, index: true}},
-      spaceId: {type: 'string', 'x-meta': {write: false, index: true}},
+      accountId: {type: 'string', 'x-meta': {writable: false, index: true}},
+      spaceId: {type: 'string', 'x-meta': {writable: false, index: true}},
       action: {enum: ['create', 'update', 'delete']},
       model: {type: 'object'},
       coll: {type: 'string'},

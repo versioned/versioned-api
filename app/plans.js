@@ -8,7 +8,7 @@ const free = {
 }
 
 const professional = merge(free, {
-  DATA_LIMIT: 1000,
+  DATA_LIMIT: 2000,
   USERS_LIMIT: 10
 })
 

@@ -7,12 +7,18 @@ function auditUser (user) {
 function auditCreateCallback (doc, options) {
   const now = new Date()
   const user = auditUser(options.user)
-  return merge(doc, {
+  const auditFields = {
     createdAt: now,
     createdBy: user,
     updatedAt: now,
     updatedBy: user
-  })
+  }
+  if (options.import) {
+    // During import we allow overwrite of creation times etc.
+    return merge(auditFields, doc)
+  } else {
+    return merge(doc, auditFields)
+  }
 }
 
 function auditUpdateCallback (doc, options) {

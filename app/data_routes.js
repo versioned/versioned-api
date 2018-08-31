@@ -148,15 +148,20 @@ async function importHandler (req, res) {
   const model = await models.get(modelsQuery, {allowMissing: false})
   const controller = await makeController(req.space, model)
   const results = []
+  const counts = {success: 0, error: 0}
+  const createOptions = {import: true}
   for (let doc of (req.params.docs || [])) {
     try {
-      const result = await controller._create(req, res, doc)
+      const result = await controller._create(req, res, doc, {createOptions})
       results.push({result})
+      counts.success += 1
     } catch (error) {
       results.push({error})
+      counts.error += 1
     }
   }
-  jsonResponse(req, res, {results})
+  const status = (counts.error > 0 ? 422 : 200)
+  jsonResponse(req, res, {results, counts}, {status})
 }
 
 function importRoute (prefix, options) {

@@ -56,7 +56,7 @@ const model = {
       },
       email: {type: 'string', format: 'email'},
       role: {enum: users.ROLES},
-      userExists: {type: 'boolean', 'x-meta': {write: false, read: true}}
+      userExists: {type: 'boolean', 'x-meta': {writable: false, read: true}}
     },
     required: ['accountId', 'email', 'role'],
     additionalProperties: false

@@ -51,7 +51,8 @@ function shouldCheckUnique (property) {
 function shouldCreateIndex (property) {
   return getIn(property, 'x-meta.unique') === true ||
     getIn(property, 'x-meta.relationship') ||
-    (['string', 'integer', 'number'].includes(property.type) && !(getIn(property, 'x-meta.field.type') === 'text'))
+    ['integer', 'number'].includes(property.type) ||
+    (property.type === 'string' && getIn(property, 'maxLength') && getIn(property, 'maxLength') < 1024 && getIn(property, 'x-meta.index') !== false)
 }
 
 function getId (value) {
@@ -370,7 +371,7 @@ const model = {
     type: 'object',
     properties: {
       name: {type: 'string'},
-      accountId: {type: 'string', 'x-meta': {write: false, index: true}},
+      accountId: {type: 'string', 'x-meta': {writable: false, index: true}},
       spaceId: {
         type: 'string',
         'x-meta': {
