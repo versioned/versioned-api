@@ -166,6 +166,8 @@ const model = {
       algoliaIndexName: {type: 'string', pattern: '^(?:\s|[.a-zA-Z0-9_-])+$', maxLength: 256},
       algoliaSharedApiKey: {type: 'string', 'x-meta': {writable: false}},
       algoliaSharedIndexName: {type: 'string', 'x-meta': {writable: false}},
+      contentfulUrl: {type: 'string'},
+      contentfulPreset: {type: 'string'},
       webhookUrl: {type: 'string'}
     },
     required: ['name', 'accountId', 'dbKey'],
