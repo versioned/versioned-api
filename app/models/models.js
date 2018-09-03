@@ -268,6 +268,7 @@ const X_META_SCHEMA = {
     update: {type: 'boolean'},
     versioned: {type: 'boolean'},
     index: {type: ['boolean', 'integer']},
+    sequence: {type: 'boolean'},
     unique: {
       anyOf: [
         {type: 'boolean'},
@@ -286,7 +287,8 @@ const X_META_SCHEMA = {
       type: 'object',
       properties: {
         name: {type: 'string'},
-        type: {type: 'string'}
+        type: {type: 'string'},
+        category: {type: 'string'}
       },
       additionalProperties: false
     },
