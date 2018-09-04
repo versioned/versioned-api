@@ -104,7 +104,7 @@ const BlogPost = {
       properties: {
         // sequence: {type: 'integer', 'x-meta': {sequence: true, unique: true, writable: false}},
         title: {type: 'string', maxLength: 256},
-        body: {type: 'string', 'x-meta': {field: {type: 'text'}}}
+        body: {type: 'string', maxLength: 50000}
       },
       required: ['title', 'body'],
       additionalProperties: false
@@ -123,7 +123,7 @@ const Diary = {
       },
       properties: {
         // sequence: {type: 'integer', 'x-meta': {sequence: true, unique: true, writable: false}},
-        body: {type: 'string', 'x-meta': {field: {type: 'text'}}}
+        body: {type: 'string', maxLength: 50000}
       },
       required: ['body'],
       additionalProperties: false
