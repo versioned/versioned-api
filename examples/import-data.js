@@ -98,8 +98,11 @@ const BlogPost = {
   model: {
     schema: {
       type: 'object',
+      'x-meta': {
+        idSequence: true
+      },
       properties: {
-        sequence: {type: 'integer', 'x-meta': {sequence: true, unique: true, writable: false}},
+        // sequence: {type: 'integer', 'x-meta': {sequence: true, unique: true, writable: false}},
         title: {type: 'string', maxLength: 256},
         body: {type: 'string', 'x-meta': {field: {type: 'text'}}}
       },
@@ -115,8 +118,11 @@ const Diary = {
   model: {
     schema: {
       type: 'object',
+      'x-meta': {
+        idSequence: true
+      },
       properties: {
-        sequence: {type: 'integer', 'x-meta': {sequence: true, unique: true, writable: false}},
+        // sequence: {type: 'integer', 'x-meta': {sequence: true, unique: true, writable: false}},
         body: {type: 'string', 'x-meta': {field: {type: 'text'}}}
       },
       required: ['body'],
@@ -127,7 +133,8 @@ const Diary = {
 
 const mappings = {
   base: {
-    sequence: 'id',
+    id: (d) => d.id.toString(),
+    // sequence: 'id',
     createdAt: 'created_at',
     updatedAt: 'created_at'
   },
