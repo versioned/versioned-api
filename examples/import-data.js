@@ -7,7 +7,6 @@
 // EMAIL=joe@example.com FROM_URL=https://my-api.example.com/v1 FROM_PASSWORD=my-password PASSWORD=my-other-password examples/import-data.js
 
 const axios = require('axios')
-const assert = require('assert')
 
 const DEFAULT_CONFIG = {
   VERSIONED_URL: 'https://api.versioned.io/v1'
@@ -66,7 +65,7 @@ async function createModel (spaceId, headers, model) {
 
 async function getDocs (model, headers, page = 1) {
   const published = (model.features || []).includes('published')
-  const result = await getRequest(`${config('FROM_URL')}/${model.coll}?published=${published}&per-page=100&page=${page}`, {headers})
+  const result = await getRequest(`${config('FROM_URL')}/${model.coll}?sort=id&published=${published}&per-page=100&page=${page}`, {headers})
   return result.data.data
 }
 
@@ -100,7 +99,7 @@ const BlogPost = {
     schema: {
       type: 'object',
       properties: {
-        sequence: {type: 'integer', 'x-meta': {writable: false}},
+        sequence: {type: 'integer', 'x-meta': {sequence: true, unique: true, writable: false}},
         title: {type: 'string', maxLength: 256},
         body: {type: 'string', 'x-meta': {field: {type: 'text'}}}
       },
@@ -117,7 +116,7 @@ const Diary = {
     schema: {
       type: 'object',
       properties: {
-        sequence: {type: 'integer', 'x-meta': {writable: false}},
+        sequence: {type: 'integer', 'x-meta': {sequence: true, unique: true, writable: false}},
         body: {type: 'string', 'x-meta': {field: {type: 'text'}}}
       },
       required: ['body'],
