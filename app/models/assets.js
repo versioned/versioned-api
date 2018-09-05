@@ -1,11 +1,14 @@
+const {concat} = require('lib/util')
 const config = require('app/config')
 const {logger, mongo} = config.modules
 const modelApi = require('lib/model_api')
+const modelSpec = require('lib/model_spec')
 
 const coll = 'assets'
 
 const model = {
   coll,
+  features: concat(modelSpec.DEFAULTS.features, ['search']),
   schema: {
     type: 'object',
     properties: {
