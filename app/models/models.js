@@ -154,12 +154,9 @@ async function setAccountId (doc, options) {
 }
 
 async function setFeatures (doc, options) {
-  if (doc.features) {
-    const features = concat(modelSpec.DEFAULTS.features, doc.features)
-    return setIn(doc, ['model', 'features'], features)
-  } else {
-    return doc
-  }
+  const defaultFeatures = concat(modelSpec.DEFAULTS.features, ['search'])
+  const features = concat(defaultFeatures, doc.features)
+  return setIn(doc, ['model', 'features'], features)
 }
 
 const convertRelObjectsToIds = sortedCallback('first', async (doc, options) => {

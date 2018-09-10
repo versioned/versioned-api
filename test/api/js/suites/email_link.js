@@ -14,7 +14,7 @@ module.exports = async function (c) {
   email = await emails.get(email.id, {allowMissing: false})
   c.assertEqual(email.linkClicks.length, 1)
   let click = email.linkClicks[0]
-  c.assert(elapsedSeconds(click.clickedAt) < 2)
+  c.assert(elapsedSeconds(click.clickedAt) < 3)
   c.assertEqual(click.url, url)
 
   await c.get('GET email_link where email exists again', `/email_link/${email.id}/${encodeURIComponent(url)}`, c.anonymous)
