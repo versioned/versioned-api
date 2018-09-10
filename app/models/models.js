@@ -16,6 +16,7 @@ const modelMeta = require('lib/model_meta')
 const {PLANS} = require('app/plans')
 
 const PROPERTY_NAME_PATTERN = '^[a-zA-Z][a-zA-Z0-9_-]{0,30}$'
+const MAX_LENGTH_LIMIT = 50000
 const coll = 'models'
 const collSchema = getIn(modelSchema, ['properties', 'coll'])
 
@@ -44,16 +45,6 @@ async function validateDataLimit (doc, options) {
 function shouldCheckUnique (property) {
   return getIn(property, 'x-meta.unique') === true ||
     ['one-to-one', 'one-to-many'].includes(getIn(property, 'x-meta.relationship.type'))
-}
-
-// NOTE: MongoDB will not create a normal index with more than 1024 chars:
-// https://stackoverflow.com/questions/27792706/cannot-create-index-in-mongodb-key-too-large-to-index
-function shouldCreateIndex (property) {
-  return getIn(property, 'x-meta.unique') === true ||
-    getIn(property, 'x-meta.sequence') ||
-    getIn(property, 'x-meta.relationship') ||
-    ['integer', 'number'].includes(property.type) ||
-    (property.type === 'string' && getIn(property, 'maxLength') && getIn(property, 'maxLength') < 1024 && getIn(property, 'x-meta.index') !== false)
 }
 
 function getId (value) {
@@ -131,6 +122,15 @@ function setDefaultTitleProperty (doc, options) {
   return setIn(doc, path, modelMeta.titleProperty(doc.model))
 }
 
+function validateMaxLength (doc, options) {
+  for (let [name, property] of keyValues(getIn(doc, 'model.schema.properties'))) {
+    const maxLength = getIn(property, 'maxLength', 0)
+    if (maxLength > MAX_LENGTH_LIMIT) {
+      throw validationError(options.model, doc, `The maxLength is ${maxLength} but is not allowed to be more than ${MAX_LENGTH_LIMIT}`, name)
+    }
+  }
+}
+
 async function setModelColl (doc, options) {
   const coll = await getColl(doc)
   if (coll) {
@@ -206,17 +206,6 @@ async function setModelSchema (doc, options) {
     propertiesOrder: doc.propertiesOrder
   })
   return mergeIn(doc, ['model', 'schema', 'x-meta'], xMeta)
-}
-
-function setModelIndexes (doc, options) {
-  const properties = getIn(doc, 'model.schema.properties')
-  if (empty(properties)) return
-  const indexes = keyValues(properties)
-    .filter(([key, property]) => shouldCreateIndex(property))
-    .map(([key, property]) => ({keys: {[key]: 1}}))
-  if (notEmpty(indexes)) {
-    return setIn(doc, ['model', 'indexes'], indexes)
-  }
 }
 
 function setPropertiesOrder (doc, options) {
@@ -400,7 +389,7 @@ const model = {
   },
   callbacks: {
     save: {
-      beforeValidation: [validateSpace, setDefaultColl, setPropertiesOrder, setModelColl, setAccountId, setFeatures, setModelSchema, setModelIndexes, validatePropertyNames, validateModel, validatePropertiesLimit, setDefaultTitleProperty],
+      beforeValidation: [validateSpace, setDefaultColl, setPropertiesOrder, validateMaxLength, setModelColl, setAccountId, setFeatures, setModelSchema, validatePropertyNames, validateModel, validatePropertiesLimit, setDefaultTitleProperty],
       afterValidation: [validateXMeta, validateSwagger]
     },
     create: {
