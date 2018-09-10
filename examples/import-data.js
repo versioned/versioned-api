@@ -4,7 +4,7 @@
 //
 // Example usage:
 //
-// EMAIL=joe@example.com FROM_URL=https://my-api.example.com/v1 FROM_PASSWORD=my-password PASSWORD=my-other-password examples/import-data.js
+// ACCOUNT_NAME="Awesome Company" EMAIL=joe@example.com FROM_URL=https://my-api.example.com/v1 FROM_PASSWORD=my-password PASSWORD=my-other-password examples/import-data.js
 
 const axios = require('axios')
 
@@ -22,14 +22,28 @@ function config (key) {
   return value
 }
 
-function getRequest (url, options = {}) {
-  console.log(`request: GET ${url} options=${prettyJson(options)}`)
-  return axios.get(url, options)
+function logRequestError (error) {
+  console.log(`request error ${error.request.method} ${error.request.path} status=${error.response.status} error=${error.message} response.data=${prettyJson(error.response.data)}`, error)
 }
 
-function postRequest (url, data, options = {}) {
+async function getRequest (url, options = {}) {
+  console.log(`request: GET ${url} options=${prettyJson(options)}`)
+  try {
+    return await axios.get(url, options)
+  } catch (error) {
+    logRequestError(error)
+    throw error
+  }
+}
+
+async function postRequest (url, data, options = {}) {
   console.log(`request: POST ${url} options=${prettyJson(options)}`)
-  return axios.post(url, data, options)
+  try {
+    return await axios.post(url, data, options)
+  } catch (error) {
+    logRequestError(error)
+    throw error
+  }
 }
 
 async function fromLogin () {
@@ -40,14 +54,23 @@ async function fromLogin () {
   return {headers}
 }
 
-async function versionedLogin () {
-  const credentials = {email: config('EMAIL'), password: config('PASSWORD')}
+async function createUser (credentials) {
+  let result = await postRequest(`${config('VERSIONED_URL')}/users`, credentials)
+  const user = result.data.data
+  return user
+}
+
+async function login (credentials) {
   let result = await postRequest(`${config('VERSIONED_URL')}/login?getUser=1`, credentials)
-  const user = result.data.data.user
   const token = result.data.data.token
-  const accountId = user.accounts[0].id
   const headers = {Authorization: `Bearer ${token}`}
-  return {accountId, headers}
+  return {headers}
+}
+
+async function createAccount (account, headers) {
+  let result = await postRequest(`${config('VERSIONED_URL')}/accounts`, account, {headers})
+  const user = result.data.data
+  return user
 }
 
 async function createSpace (accountId, headers) {
@@ -170,7 +193,11 @@ async function importModel (model, spaceId, fromHeaders, headers) {
 
 async function main () {
   const {headers: fromHeaders} = await fromLogin()
-  const {accountId, headers} = await versionedLogin()
+  const credentials = {email: config('EMAIL'), password: config('PASSWORD')}
+  await createUser(credentials)
+  const {headers} = await login(credentials)
+  const account = {name: config('ACCOUNT_NAME')}
+  const {id: accountId} = await createAccount(account, headers)
 
   const {id: spaceId} = await createSpace(accountId, headers)
   await createModel(spaceId, headers, BlogPost)

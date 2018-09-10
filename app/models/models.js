@@ -50,6 +50,7 @@ function shouldCheckUnique (property) {
 // https://stackoverflow.com/questions/27792706/cannot-create-index-in-mongodb-key-too-large-to-index
 function shouldCreateIndex (property) {
   return getIn(property, 'x-meta.unique') === true ||
+    getIn(property, 'x-meta.sequence') ||
     getIn(property, 'x-meta.relationship') ||
     ['integer', 'number'].includes(property.type) ||
     (property.type === 'string' && getIn(property, 'maxLength') && getIn(property, 'maxLength') < 1024 && getIn(property, 'x-meta.index') !== false)

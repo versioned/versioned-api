@@ -1,8 +1,0 @@
-#!/usr/bin/env bash
-
-export NODE_ENV=test
-export PORT=3006
-export BASE_URL=http://localhost:$PORT/v1
-export BASE_LOG_DIR=log
-
-rm -rf $BASE_LOG_DIR

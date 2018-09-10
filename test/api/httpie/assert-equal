@@ -1,8 +1,0 @@
-#!/usr/bin/env node
-
-const actual = process.argv[2]
-const expected = process.argv[3]
-
-if (actual !== expected) {
-  process.exit(1)
-}
