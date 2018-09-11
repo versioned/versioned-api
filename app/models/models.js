@@ -181,7 +181,8 @@ const convertRelObjectsToIds = sortedCallback('first', async (doc, options) => {
 })
 
 function checkPublishedQueryForClients (doc, options) {
-  if (options.user || !options.queryParams) return
+  const publishedModel = getIn(options, 'model.features', []).includes('published')
+  if (options.user || !options.queryParams || !publishedModel) return
   // NOTE: when not authenticated as a user, i.e. when a client uses an apiToken,
   // the client is only allowed to fetch the published version and specific versions for
   // preview by versionToken
