@@ -332,6 +332,9 @@ async function validateSwagger (doc, options) {
 }
 
 async function validateCollAvailable (doc, options) {
+  if (doc.coll === 'assets') {
+    throw validationError(options.model, doc, `The 'assets' key is reserved for the built in assets model, please choose another name`, 'coll')
+  }
   const coll = getIn(doc, ['model', 'coll'])
   if (coll && (await mongo.getColls()).includes(coll)) {
     throw validationError(options.model, doc, `'${doc.coll}' is not available - please choose another name`, 'coll')
@@ -391,7 +394,8 @@ const model = {
       afterValidation: [validateXMeta, validateSwagger]
     },
     create: {
-      beforeValidation: [validateCollAvailable, validateModelsLimit]
+      beforeValidation: [validateModelsLimit],
+      afterValidation: [validateCollAvailable]
     },
     delete: {
       after: [deleteColl]
