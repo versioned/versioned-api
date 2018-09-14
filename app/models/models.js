@@ -257,6 +257,7 @@ const X_META_SCHEMA = {
     versioned: {type: 'boolean'},
     index: {type: ['boolean', 'integer']},
     sequence: {type: 'boolean'},
+    slug: {type: 'boolean'},
     unique: {
       anyOf: [
         {type: 'boolean'},
