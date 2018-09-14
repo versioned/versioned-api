@@ -6,7 +6,7 @@ const config = require('app/config')
 const {logger} = config.modules
 const {readableDoc} = require('lib/model_access')
 const {sortedCallback} = require('lib/model_callbacks_helper')
-const {missingError} = require('lib/errors')
+const {missingError, validationError} = require('lib/errors')
 
 const VERSION_TOKEN_LENGTH = 10
 
@@ -216,6 +216,12 @@ async function createVersion (doc, options) {
   return doc
 }
 
+function checkNotPublished (doc, options) {
+  if (doc.publishedVersion) {
+    throw validationError(options.model, doc, 'Please unpublish before you delete')
+  }
+}
+
 async function removeVersion (doc, options) {
   const {api} = options
   await modelApi(versionedModel(options.model), api.mongo, logger).delete(versionQuery(doc))
@@ -298,6 +304,7 @@ const model = {
       afterSave: [updateVersion, createVersion]
     },
     delete: {
+      before: [checkNotPublished],
       after: [removeVersion]
     },
     routeCreate: {
