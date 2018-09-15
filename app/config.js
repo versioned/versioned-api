@@ -13,6 +13,7 @@ const defaultConfig = {
   JWT_EXPIRY: (3600 * 24 * 30),
   MODELS_LIMIT: 30,
   PROPERTY_LIMIT: 20,
+  RATE_LIMIT: (NODE_ENV === 'production' ? 5 : null),
   ALGOLIASEARCH_APPLICATION_ID: null,
   ALGOLIASEARCH_API_KEY: null,
   ALGOLIASEARCH_API_KEY_SEARCH: null,

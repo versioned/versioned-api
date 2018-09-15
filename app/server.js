@@ -11,6 +11,7 @@ const queryParser = require('lib/middleware/query').queryParser
 const bodyParser = require('lib/middleware/body').bodyParser
 const validateParams = require('lib/middleware/validate_params').validateParams
 const setCacheHeader = require('lib/middleware/cache').setCacheHeader
+const rateLimit = require('lib/middleware/rate_limit').rateLimit
 const auth = require('lib/middleware/auth').auth
 const users = require('app/models/users')
 
@@ -35,6 +36,7 @@ function setupMiddleware (app) {
   app.use(attachRoute(lookupRoute, logger))
   app.use(validateParams)
   app.use(setCacheHeader(config))
+  app.use(rateLimit(config))
   app.use(auth(AUTH_CONFIG))
 }
 
