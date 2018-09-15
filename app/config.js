@@ -7,7 +7,7 @@ const defaultConfig = {
   NODE_ENV,
   PORT: 3000,
   LOG_LEVEL: 'debug',
-  CACHE_EXPIRY: '0',
+  CACHE_EXPIRY: '10',
   MONGODB_URL: `mongodb://localhost:27017/versioned2_${NODE_ENV}`,
   JWT_SECRET: '393dabff04884cf89ce918f53924d63e',
   JWT_EXPIRY: (3600 * 24 * 30),
