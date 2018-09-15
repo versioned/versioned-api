@@ -384,6 +384,7 @@ const model = {
         items: {enum: ['search', 'published']}
       },
       propertiesOrder: {type: 'array', items: {type: 'string'}},
+      previewUrl: {type: 'string'},
       model: withoutRefs(modelSchema)
     },
     required: ['name', 'spaceId', 'accountId', 'coll', 'model'],
