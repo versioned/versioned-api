@@ -36,8 +36,8 @@ function setupMiddleware (app) {
   app.use(attachRoute(lookupRoute, logger))
   app.use(validateParams)
   app.use(setCacheHeader(config))
-  app.use(rateLimit(config))
   app.use(auth(AUTH_CONFIG))
+  app.use(rateLimit(config))
 }
 
 process.on('uncaughtException', (err) => {
