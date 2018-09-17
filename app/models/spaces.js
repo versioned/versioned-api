@@ -1,5 +1,5 @@
 const config = require('app/config')
-const {map, getIn, property, merge, notEmpty, empty} = require('lib/util')
+const {isArray, map, getIn, property, merge, notEmpty, empty} = require('lib/util')
 const modelApi = require('lib/model_api')
 const {logger, mongo} = require('app/config').modules
 const MongoClient = require('mongodb').MongoClient
@@ -9,6 +9,7 @@ const {validationError} = require('lib/errors')
 const {findAvailableKey} = require('lib/unique_key')
 const search = require('lib/search')
 const webhook = require('app/webhook')
+const {languageToCode} = require('lib/language_codes')
 
 const coll = 'spaces'
 const API_KEY_LENGTH = 16
@@ -70,6 +71,15 @@ async function validateWebhookUrl (doc, options) {
       // const status = getIn(error, 'response.status')
       // if (status) message = message + ` ${status}`
       throw validationError(options.model, doc, message, 'webhookUrl')
+    }
+  }
+}
+
+function validateLanguages (doc, options) {
+  if (!isArray(doc.languages)) return
+  for (let language of doc.languages) {
+    if (!languageToCode(language)) {
+      throw validationError(options.model, doc, `Language ${language} not supported`, 'languages')
     }
   }
 }
@@ -168,6 +178,10 @@ const model = {
       algoliaSharedIndexName: {type: 'string', 'x-meta': {writable: false}},
       cloudinaryUrl: {type: 'string'},
       cloudinaryPreset: {type: 'string'},
+      languages: {
+        type: 'array',
+        items: {type: 'string'}
+      },
       webhookUrl: {type: 'string'}
     },
     required: ['name', 'accountId', 'dbKey'],
@@ -184,7 +198,7 @@ const model = {
       beforeValidation: [setDbKey, setApiKey]
     },
     save: {
-      beforeValidation: [checkAccess, validateMongodbUrl, validateAlgoliaFields, validateWebhookUrl, setDefaultAlgoliaIndexName],
+      beforeValidation: [checkAccess, validateMongodbUrl, validateAlgoliaFields, validateWebhookUrl, setDefaultAlgoliaIndexName, validateLanguages],
       afterSave: [setupSearch]
     },
     delete: {

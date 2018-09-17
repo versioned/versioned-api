@@ -146,7 +146,7 @@ function client ({BASE_URL, DEDICATED_MONGODB_URL}) {
   }
 
   function assertRecent (actual, msg) {
-    assert(actual && elapsedSeconds(actual) < 1, msg)
+    assert(actual && elapsedSeconds(actual) < 3, msg)
   }
 
   async function login (user) {

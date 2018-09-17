@@ -258,6 +258,14 @@ const X_META_SCHEMA = {
     index: {type: ['boolean', 'integer']},
     sequence: {type: 'boolean'},
     slug: {type: 'boolean'},
+    translated: {
+      type: 'object',
+      properties: {
+        type: {enum: ['string']},
+        maxLength: {type: 'integer'}
+      },
+      additionalProperties: false
+    },
     unique: {
       anyOf: [
         {type: 'boolean'},

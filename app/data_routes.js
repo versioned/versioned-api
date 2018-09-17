@@ -250,7 +250,7 @@ async function modelRoutes (prefix, options = {}) {
       responseSchema: responseSchema(getIn(options, ['api', 'model']), endpoint)
     })
     if (options.api) {
-      route = await modelCallbacks(options.api, route, 'after', 'routeCreate')
+      route = await modelCallbacks(options.api, route, 'after', 'routeCreate', options)
     }
     result.push(route)
   }
