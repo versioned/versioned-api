@@ -290,15 +290,15 @@ const X_META_SCHEMA = {
     relationship: {
       type: 'object',
       properties: {
-        toType: collSchema,
         type: {enum: ['one-to-one', 'one-to-many', 'many-to-one', 'many-to-many']},
-        // NOTE: the presence of a toField means the relationship is two-way
+        // NOTE: the presence of a single toType and toField means the relationship is two-way
+        toType: collSchema,
         toField: {type: 'string', pattern: PROPERTY_NAME_PATTERN},
         // NOTE: the name is the optional property name used when fetching relationships
         name: {type: 'string'},
         onDelete: {enum: ['cascade']}
       },
-      required: ['toType', 'type'],
+      required: ['type'],
       additionalProperties: false
     }
   },

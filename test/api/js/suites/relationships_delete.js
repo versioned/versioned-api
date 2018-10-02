@@ -3,7 +3,7 @@ const {relationshipsModel} = require('../shared/relationships')
 module.exports = async function (c) {
   const accountId = c.data.account.id
 
-  let result = await c.post('create space for relationships delete test', `/${accountId}/spaces`, {name: 'Relationshis Delete Test', accountId: accountId})
+  let result = await c.post('create space for relationships delete test', `/${accountId}/spaces`, {name: 'Relationships Delete Test', accountId: accountId})
   const spaceId = result.data.id
 
   const {Article} = relationshipsModel(spaceId)

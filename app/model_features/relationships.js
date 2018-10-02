@@ -2,7 +2,7 @@ const config = require('app/config')
 const {logger} = config.modules
 const {values, property, deepMerge, pick, difference, filter, notEmpty, evolve, compact, keys, isArray, groupBy, flatten, first, json, array, keyValues, isObject, getIn, merge, concat, empty} = require('lib/util')
 const diff = require('lib/diff')
-const {getId, undeletableRelationships, relationshipProperties, twoWayRelationships, getApi} = require('app/relationships_helper')
+const {getId, undeletableRelationships, relationshipProperties, twoWayRelationships, getToApi} = require('app/relationships_helper')
 const {readableDoc} = require('lib/model_access')
 const {validationError} = require('lib/errors')
 
@@ -44,6 +44,12 @@ const PARAMS = [
   }
 ]
 
+function getType (relDoc, property) {
+  const {toType} = getIn(property, 'x-meta.relationship')
+  const defaultType = isArray(toType) ? first(toType) : toType
+  return getIn(relDoc, 'type', defaultType)
+}
+
 function parseGraph (graph) {
   if (typeof graph !== 'string') return graph
   let result = graph
@@ -82,23 +88,34 @@ function nestedGraph (name, property, graph) {
 }
 
 async function fetchRelationshipDocs (docs, name, property, options) {
-  logger.verbose(`fetchRelationshipDocs name=${name} property=${json(property)} parent=${json(getIn(options, 'relationshipParent'))}`)
-  const {toType, toField} = getIn(property, 'x-meta.relationship')
+  if (empty(array(docs))) return
+  const docsByType = groupBy(flatten(docs.map(doc => array(doc[name]))), (doc) => getType(doc, property))
+  const result = {}
+  const fromType = docs[0].type
+  for (let [toType, docsForType] of keyValues(docsByType)) {
+    result[toType] = await fetchRelationshipDocsForType(fromType, toType, docsForType, name, property, options)
+  }
+  return result
+}
+
+async function fetchRelationshipDocsForType (fromType, toType, docs, name, property, options) {
+  logger.verbose(`fetchRelationshipDocsForType fromType=${fromType} toType=${toType} name=${name} property=${json(property)} parent=${json(getIn(options, 'relationshipParent'))}`)
+  const {toField} = getIn(property, 'x-meta.relationship')
   if (!toType || isParent(toType, toField, options)) return
-  const api = await getApi(toType, options.model, options.space)
+  const api = await getToApi(toType, property, options.model, options.space)
   if (!api) return
-  const ids = flatten(docs.map(doc => array(doc[name]).map(getId)))
+  const ids = docs.map(getId)
   if (empty(ids)) return
   const queryParams = evolve(options.queryParams, {
     relationshipLevels: (n) => n - 1,
     relationships: (r) => nestedRelationships(name, property, r),
     graph: (g) => nestedGraph(name, property, g)
   })
-  const relationshipParent = {type: docs[0].type, field: name}
+  const relationshipParent = {type: fromType, field: name}
   const listOptions = {queryParams, space: options.space, relationshipParent, user: options.user}
   const query = {id: {$in: ids}}
   const relationshipDocs = (await api.list(query, listOptions)).map(d => readableDoc(api.model, d))
-  logger.verbose(`fetchRelationshipDocs name=${name} docs.length=${relationshipDocs.length}`)
+  logger.verbose(`fetchRelationshipDocsForType fromType=${fromType} toType=${toType} name=${name} docs.length=${relationshipDocs.length}`)
   return groupBy(relationshipDocs, (doc) => doc.id, {unique: true})
 }
 
@@ -162,8 +179,13 @@ async function fetchAllRelationships (data, options) {
     const relationships = keys(properties).reduce((acc, name) => {
       const isMany = (getIn(options, `model.schema.properties.${name}.type`, 'array') === 'array')
       const orderedDocs = compact(array(doc[name]).map(v => {
-        const doc = getIn(relationshipDocs[name], getId(v))
-        return typeof v === 'object' ? merge(v, doc) : doc
+        const type = getType(v, properties[name])
+        const doc = getIn(relationshipDocs[name], [type, getId(v)])
+        if (doc) {
+          return typeof v === 'object' ? merge(v, doc) : doc
+        } else {
+          return undefined
+        }
       }))
       const relationshipName = getIn(properties, `${name}.x-meta.relationship.name`, name)
       if (notEmpty(orderedDocs)) {
@@ -212,7 +234,7 @@ function relationshipDiff (from, to) {
 async function updateRelationship (doc, name, property, options) {
   const {toType, toField} = getIn(property, 'x-meta.relationship')
   if (!toField) return
-  const api = await getApi(toType, options.model, options.space)
+  const api = await getToApi(toType, property, options.model, options.space)
   if (!api) return
   const toMany = (getIn(api, `model.schema.properties.${toField}.type`, 'array') === 'array')
   const toRequired = getIn(api, `model.schema.required`, []).includes(toField)
@@ -253,16 +275,20 @@ async function updateRelationship (doc, name, property, options) {
 async function validateRelationshipIds (doc, options) {
   const properties = filter(relationshipProperties(options.model), (property, name) => notEmpty(doc[name]))
   for (let [name, property] of keyValues(properties)) {
-    const ids = array(doc[name]).map(getId)
-    const {toType} = getIn(property, 'x-meta.relationship')
-    const api = await getApi(toType, options.model, options.space)
-    if (api) {
-      const query = {id: {$in: ids}}
-      const listOptions = {limit: ids.length, projection: {id: 1}, user: options.user}
-      const foundIds = (await api.list(query, listOptions)).map(d => d.id)
-      const invalidIds = difference(ids, foundIds)
-      if (notEmpty(invalidIds)) {
-        throw validationError(options.model, doc, `contains the following invalid ids: ${invalidIds.join(', ')}`, name)
+    const docsByType = groupBy(array(doc[name]), (doc) => getType(doc, property))
+    for (let [toType, docs] of keyValues(docsByType)) {
+      const api = await getToApi(toType, property, options.model, options.space)
+      if (api) {
+        const ids = docs.map(getId)
+        const query = {id: {$in: ids}}
+        const listOptions = {limit: ids.length, projection: {id: 1}, user: options.user}
+        const foundIds = (await api.list(query, listOptions)).map(d => d.id)
+        const invalidIds = difference(ids, foundIds)
+        if (notEmpty(invalidIds)) {
+          throw validationError(options.model, doc, `contains the following invalid ids: ${invalidIds.join(', ')} for type ${toType}`, name)
+        }
+      } else {
+        throw validationError(options.model, doc, `contains the following invalid type: ${toType}`, name)
       }
     }
   }

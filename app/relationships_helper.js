@@ -15,7 +15,7 @@ function relationshipProperties (model) {
 
 function isTwoWayRelationship (property) {
   const {toType, toField} = getIn(property, 'x-meta.relationship', {})
-  return toType && toField
+  return typeof toType === 'string' && toField
 }
 
 function twoWayRelationships (model) {
@@ -32,7 +32,7 @@ async function undeletableRelationships (doc, model, space, mongo) {
     const toIds = array(doc[name]).map(getId)
     const toType = getIn(property, 'x-meta.relationship.toType')
     const toField = getIn(property, 'x-meta.relationship.toField')
-    const toApi = await getApi(toType, model, space)
+    const toApi = await getToApi(toType, property, model, space)
     if (toApi && !empty(toIds)) {
       const toModel = toApi.model
       const required = getIn(toModel, `schema.required`, []).includes(toField)
@@ -72,8 +72,12 @@ async function getDataModel (toType, space) {
   return models.get({spaceId: space.id, 'model.type': toType})
 }
 
-async function getApi (toType, model, space) {
-  if (getIn(model, 'schema.x-meta.dataModel')) {
+async function getToApi (toType, property, model, space) {
+  // NOTE: this is a bit unclear but the assumption here is that a writable relationship in
+  // a data model (i.e. a dynamic model stored in the database) is always to another data model.
+  // An example of a non writable relationship in a data model is createdBy/updatedBy which are
+  // relationships to the built in users model.
+  if (getIn(model, 'schema.x-meta.dataModel') && getIn(property, 'x-meta.writable') !== false) {
     const model = await getDataModel(toType, space)
     if (!model) return undefined
     return requireModels().getApi(space, model)
@@ -91,5 +95,5 @@ module.exports = {
   undeletableRelationships,
   getModelsApi,
   getDataModel,
-  getApi
+  getToApi
 }
