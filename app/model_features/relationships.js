@@ -99,9 +99,12 @@ async function fetchRelationshipDocs (docs, name, property, options) {
 }
 
 async function fetchRelationshipDocsForType (fromType, toType, docs, name, property, options) {
-  logger.verbose(`fetchRelationshipDocsForType fromType=${fromType} toType=${toType} name=${name} property=${json(property)} parent=${json(getIn(options, 'relationshipParent'))}`)
+  logger.verbose(`fetchRelationshipDocsForType fromType=${fromType} toType=${toType} name=${name} property=${json(property)} parent=${json(getIn(options, 'relationshipParent'))} options.queryParams=${json(options.queryParams)}`)
   const {toField} = getIn(property, 'x-meta.relationship')
-  if (!toType || isParent(toType, toField, options)) return
+  if (!toType || isParent(toType, toField, options)) {
+    logger.verbose(`fetchRelationshipDocsForType fromType=${fromType} toType=${toType} toField=${toField} name=${name} - skipping isParent=${isParent(toType, toField, options)}`)
+    return
+  }
   const api = await getToApi(toType, property, options.model, options.space)
   if (!api) return
   const ids = docs.map(getId)
@@ -169,6 +172,7 @@ function propertiesToFetch (options) {
 
 async function fetchAllRelationships (data, options) {
   const properties = propertiesToFetch(options)
+  logger.verbose(`fetchAllRelationships type=${getIn(options, 'model.type')} parent=${json(getIn(options, 'relationshipParent'))} options.queryParams=${json(options.queryParams)} keys(properties)=${keys(properties)}`)
   if (empty(data) || empty(properties)) return data
   const docs = array(data)
   const relationshipDocs = {}
