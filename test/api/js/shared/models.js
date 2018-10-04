@@ -21,9 +21,9 @@ async function crudTest (c, prefix, coll, doc, updateDoc) {
     }
   }
   // c.assert(c.isMongoId(created.id))
-  c.assert(elapsedSeconds(created.createdAt) < 3)
+  c.assert(elapsedSeconds(created.createdAt) < 5)
   c.assertEqual(created.createdBy.id, c.data.user.id)
-  c.assert(elapsedSeconds(created.updatedAt) < 3)
+  c.assert(elapsedSeconds(created.updatedAt) < 5)
   c.assertEqual(created.updatedBy.id, c.data.user.id)
 
   const getPath = `${listPath}/${id}`

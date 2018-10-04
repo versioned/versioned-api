@@ -1,4 +1,4 @@
-const {compact, property, pick, merge} = require('lib/util')
+const {notEmpty, compact, getIn, pick, merge} = require('lib/util')
 const {relationshipsModel} = require('../shared/relationships')
 
 module.exports = async function (c) {
@@ -58,7 +58,8 @@ module.exports = async function (c) {
 
   result = await c.get('get author with two levels of nesting (relationship authors->articles, articles->categories)', `/data/${spaceId}/authors/${author.id}?relationshipLevels=2`)
   c.assertEqual(result.data.articles.map(a => pick(a, ['title', 'id'])), articles)
-  c.assertEqual(compact(result.data.articles.map(property('author'))), []) // only fetch author once
+  c.assertEqual(compact(result.data.articles.map(a => getIn(a, 'author.name'))), []) // only fetch author once
+  c.assert(notEmpty(result.data.articles.map(a => getIn(a, 'author'))), []) // when relationship is not fetched the references are still there
   c.assertEqualKeys(['name', 'id'], result.data.articles[0].categories, [categories[0]])
   c.assertEqualKeys(['name', 'id'], result.data.articles[1].categories, [categories[1]])
   c.assertEqual(result.data.articles[0].categories[0].articles, [articles[0].id])

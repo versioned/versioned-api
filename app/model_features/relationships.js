@@ -100,11 +100,7 @@ async function fetchRelationshipDocs (docs, name, property, options) {
 
 async function fetchRelationshipDocsForType (fromType, toType, docs, name, property, options) {
   logger.verbose(`fetchRelationshipDocsForType fromType=${fromType} toType=${toType} name=${name} property=${json(property)} parent=${json(getIn(options, 'relationshipParent'))} options.queryParams=${json(options.queryParams)}`)
-  const {toField} = getIn(property, 'x-meta.relationship')
-  if (!toType || isParent(toType, toField, options)) {
-    logger.verbose(`fetchRelationshipDocsForType fromType=${fromType} toType=${toType} toField=${toField} name=${name} - skipping isParent=${isParent(toType, toField, options)}`)
-    return
-  }
+  if (!toType) return
   const api = await getToApi(toType, property, options.model, options.space)
   if (!api) return
   const ids = docs.map(getId)
@@ -167,6 +163,15 @@ function propertiesToFetch (options) {
       return filterByNames.includes(propertyName) || filterByNames.includes(relationshipName)
     })
   }
+  properties = filter(properties, (property, propertyName) => {
+    const {toType, toField} = getIn(property, 'x-meta.relationship')
+    if (toType && toField && isParent(toType, toField, options)) {
+      logger.verbose(`propertiesToFetch type=${getIn(options, 'model.type')} parent=${json(getIn(options, 'relationshipParent'))} - skipping isParent=${isParent(toType, toField, options)}`)
+      return false
+    } else {
+      return true
+    }
+  })
   return (levels === undefined || levels > 0) ? properties : undefined
 }
 
