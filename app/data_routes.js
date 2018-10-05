@@ -116,6 +116,7 @@ function dataHandler (coll, endpoint) {
       notFound(res)
     }
   }
+  _dataHandler.endpointName = `data.${coll}.${endpoint}`
   return _dataHandler
 }
 
