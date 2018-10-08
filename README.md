@@ -4,7 +4,7 @@ A CMS REST API on MongoDB and Node.js.
 
 ## Documentation
 
-Documenation is available at [versioned-doc](https://github.com/versioned/versioned-doc)
+Documentation is available at [versioned-doc](https://github.com/versioned/versioned-doc)
 
 ## Hosted/Managed Service
 
