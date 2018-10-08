@@ -1,11 +1,16 @@
-# Versioned API
+# Versioned REST API
 
-A CMS REST API on MongoDB/Node.js
+A CMS REST API on MongoDB and Node.js.
 
-## Prerequisites
+## Documentation
+
+Documenation is available at [versioned-doc](https://github.com/versioned/versioned-doc)
+
+## Installation
 
 ```
 export NODE_PATH=.
+yarn install
 ```
 
 ## Start Dev Server
