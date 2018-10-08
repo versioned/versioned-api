@@ -6,6 +6,10 @@ A CMS REST API on MongoDB and Node.js.
 
 Documenation is available at [versioned-doc](https://github.com/versioned/versioned-doc)
 
+## Hosted/Managed Service
+
+A hosted and managed version of this API is available at [versioned.io](http://versioned.io)
+
 ## Installation
 
 ```
