@@ -259,20 +259,18 @@ async function modelRoutes (prefix, options = {}) {
 }
 
 async function routes (prefix, options = {}) {
+  let result = [swaggerRoute(prefix, options), dbStatsRoute(prefix, options), importRoute(prefix, options)]
   if (options.space) {
     const models = await getModels(options.space)
     let spaceModels = await models.list({spaceId: options.space.id})
     if (options.models) spaceModels = spaceModels.concat(options.models)
-    let result = [swaggerRoute(prefix, options), dbStatsRoute(prefix, options), importRoute(prefix, options)]
     for (let model of spaceModels) {
       const api = await _models.getApi(options.space, model)
       const routes = await modelRoutes(prefix, merge(options, {model, api}))
       result = result.concat(routes)
     }
-    return result
-  } else {
-    return [swaggerRoute(prefix, options)]
   }
+  return result
 }
 
 module.exports = routes
