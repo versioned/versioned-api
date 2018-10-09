@@ -129,30 +129,6 @@ Import content:
 echo '{"docs": [{"title": "foo"}, {"title": "bar"}]}' | http post $BASE_URL/data/$SPACE_ID/import/items Authorization:"Bearer $TOKEN"
 ```
 
-## Other API Calls
-
-Create a bunch of users:
-
-```
-export BASE_URL=http://localhost:3000/v1
-while [ 1 ]; do echo "{\"name\": \"Admin User\", \"email\": \"$(uuid)@example.com\", \"password\": \"admin\"}" | http POST $BASE_URL/users; done
-```
-
-## Create Admin User from JavaScript
-
-```javascript
-async function createAdmin() {
-  const config = require('app/config')
-  await config.modules.mongo.connect()
-
-  const users = require('app/models/users')
-  const doc = {name: 'Admin User', email: 'admin@example.com', password: 'admin'}
-  users.create(doc).then(console.log)
-  users.get({email: doc.email}).then(console.log)
-}
-createAdmin()
-```
-
 ## Deployment
 
 Using [Apex Up](https://up.docs.apex.sh):
