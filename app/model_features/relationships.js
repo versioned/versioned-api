@@ -45,7 +45,7 @@ const PARAMS = [
   {
     name: 'graph',
     in: 'query',
-    description: 'Which fields/relationships to fetch. The syntax is a limited form of GraphQL. Example for users: {name,defaultSpace{name,models},accounts{name,spaces}}',
+    description: 'Which fields/relationships to fetch. The syntax is a limited form of GraphQL. The graph parameter is a more powerful alternative to the relationships parameter. Example for users: {name,defaultSpace{name,models},accounts{name,spaces}}',
     required: false,
     schema: {
       'x-meta': {
