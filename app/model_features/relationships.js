@@ -31,6 +31,18 @@ const PARAMS = [
     }
   },
   {
+    name: 'relationshipParams',
+    description: 'Sets skip, limit, sort, and filter query params for relationships to be fetched. Needs to be on JSON format. Example: {"accounts": {"limit": 5}, "accounts.spaces": {"limit": 10, "filter.name[ne]": "Unwanted Space"}}',
+    in: 'query',
+    required: false,
+    schema: {
+      'x-meta': {
+        coerce: parseRelationshipParams
+      },
+      type: 'object'
+    }
+  },
+  {
     name: 'graph',
     in: 'query',
     description: 'Which fields/relationships to fetch. The syntax is a limited form of GraphQL. Example for users: {name,defaultSpace{name,models},accounts{name,spaces}}',
@@ -68,6 +80,15 @@ function parseGraph (graph) {
   }
 }
 
+function parseRelationshipParams (params) {
+  if (empty(params)) return params
+  try {
+    return JSON.parse(params)
+  } catch (error) {
+    return params
+  }
+}
+
 // NOTE: check relationshipParent so we don't fetch parent document again (the relationship we are coming from)
 function isParent (toType, toField, options) {
   const parent = getIn(options, 'relationshipParent')
@@ -80,6 +101,17 @@ function nestedRelationships (name, property, relationships) {
     const nameMatch = (relNames[0] === name || relNames[0] === getIn(property, 'x-meta.relationship.name'))
     return nameMatch ? relNames.slice(1).join('.') : undefined
   }))
+}
+
+function nestedRelationshipParams (name, relationshipParams) {
+  return compact(keyValues(relationshipParams).reduce((acc, [path, params]) => {
+    const prefix = `${name}.`
+    if (path.startsWith(prefix)) {
+      const nestedPath = compact(path.substring(prefix.length))
+      if (nestedPath) acc[nestedPath] = params
+    }
+    return acc
+  }, {}))
 }
 
 function nestedGraph (name, property, graph) {
@@ -97,6 +129,25 @@ async function fetchRelationshipDocs (docs, name, property, options) {
   return result
 }
 
+function isValidRelationshipParam (value, key) {
+  return (['skip', 'limit'].includes(key) && typeof value === 'number') ||
+    (key === 'sort' && typeof value === 'string') ||
+    (key.startsWith('filter.') && typeof value === 'string')
+}
+
+function relationshipQueryParams (name, property, options) {
+  const transforms = {
+    relationshipLevels: (n) => n - 1,
+    relationships: (r) => nestedRelationships(name, property, r),
+    relationshipParams: (r) => nestedRelationshipParams(name, r),
+    graph: (g) => nestedGraph(name, property, g)
+  }
+  const metaParams = evolve(pick(options.queryParams, keys(transforms)), transforms)
+  const relParams = filter(getIn(options, `queryParams.relationshipParams.${name}`), isValidRelationshipParam)
+  const inheritedParams = pick(getIn(options, 'queryParams'), ['published'])
+  return compact([metaParams, relParams, inheritedParams].reduce(merge))
+}
+
 async function fetchRelationshipDocsForType (fromType, toType, docs, name, property, options) {
   logger.verbose(`fetchRelationshipDocsForType fromType=${fromType} toType=${toType} name=${name} property=${json(property)} parent=${json(getIn(options, 'relationshipParent'))} options.queryParams=${json(options.queryParams)}`)
   if (!toType) return
@@ -104,13 +155,9 @@ async function fetchRelationshipDocsForType (fromType, toType, docs, name, prope
   if (!api) return
   const ids = docs.map(getId)
   if (empty(ids)) return
-  const queryParams = evolve(options.queryParams, {
-    relationshipLevels: (n) => n - 1,
-    relationships: (r) => nestedRelationships(name, property, r),
-    graph: (g) => nestedGraph(name, property, g)
-  })
+  const queryParams = relationshipQueryParams(name, property, options)
   const relationshipParent = {type: fromType, field: name}
-  const listOptions = {queryParams, space: options.space, relationshipParent, user: options.user}
+  const listOptions = merge({queryParams, space: options.space, relationshipParent, user: options.user}, queryParams)
   const query = {id: {$in: ids}}
   const relationshipDocs = (await api.list(query, listOptions)).map(d => readableDoc(api.model, d))
   logger.verbose(`fetchRelationshipDocsForType fromType=${fromType} toType=${toType} name=${name} docs.length=${relationshipDocs.length}`)
