@@ -39,7 +39,7 @@ const model = {
           writable: false,
           versioned: false,
           relationship: {
-            toType: 'users',
+            toTypes: ['users'],
             type: 'many-to-one'
           }
         }
@@ -51,7 +51,7 @@ const model = {
           writable: false,
           versioned: false,
           relationship: {
-            toType: 'users',
+            toTypes: ['users'],
             type: 'many-to-one'
           }
         }

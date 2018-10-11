@@ -45,8 +45,7 @@ const PARAMS = [
 ]
 
 function getType (relDoc, property) {
-  const {toType} = getIn(property, 'x-meta.relationship')
-  const defaultType = isArray(toType) ? first(toType) : toType
+  const defaultType = getIn(property, 'x-meta.relationship.toTypes.0')
   return getIn(relDoc, 'type', defaultType)
 }
 
@@ -164,7 +163,8 @@ function propertiesToFetch (options) {
     })
   }
   properties = filter(properties, (property, propertyName) => {
-    const {toType, toField} = getIn(property, 'x-meta.relationship')
+    const {toTypes, toField} = getIn(property, 'x-meta.relationship')
+    const toType = first(toTypes)
     if (toType && toField && isParent(toType, toField, options)) {
       logger.verbose(`propertiesToFetch type=${getIn(options, 'model.type')} parent=${json(getIn(options, 'relationshipParent'))} - skipping isParent=${isParent(toType, toField, options)}`)
       return false
@@ -241,7 +241,8 @@ function relationshipDiff (from, to) {
 }
 
 async function updateRelationship (doc, name, property, options) {
-  const {toType, toField} = getIn(property, 'x-meta.relationship')
+  const {toTypes, toField} = getIn(property, 'x-meta.relationship')
+  const toType = first(toTypes)
   if (!toField) return
   const api = await getToApi(toType, property, options.model, options.space)
   if (!api) return
@@ -254,7 +255,7 @@ async function updateRelationship (doc, name, property, options) {
 
   logger.verbose(`updateRelationship ${options.model.type}.${name} -> ${toType}.${toField} toMany=${toMany} added=${json(added)} removed=${json(removed)} changed=${json(changed)}`)
 
-  const skipCallbacks = ['updateAllRelationships', 'checkAccess', 'validateRelationshipIds']
+  const skipCallbacks = ['updateAllRelationships', 'checkAccess', 'validateRelationships']
   const apiOptions = {skipCallbacks, user: options.user, space: options.space}
   for (let fromValue of added) {
     const toValue = makeToValue(fromValue, doc.id)
@@ -281,11 +282,15 @@ async function updateRelationship (doc, name, property, options) {
   }
 }
 
-async function validateRelationshipIds (doc, options) {
+async function validateRelationships (doc, options) {
   const properties = filter(relationshipProperties(options.model), (property, name) => notEmpty(doc[name]))
   for (let [name, property] of keyValues(properties)) {
+    const validTypes = getIn(property, 'x-meta.relationship.toTypes')
     const docsByType = groupBy(array(doc[name]), (doc) => getType(doc, property))
     for (let [toType, docs] of keyValues(docsByType)) {
+      if (!validTypes.includes(toType)) {
+        throw validationError(options.model, doc, `contains the invalid type ${toType} for the following ids: ${docs.map(getId).join(', ')} - type must be one of ${validTypes.join(', ')}`, name)
+      }
       const api = await getToApi(toType, property, options.model, options.space)
       if (api) {
         const ids = docs.map(getId)
@@ -328,7 +333,7 @@ async function deleteAllRelationships (doc, options) {
 const model = {
   callbacks: {
     save: {
-      afterValidation: [validateRelationshipIds],
+      afterValidation: [validateRelationships],
       afterSave: [updateAllRelationships]
     },
     delete: {

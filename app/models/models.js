@@ -131,6 +131,16 @@ function validateMaxLength (doc, options) {
   }
 }
 
+function validateRelationshipSpecs (doc, options) {
+  for (let [name, property] of keyValues(getIn(doc, 'model.schema.properties'))) {
+    const toField = getIn(property, 'x-meta.relationship.toField')
+    const toTypes = getIn(property, 'x-meta.relationship.toTypes', [])
+    if (toField && toTypes.length > 1) {
+      throw validationError(options.model, doc, `two-way relationships cannot have more than one target model`, name)
+    }
+  }
+}
+
 async function setModelColl (doc, options) {
   const coll = await getColl(doc)
   if (coll) {
@@ -165,7 +175,7 @@ const convertRelObjectsToIds = sortedCallback('first', async (doc, options) => {
   const converted = keys(doc).reduce((acc, key) => {
     const value = doc[key]
     const valueHasObject = array(value || []).find(v => typeof v === 'object')
-    const isRelationship = getIn(properties, `${key}.x-meta.relationship.toType`)
+    const isRelationship = getIn(properties, `${key}.x-meta.relationship.toTypes`)
     const type = getIn(properties, `${key}.type`)
     const itemsType = getIn(properties, `${key}.items.type`)
     if (isRelationship && type === 'string' && valueHasObject) {
@@ -292,13 +302,16 @@ const X_META_SCHEMA = {
       properties: {
         type: {enum: ['one-to-one', 'one-to-many', 'many-to-one', 'many-to-many']},
         // NOTE: the presence of a single toType and toField means the relationship is two-way
-        toType: collSchema,
+        toTypes: {
+          type: 'array',
+          items: collSchema
+        },
         toField: {type: 'string', pattern: PROPERTY_NAME_PATTERN},
         // NOTE: the name is the optional property name used when fetching relationships
         name: {type: 'string'},
         onDelete: {enum: ['cascade']}
       },
-      required: ['type'],
+      required: ['type', 'toTypes'],
       additionalProperties: false
     }
   },
@@ -378,7 +391,7 @@ const model = {
           update: false,
           index: true,
           relationship: {
-            toType: 'spaces',
+            toTypes: ['spaces'],
             toField: 'models',
             name: 'space',
             type: 'many-to-one',
@@ -400,7 +413,7 @@ const model = {
   },
   callbacks: {
     save: {
-      beforeValidation: [validateSpace, setDefaultColl, setPropertiesOrder, validateMaxLength, setModelColl, setAccountId, setFeatures, setModelSchema, validatePropertyNames, validateModel, validatePropertiesLimit, setDefaultTitleProperty],
+      beforeValidation: [validateSpace, setDefaultColl, setPropertiesOrder, validateMaxLength, validateRelationshipSpecs, setModelColl, setAccountId, setFeatures, setModelSchema, validatePropertyNames, validateModel, validatePropertiesLimit, setDefaultTitleProperty],
       afterValidation: [validateXMeta, validateSwagger]
     },
     create: {

@@ -25,7 +25,7 @@ const model = {
           update: false,
           index: true,
           relationship: {
-            toType: 'spaces',
+            toTypes: ['spaces'],
             name: 'space',
             type: 'many-to-one',
             onDelete: 'cascade'

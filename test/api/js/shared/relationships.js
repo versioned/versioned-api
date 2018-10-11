@@ -11,7 +11,7 @@ function relationshipsModel (spaceId, options = {}) {
         items: schema,
         'x-meta': {
           relationship: {
-            toType: 'articles',
+            toTypes: ['articles'],
             toField: 'author',
             type: 'one-to-many'
           }
@@ -22,7 +22,7 @@ function relationshipsModel (spaceId, options = {}) {
       author: merge(schema, {
         'x-meta': {
           relationship: {
-            toType: 'authors',
+            toTypes: ['authors'],
             toField: 'articles',
             type: 'many-to-one'
           }
@@ -33,7 +33,7 @@ function relationshipsModel (spaceId, options = {}) {
         items: schema,
         'x-meta': {
           relationship: {
-            toType: 'categories',
+            toTypes: ['categories'],
             toField: 'articles',
             type: 'many-to-many'
           }
@@ -46,7 +46,7 @@ function relationshipsModel (spaceId, options = {}) {
         items: schema,
         'x-meta': {
           relationship: {
-            toType: 'articles',
+            toTypes: ['articles'],
             toField: 'categories',
             type: 'many-to-many'
           }

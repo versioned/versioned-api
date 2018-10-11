@@ -20,7 +20,7 @@ module.exports = async function (c) {
             items: {type: 'string'},
             'x-meta': {
               relationship: {
-                toType: 'articles',
+                toTypes: ['articles'],
                 type: 'one-to-many'
               }
             }

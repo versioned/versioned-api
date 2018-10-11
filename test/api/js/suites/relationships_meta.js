@@ -66,7 +66,7 @@ module.exports = async function (c) {
             items: {type: 'string'},
             'x-meta': {
               relationship: {
-                toType: 'articles',
+                toTypes: ['articles'],
                 toField: 'tags',
                 type: 'many-to-many'
               }
@@ -86,7 +86,7 @@ module.exports = async function (c) {
     items: {type: 'string'},
     'x-meta': {
       relationship: {
-        toType: 'tags',
+        toTypes: ['tags'],
         toField: 'articles',
         type: 'many-to-many'
       }

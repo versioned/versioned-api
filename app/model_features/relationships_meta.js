@@ -1,4 +1,4 @@
-const {compact, json, pick, last, notEmpty, merge, updateIn, setIn, getIn, keys, keyValues, filter} = require('lib/util')
+const {first, compact, json, pick, last, notEmpty, merge, updateIn, setIn, getIn, keys, keyValues, filter} = require('lib/util')
 const {getModelsApi, isTwoWayRelationship, twoWayRelationships, getDataModel} = require('app/relationships_helper')
 const {changes} = require('lib/model_api')
 const {logger} = require('app/config').modules
@@ -43,7 +43,7 @@ function toProperty (fromField, fromType, property) {
   const schema = property.items || pick(property, ['type'])
   const xMeta = compact({
     relationship: {
-      toType: fromType,
+      toTypes: [fromType],
       toField: fromField,
       type
     }
@@ -64,7 +64,8 @@ function toProperty (fromField, fromType, property) {
 async function updateRelationship (doc, path, change, options) {
   const name = last(path.split('.'))
   const property = change.added || change.deleted || getIn(change, 'changed.to')
-  let {toType, toField} = getIn(property, 'x-meta.relationship')
+  let {toTypes, toField} = getIn(property, 'x-meta.relationship')
+  const toType = first(toTypes)
   const fromType = getIn(doc, 'model.type')
   if (!toType || !toField || !fromType || !doc.spaceId) {
     logger.info(`relationships_meta.updateRelationship - cannot update, missing fields totype=${toType} toField=${toField} fromType=${fromType} spaceId=${doc.spaceId}`)
@@ -87,7 +88,7 @@ async function setTwoWayRelationships (doc, options) {
   const modelsInSpace = await models.list({spaceId})
   const relationships = modelsInSpace.reduce((acc, model) => {
     const properties = filter(twoWayRelationships(model.model), (property) => {
-      return getIn(property, 'x-meta.relationship.toType') === doc.coll
+      return getIn(property, 'x-meta.relationship.toTypes.0') === doc.coll
     })
     const fromType = getIn(model, 'model.type')
     const toProperties = keys(properties).reduce((acc, fromField) => {

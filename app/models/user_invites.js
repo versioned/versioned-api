@@ -47,7 +47,7 @@ const model = {
           update: false,
           index: true,
           relationship: {
-            toType: 'accounts',
+            toTypes: ['accounts'],
             toField: 'userInvites',
             type: 'many-to-one',
             name: 'account'

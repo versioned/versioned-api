@@ -28,7 +28,8 @@ module.exports = async function (c) {
             },
             'x-meta': {
               relationship: {
-                type: 'one-to-many'
+                type: 'one-to-many',
+                toTypes: ['article', 'blogpost']
               }
             }
           }

@@ -78,7 +78,7 @@ const model = {
         },
         'x-meta': {
           relationship: {
-            toType: 'accounts',
+            toTypes: ['accounts'],
             toField: 'users',
             type: 'many-to-many'
           }
@@ -88,7 +88,7 @@ const model = {
         type: 'string',
         'x-meta': {
           relationship: {
-            toType: 'spaces',
+            toTypes: ['spaces'],
             type: 'many-to-one',
             name: 'defaultSpace'
           }

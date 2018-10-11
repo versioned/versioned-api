@@ -14,8 +14,8 @@ function relationshipProperties (model) {
 }
 
 function isTwoWayRelationship (property) {
-  const {toType, toField} = getIn(property, 'x-meta.relationship', {})
-  return typeof toType === 'string' && toField
+  const {toTypes, toField} = getIn(property, 'x-meta.relationship', {})
+  return toTypes && toTypes.length === 1 && toField
 }
 
 function twoWayRelationships (model) {
@@ -30,7 +30,7 @@ async function undeletableRelationships (doc, model, space, mongo) {
   const result = {cannotCascade: [], missingCascade: []}
   for (let [name, property] of keyValues(twoWayRelationships(model))) {
     const toIds = array(doc[name]).map(getId)
-    const toType = getIn(property, 'x-meta.relationship.toType')
+    const toType = getIn(property, 'x-meta.relationship.toTypes.0')
     const toField = getIn(property, 'x-meta.relationship.toField')
     const toApi = await getToApi(toType, property, model, space)
     if (toApi && !empty(toIds)) {

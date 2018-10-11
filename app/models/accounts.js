@@ -66,7 +66,7 @@ const model = {
         'x-meta': {
           writable: false,
           relationship: {
-            toType: 'spaces',
+            toTypes: ['spaces'],
             toField: 'accountId',
             type: 'one-to-many'
           }
@@ -85,7 +85,7 @@ const model = {
         },
         'x-meta': {
           relationship: {
-            toType: 'users',
+            toTypes: ['users'],
             toField: 'accounts',
             type: 'many-to-many'
           }
@@ -97,7 +97,7 @@ const model = {
         'x-meta': {
           writable: false,
           relationship: {
-            toType: 'user_invites',
+            toTypes: ['user_invites'],
             toField: 'accountId',
             type: 'one-to-many'
           }

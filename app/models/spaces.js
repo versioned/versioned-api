@@ -139,7 +139,7 @@ const model = {
           update: false,
           index: true,
           relationship: {
-            toType: 'accounts',
+            toTypes: ['accounts'],
             toField: 'spaces',
             name: 'account',
             type: 'many-to-one'
@@ -152,7 +152,7 @@ const model = {
         'x-meta': {
           writable: false,
           relationship: {
-            toType: 'models',
+            toTypes: ['models'],
             toField: 'spaceId',
             type: 'one-to-many'
           }
