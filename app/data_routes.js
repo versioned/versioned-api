@@ -11,6 +11,7 @@ const {idType} = require('lib/model_meta')
 const {requestSchema, responseSchema} = require('lib/model_access')
 const {LIST_PARAMETERS} = require('app/model_routes')
 const DEFAULTS = require('lib/model_spec').DEFAULTS
+const graphql = require('app/graphql')
 
 const PARAMS = {
   // spaceId: ['spaceId'],
@@ -101,6 +102,10 @@ function importPath (prefix, options) {
   return withParams(`/${prefix}/:spaceId/import/:model`, options)
 }
 
+function graphQLPath (prefix, options) {
+  return withParams(`/${prefix}/:spaceId/graphql`, options)
+}
+
 function dataHandler (coll, endpoint) {
   async function _dataHandler (req, res) {
     const query = {
@@ -165,6 +170,12 @@ async function importHandler (req, res) {
   jsonResponse(req, res, {results, counts}, {status})
 }
 
+async function graphQLHandler (req, res) {
+  const result = await graphql.query(req.params.query)
+  const status = result.errors ? 422 : 200
+  jsonResponse(req, res, result, {status})
+}
+
 function importRoute (prefix, options) {
   return {
     summary: 'Import/create up to a 100 documents per request',
@@ -192,6 +203,28 @@ function importRoute (prefix, options) {
           type: 'array',
           maxItems: 100,
           items: {type: 'object'}
+        }
+      }
+    ]
+  }
+}
+
+function graphQLRoute (prefix, options) {
+  return {
+    summary: 'Make a graphQL query to get/list data in a space',
+    tags: ['data'],
+    method: 'post',
+    path: graphQLPath(prefix),
+    handler: graphQLHandler,
+    parameters: [
+      spaceIdParameter(),
+      {
+        name: 'query',
+        in: 'body',
+        description: 'GraphQL query',
+        required: true,
+        schema: {
+          type: 'string'
         }
       }
     ]
@@ -242,7 +275,7 @@ async function modelRoutes (prefix, options = {}) {
     const handler = options.handler ? options.handler(endpoint) : dataHandler(options.model.coll, endpoint)
     route = merge(route, {
       action: endpoint,
-      tags: ['data'],
+      tags: [`${options.model.coll} data`],
       path: route.path(prefix, options),
       handler,
       summary,
@@ -259,7 +292,7 @@ async function modelRoutes (prefix, options = {}) {
 }
 
 async function routes (prefix, options = {}) {
-  let result = [swaggerRoute(prefix, options), dbStatsRoute(prefix, options), importRoute(prefix, options)]
+  let result = [swaggerRoute(prefix, options), dbStatsRoute(prefix, options), importRoute(prefix, options), graphQLRoute(prefix, options)]
   if (options.space) {
     const models = await getModels(options.space)
     let spaceModels = await models.list({spaceId: options.space.id})

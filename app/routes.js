@@ -241,7 +241,7 @@ const systemRoutes = [
 async function getRoutes (options = {}) {
   const dataRoutes = await getDataRoutes(DATA_PREFIX, options)
   const _modelRoutes = await modelRoutes.requireDir(MODELS_DIR, VERSION)
-  return concat(systemRoutes, _modelRoutes, dataRoutes)
+  return concat(dataRoutes, systemRoutes, _modelRoutes)
 }
 
 function parseSpaceId (req) {

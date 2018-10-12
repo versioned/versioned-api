@@ -25,6 +25,7 @@
     "algoliasearch": "3.29.0",
     "axios": "0.18.0",
     "bugsnag": "2.4.3",
+    "graphql": "14.0.2",
     "mongodb": "3.0.4",
     "swagger-ui-dist": "3.13.3"
   },
