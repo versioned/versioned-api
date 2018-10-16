@@ -1,4 +1,4 @@
-const {zipObj, rename, property, concat, getIn, keys, keyValues, merge} = require('lib/util')
+const {empty, compact, json, parseJson, pick, zipObj, rename, property, concat, getIn, keys, keyValues, merge} = require('lib/util')
 const _models = require('app/models/models')
 const spaces = require('app/models/spaces')
 const modelController = require('lib/model_controller')
@@ -158,7 +158,7 @@ async function importHandler (req, res) {
   const createOptions = {import: true}
   for (let doc of (req.params.docs || [])) {
     try {
-      const result = await controller._create(req, res, doc, {createOptions})
+      const result = await controller._create(req, doc, {createOptions})
       results.push({result})
       counts.success += 1
     } catch (error) {
@@ -171,8 +171,16 @@ async function importHandler (req, res) {
 }
 
 async function graphQLHandler (req, res) {
-  const result = await graphql.query(req.params.query)
+  const graphQLOptions = pick(req.params, ['operationName', 'variables'])
+  const options = {graphQLOptions, makeController}
+  const result = await graphql.query(req.space, req.params.query, options)
+  // TODO: how do we distinguish a 500 error from a 422 error?
   const status = result.errors ? 422 : 200
+  if (result.errors) logger.debug('graphQLHandler errors', result.errors)
+  if (result.errors && empty(compact(parseJson(json(result.errors))))) {
+    // NOTE: Workaround for JSON.stringify(result.errors) yielding an empty object
+    result.errors = result.errors.map(e => e.message)
+  }
   jsonResponse(req, res, result, {status})
 }
 
@@ -216,8 +224,10 @@ function graphQLRoute (prefix, options) {
     method: 'post',
     path: graphQLPath(prefix),
     handler: graphQLHandler,
+    allowApiKey: true,
     parameters: [
       spaceIdParameter(),
+      merge(apiKeyParameter(), {required: true}),
       {
         name: 'query',
         in: 'body',
@@ -225,6 +235,22 @@ function graphQLRoute (prefix, options) {
         required: true,
         schema: {
           type: 'string'
+        }
+      },
+      {
+        name: 'operationName',
+        in: 'body',
+        required: false,
+        schema: {
+          type: 'string'
+        }
+      },
+      {
+        name: 'variables',
+        in: 'body',
+        required: false,
+        schema: {
+          type: 'object'
         }
       }
     ]
@@ -238,6 +264,7 @@ function dbStatsRoute (prefix, options) {
     method: 'get',
     path: dbStatsPath(prefix),
     handler: dbStatsHandler,
+    allowApiKey: true,
     parameters: [spaceIdParameter()]
   }
 }
@@ -278,6 +305,7 @@ async function modelRoutes (prefix, options = {}) {
       tags: [`${options.model.coll} data`],
       path: route.path(prefix, options),
       handler,
+      allowApiKey: true,
       summary,
       parameters: parameters(options.model, endpoint),
       requestSchema: requestSchema(getIn(options, ['api', 'model']), endpoint),

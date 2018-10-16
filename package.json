@@ -26,6 +26,7 @@
     "axios": "0.18.0",
     "bugsnag": "2.4.3",
     "graphql": "14.0.2",
+    "graphql-type-json": "0.2.1",
     "mongodb": "3.0.4",
     "swagger-ui-dist": "3.13.3"
   },
