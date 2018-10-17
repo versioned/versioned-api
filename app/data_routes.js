@@ -14,7 +14,6 @@ const DEFAULTS = require('lib/model_spec').DEFAULTS
 const graphql = require('app/graphql')
 
 const PARAMS = {
-  // spaceId: ['spaceId'],
   model: ['model', 'coll']
 }
 
@@ -172,8 +171,8 @@ async function importHandler (req, res) {
 
 async function graphQLHandler (req, res) {
   const graphQLOptions = pick(req.params, ['operationName', 'variables'])
-  const options = {graphQLOptions, makeController}
-  const result = await graphql.query(req.space, req.params.query, options)
+  const options = {graphQLOptions, makeController, req, space: req.space}
+  const result = await graphql.query(req.params.query, options)
   // TODO: how do we distinguish a 500 error from a 422 error?
   const status = result.errors ? 422 : 200
   if (result.errors) logger.debug('graphQLHandler errors', result.errors)
