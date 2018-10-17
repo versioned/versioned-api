@@ -1,4 +1,4 @@
-const {zipObj, mapObj} = require('lib/util')
+const {merge, getIn, zipObj, mapObj} = require('lib/util')
 const config = require('app/config')
 const {logger} = config.modules
 const _models = require('app/models/models')
@@ -12,76 +12,6 @@ const {
 } = g
 const GraphQLJSON = require('graphql-type-json')
 const {GraphQLDateTime} = require('graphql-iso-date')
-
-function getArticles (...args) {
-  // console.log('pm debug getArticles args:', JSON.stringify(args, null, 4))
-  return [{id: '123', title: 'foobar'}]
-}
-
-function getAuthor (...args) {
-  // console.log('pm debug getAuthor args:', JSON.stringify(args, null, 4))
-}
-
-const Author = new GraphQLObjectType({
-  name: 'Author',
-  description: '',
-  fields: () => ({
-    id: {
-      type: g.GraphQLNonNull(g.GraphQLString)
-    },
-    title: {
-      type: g.GraphQLString,
-      description: ''
-    },
-    articles: {
-      type: g.GraphQLList(Article),
-      resolve: getArticles
-    }
-  })
-})
-
-const Article = new GraphQLObjectType({
-  name: 'Article',
-  description: '',
-  fields: () => ({
-    id: {
-      type: g.GraphQLNonNull(g.GraphQLString)
-    },
-    title: {
-      type: g.GraphQLString,
-      description: ''
-    },
-    author: {
-      type: Author,
-      resolve: getAuthor
-    }
-  })
-})
-
-const types = [
-  Author,
-  Article
-]
-
-const rootQuery = new GraphQLObjectType({
-  name: 'RootQueryType',
-  fields: () => ({
-    articles: {
-      type: g.GraphQLList(Article),
-      args: {
-        id: {
-          type: g.GraphQLString
-        }
-      },
-      resolve: getArticles
-    }
-  })
-})
-
-const schema = new GraphQLSchema({
-  query: rootQuery,
-  types
-})
 
 const GRAPHQL_TYPES = {
   string: g.GraphQLString,
@@ -101,20 +31,6 @@ function getGraphQLType (schema) {
   } else {
     return GRAPHQL_TYPES[schema.type]
   }
-}
-
-async function getModelObjectType (model, options) {
-  const api = await _models.getApi(options.space, model)
-  const schema = readableSchema(api.model)
-  const fields = mapObj(schema.properties, (key, schema) => {
-    let type = getGraphQLType(schema)
-    if ((schema.required || []).includes(key)) type = g.GraphQLNonNull(type)
-    return {type}
-  })
-  return new GraphQLObjectType({
-    name: model.name,
-    fields
-  })
 }
 
 function resolveList (model, options) {
@@ -137,9 +53,49 @@ function resolveGet (model, options) {
   }
 }
 
-function getRootQuery (models, objectTypes, options) {
-  const colls = models.map(model => model.coll)
-  const modelsByColl = zipObj(colls, models)
+function resolveRelationship (key, schema, options) {
+  return async function (parentDoc) {
+    // TODO: reuse code in relationships module
+    // TODO: this code will not work with multi-type relationships
+    // TODO: it also doesn't work for built-in (static) models
+    const coll = getIn(schema, 'x-meta.relationship.toTypes.0')
+    const model = options.modelsByColl[coll]
+    if (!model) return
+    const controller = await options.makeController(options.space, model)
+    const queryParams = {published: true}
+    const ids = parentDoc[key].map(d => d.id || d)
+    if (schema.type === 'array') {
+      const {data} = await controller._list(options.req, queryParams)
+      return data
+    } else {
+      const {data} = await controller._get(options.req, ids[0], queryParams)
+      return data
+    }
+  }
+}
+
+async function getModelObjectType (model, options) {
+  const api = await _models.getApi(options.space, model)
+  const schema = readableSchema(api.model)
+  const fields = () => {
+    return mapObj(schema.properties, (key, schema) => {
+      let type = getGraphQLType(schema)
+      if ((schema.required || []).includes(key)) type = g.GraphQLNonNull(type)
+      const field = {type}
+      if (getIn(schema, 'x-meta.relationship')) {
+        field.resolve = resolveRelationship(key, schema, options)
+      }
+      return field
+    })
+  }
+  return new GraphQLObjectType({
+    name: model.name,
+    fields
+  })
+}
+
+function getRootQuery (objectTypes, options) {
+  const {colls, modelsByColl} = options
   const objectTypesByColl = zipObj(colls, objectTypes)
   const fields = colls.reduce((acc, coll) => {
     acc[`${coll}List`] = {
@@ -166,8 +122,11 @@ function getRootQuery (models, objectTypes, options) {
 async function getSchema (options) {
   const modelsApi = await spaces.getApi(options.space, _models.model)
   const models = await modelsApi.list({spaceId: options.space.id})
+  const colls = models.map(model => model.coll)
+  const modelsByColl = zipObj(colls, models)
+  options = merge(options, {colls, modelsByColl})
   const objectTypes = await Promise.all(models.map(model => getModelObjectType(model, options)))
-  const rootQuery = getRootQuery(models, objectTypes, options)
+  const rootQuery = getRootQuery(objectTypes, options)
   return new GraphQLSchema({
     query: rootQuery,
     types: objectTypes
@@ -191,6 +150,5 @@ async function query (source, options = {}) {
 }
 
 module.exports = {
-  schema,
   query
 }
