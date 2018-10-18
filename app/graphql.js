@@ -45,7 +45,7 @@ function getTargetModel (schema, options) {
 function getGraphQLType (schema, model, options) {
   const targetModel = getTargetModel(schema, options)
   if (targetModel) {
-    const targetType = options.objectTypes[targetModel.name]
+    const targetType = options.objectTypes[targetModel.coll]
     return schema.type === 'array' ? g.GraphQLList(targetType) : targetType
   } else if (schema.type === 'array') {
     return g.GraphQLList(getGraphQLType(schema.items))
@@ -120,7 +120,7 @@ async function getModelObjectType (model, options) {
     return zipObj(keys, values)
   }
   return new GraphQLObjectType({
-    name: model.name,
+    name: model.coll,
     fields
   })
 }
