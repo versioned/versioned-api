@@ -1,4 +1,4 @@
-const {array, merge, getIn, zipObj} = require('lib/util')
+const {compact, array, merge, getIn, zipObj} = require('lib/util')
 const config = require('app/config')
 const {logger} = config.modules
 const _models = require('app/models/models')
@@ -18,6 +18,18 @@ const GRAPHQL_TYPES = {
   integer: g.GraphQLInt,
   number: g.GraphQLFloat,
   boolean: g.GraphQLBoolean
+}
+
+const LIST_ARGS = {
+  limit: {
+    type: g.GraphQLInt
+  },
+  skip: {
+    type: g.GraphQLInt
+  },
+  sort: {
+    type: g.GraphQLString
+  }
 }
 
 function getTargetModel (schema, options) {
@@ -48,10 +60,10 @@ function getGraphQLType (schema, model, options) {
 }
 
 function resolveList (model, options) {
-  return async function (...args) {
+  return async function (parent, args) {
     const controller = await options.makeController(options.space, model)
     // TODO: if this is a relationship from a parent object - add: 'filter.id[in]'='1,2,3'
-    const queryParams = {published: true}
+    const queryParams = merge(args, {published: true})
     // TODO: don't unwrap data here
     const {data} = await controller._list(options.req, queryParams)
     return data
@@ -68,17 +80,19 @@ function resolveGet (model, options) {
 }
 
 function resolveRelationship (key, schema, options) {
-  return async function (parentDoc) {
+  return async function (parentDoc, args) {
     // TODO: reuse code in relationships module
     // TODO: this code will not work with multi-type relationships - need Union Types for that
     const targetModel = getTargetModel(schema, options)
     if (!targetModel) return
     const controller = await options.makeController(options.space, targetModel)
-    const queryParams = {published: true}
+    let queryParams = {published: true}
     const ids = array(parentDoc[key]).map(d => d.id || d)
     if (schema.type === 'array') {
+      queryParams = merge(args, queryParams)
       const {data} = await controller._list(options.req, queryParams)
-      return data
+      const sortedData = compact(ids.map(id => data.find(doc => doc.id === id)))
+      return sortedData
     } else {
       const {data} = await controller._get(options.req, ids[0], queryParams)
       return data
@@ -98,6 +112,7 @@ async function getModelObjectType (model, options) {
       if ((subSchema.required || []).includes(key)) type = g.GraphQLNonNull(type)
       const field = {type}
       if (getTargetModel(subSchema, options)) {
+        field.args = LIST_ARGS
         field.resolve = resolveRelationship(key, subSchema, options)
       }
       return field
@@ -116,6 +131,7 @@ function getRootQuery (objectTypes, options) {
   const fields = colls.reduce((acc, coll) => {
     acc[`${coll}List`] = {
       type: g.GraphQLList(objectTypesByColl[coll]),
+      args: LIST_ARGS,
       resolve: resolveList(modelsByColl[coll], options)
     }
     acc[`${coll}Get`] = {
@@ -163,7 +179,7 @@ async function query (source, options = {}) {
     operationName: graphQLOptions.operationName,
     variableValues: graphQLOptions.variables
   }
-  // NOTE: the IntrospectionQuery sent by GraphiQL is extremely verbose so we don't log it
+  // NOTE: IntrospectionQuery sent by GraphiQL is too verbose to log
   if (source && !source.includes('IntrospectionQuery')) {
     logger.verbose(`graphql.query: ${source}`)
   }
