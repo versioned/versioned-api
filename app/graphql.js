@@ -138,13 +138,14 @@ function getRootQuery (objectTypes, options) {
   const {colls, modelsByColl} = options
   const objectTypesByColl = zipObj(colls, objectTypes)
   const fields = colls.reduce((acc, coll) => {
-    acc[`${coll}List`] = {
-      type: g.GraphQLList(objectTypesByColl[coll]),
+    const objectType = objectTypesByColl[coll]
+    acc[`${objectType.name}List`] = {
+      type: g.GraphQLList(objectType),
       args: LIST_ARGS,
       resolve: resolveList(modelsByColl[coll], options)
     }
-    acc[`${coll}Get`] = {
-      type: objectTypesByColl[coll],
+    acc[`${objectType.name}Get`] = {
+      type: objectType,
       args: {
         id: {
           type: g.GraphQLString
