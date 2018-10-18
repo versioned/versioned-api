@@ -1,4 +1,4 @@
-const {compact, array, merge, getIn, zipObj} = require('lib/util')
+const {capitalize, notEmpty, dbFriendly, compact, array, merge, getIn, zipObj} = require('lib/util')
 const config = require('app/config')
 const {logger} = config.modules
 const _models = require('app/models/models')
@@ -32,6 +32,15 @@ const LIST_ARGS = {
   }
 }
 
+function objectTypeName (model) {
+  const friendlyName = dbFriendly(model.name)
+  if (notEmpty(friendlyName)) {
+    return friendlyName.split('_').map(capitalize).join('')
+  } else {
+    return model.coll
+  }
+}
+
 function getTargetModel (schema, options) {
   const toTypes = getIn(schema, 'x-meta.relationship.toTypes', [])
   // NOTE: we don't handle multi-type relationships
@@ -45,7 +54,7 @@ function getTargetModel (schema, options) {
 function getGraphQLType (schema, model, options) {
   const targetModel = getTargetModel(schema, options)
   if (targetModel) {
-    const targetType = options.objectTypes[targetModel.coll]
+    const targetType = options.objectTypes[objectTypeName(targetModel)]
     return schema.type === 'array' ? g.GraphQLList(targetType) : targetType
   } else if (schema.type === 'array') {
     return g.GraphQLList(getGraphQLType(schema.items))
@@ -120,7 +129,7 @@ async function getModelObjectType (model, options) {
     return zipObj(keys, values)
   }
   return new GraphQLObjectType({
-    name: model.coll,
+    name: objectTypeName(model),
     fields
   })
 }
