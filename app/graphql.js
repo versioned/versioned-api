@@ -1,4 +1,4 @@
-const {capitalize, notEmpty, dbFriendly, compact, array, merge, getIn, zipObj} = require('lib/util')
+const {makeObj, capitalize, notEmpty, dbFriendly, compact, array, merge, getIn, zipObj} = require('lib/util')
 const config = require('app/config')
 const {logger} = config.modules
 const _models = require('app/models/models')
@@ -20,6 +20,20 @@ const GRAPHQL_TYPES = {
   boolean: g.GraphQLBoolean
 }
 
+const OPERATIONS = ['eq', 'ne', 'in', 'exists', 'lt', 'gt', 'lte', 'gte']
+
+const Filter = new g.GraphQLInputObjectType({
+  name: '_Filter',
+  fields: {
+    field: {type: g.GraphQLNonNull(g.GraphQLString)},
+    operation: {type: new g.GraphQLEnumType({
+      name: '_Operation',
+      values: makeObj(OPERATIONS, () => ({}))
+    })},
+    value: {type: g.GraphQLNonNull(g.GraphQLString)}
+  }
+})
+
 const LIST_ARGS = {
   limit: {
     type: g.GraphQLInt
@@ -29,6 +43,9 @@ const LIST_ARGS = {
   },
   sort: {
     type: g.GraphQLString
+  },
+  filters: {
+    type: g.GraphQLList(Filter)
   }
 }
 
@@ -39,6 +56,18 @@ function objectTypeName (model) {
   } else {
     return model.coll
   }
+}
+
+function listQueryParams (args) {
+  let params = merge(args, {published: true})
+  if (params.filters) {
+    for (let filter of params.filters) {
+      const operation = filter.operation || 'eq'
+      params[`filter.${filter.field}[${operation}]`] = filter.value
+    }
+    delete params.filters
+  }
+  return params
 }
 
 function getTargetModel (schema, options) {
@@ -59,7 +88,6 @@ function getGraphQLType (schema, model, options) {
   } else if (schema.type === 'array') {
     return g.GraphQLList(getGraphQLType(schema.items))
   } else if (schema.type === 'object') {
-    // TODO: return new GraphQLObjectType({}) with apppropriate fields?
     return GraphQLJSON
   } else if (schema.type === 'string' && schema.format === 'date-time') {
     return GraphQLDateTime
@@ -72,7 +100,7 @@ function resolveList (model, options) {
   return async function (parent, args) {
     const controller = await options.makeController(options.space, model)
     // TODO: if this is a relationship from a parent object - add: 'filter.id[in]'='1,2,3'
-    const queryParams = merge(args, {published: true})
+    const queryParams = listQueryParams(args)
     // TODO: don't unwrap data here
     const {data} = await controller._list(options.req, queryParams)
     return data
@@ -95,14 +123,15 @@ function resolveRelationship (key, schema, options) {
     const targetModel = getTargetModel(schema, options)
     if (!targetModel) return
     const controller = await options.makeController(options.space, targetModel)
-    let queryParams = {published: true}
     const ids = array(parentDoc[key]).map(d => d.id || d)
     if (schema.type === 'array') {
-      queryParams = merge(args, queryParams)
+      const idsQuery = {'filter.id[in]': ids.join(',')}
+      const queryParams = merge(listQueryParams(args), idsQuery)
       const {data} = await controller._list(options.req, queryParams)
       const sortedData = compact(ids.map(id => data.find(doc => doc.id === id)))
       return sortedData
     } else {
+      let queryParams = {published: true}
       const {data} = await controller._get(options.req, ids[0], queryParams)
       return data
     }

@@ -1,6 +1,6 @@
 const config = require('app/config')
 const {logger} = config.modules
-const {values, property, deepMerge, pick, difference, filter, notEmpty, evolve, compact, keys, isArray, groupBy, flatten, first, json, array, keyValues, isObject, getIn, merge, concat, empty} = require('lib/util')
+const {omit, values, property, deepMerge, pick, difference, filter, notEmpty, evolve, compact, keys, isArray, groupBy, flatten, first, json, array, keyValues, isObject, getIn, merge, concat, empty} = require('lib/util')
 const diff = require('lib/diff')
 const {getId, undeletableRelationships, relationshipProperties, twoWayRelationships, getToApi} = require('app/relationships_helper')
 const {readableDoc} = require('lib/model_access')
@@ -266,12 +266,16 @@ function addRouteParameters (route) {
   }
 }
 
-function makeToValue (fromValue, id) {
-  return isObject(fromValue) ? merge(fromValue, {id}) : id
+function makeToValue (fromValue, fromType, id) {
+  if (isObject(fromValue)) {
+    return fromValue.type ? merge(fromValue, {id, type: fromType}) : merge(fromValue, {id})
+  } else {
+    return id
+  }
 }
 
-function updateToValue (toValue, fromValue) {
-  return isObject(toValue) ? merge(fromValue, {id: toValue.id}) : toValue
+function updateToValue (toValue, fromValue, fromType) {
+  return isObject(toValue) ? merge(omit(fromValue, ['type']), {id: toValue.id}) : toValue
 }
 
 function relationshipDiff (from, to) {
@@ -290,6 +294,7 @@ function relationshipDiff (from, to) {
 async function updateRelationship (doc, name, property, options) {
   const {toTypes, toField} = getIn(property, 'x-meta.relationship')
   const toType = first(toTypes)
+  const fromType = getIn(options, 'model.type')
   if (!toField) return
   const api = await getToApi(toType, property, options.model, options.space)
   if (!api) return
@@ -305,7 +310,7 @@ async function updateRelationship (doc, name, property, options) {
   const skipCallbacks = ['updateAllRelationships', 'checkAccess', 'validateRelationships']
   const apiOptions = {skipCallbacks, user: options.user, space: options.space}
   for (let fromValue of added) {
-    const toValue = makeToValue(fromValue, doc.id)
+    const toValue = makeToValue(fromValue, fromType, doc.id)
     const addValue = (values) => toMany ? concat(values, [toValue]) : toValue
     await api.update(getId(fromValue), {}, merge(apiOptions, {evolve: {[toField]: addValue}}))
   }
@@ -320,9 +325,9 @@ async function updateRelationship (doc, name, property, options) {
   for (let fromValue of changed) {
     const updateValue = (values) => {
       if (toMany) {
-        return values.map(v => getId(v) === doc.id ? updateToValue(v, fromValue) : v)
+        return values.map(v => getId(v) === doc.id ? updateToValue(v, fromValue, fromType) : v)
       } else {
-        return updateToValue(values, fromValue)
+        return updateToValue(values, fromValue, fromType)
       }
     }
     await api.update(getId(fromValue), {}, merge(apiOptions, {evolve: {[toField]: updateValue}}))

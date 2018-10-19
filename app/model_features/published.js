@@ -161,7 +161,7 @@ async function mergePublishedDocs (doc, options) {
   const publishedQuery = {$or: publishedIds}
   const publishedDocs = groupBy((await modelApi(versionedModel(model), api.mongo, logger).list(publishedQuery)), property('docId'))
   const result = array(doc).map(d => {
-    return mergeVersion(model, d, publishedDocs[d.id][0])
+    return d.publishedVersion !== d.version ? mergeVersion(model, d, publishedDocs[d.id][0]) : d
   })
   return isArray(doc) ? result : result[0]
 }

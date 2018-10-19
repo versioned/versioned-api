@@ -1,4 +1,4 @@
-const {first, compact, json, pick, last, notEmpty, merge, updateIn, setIn, getIn, keys, keyValues, filter} = require('lib/util')
+const {omit, first, compact, json, last, notEmpty, merge, updateIn, setIn, getIn, keys, keyValues, filter} = require('lib/util')
 const {getModelsApi, isTwoWayRelationship, twoWayRelationships, getDataModel} = require('app/relationships_helper')
 const {changes} = require('lib/model_api')
 const {logger} = require('app/config').modules
@@ -40,7 +40,7 @@ function isArrayProperty (type) {
 function toProperty (fromField, fromType, property) {
   const relationship = getIn(property, 'x-meta.relationship')
   const type = TYPES[relationship.type]
-  const schema = property.items || pick(property, ['type'])
+  const schema = property.items || omit(property, ['x-meta'])
   const xMeta = compact({
     relationship: {
       toTypes: [fromType],
