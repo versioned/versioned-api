@@ -1,4 +1,4 @@
-const {makeObj, capitalize, notEmpty, dbFriendly, compact, array, merge, getIn, zipObj} = require('lib/util')
+const {isArray, flatten, groupBy, empty, makeObj, capitalize, notEmpty, dbFriendly, compact, array, merge, getIn, zipObj} = require('lib/util')
 const config = require('app/config')
 const {logger} = config.modules
 const _models = require('app/models/models')
@@ -70,23 +70,37 @@ function listQueryParams (args) {
   return params
 }
 
-function getTargetModel (schema, options) {
+function getRelationshipModels (schema, options) {
   const toTypes = getIn(schema, 'x-meta.relationship.toTypes', [])
-  // NOTE: we don't handle multi-type relationships
-  if (toTypes.length === 1) {
-    return options.modelsByColl[toTypes[0]]
-  } else {
-    return undefined
-  }
+  const models = compact(toTypes.map(type => options.modelsByColl[type]))
+  return notEmpty(models) ? models : undefined
 }
 
-function getGraphQLType (schema, model, options) {
-  const targetModel = getTargetModel(schema, options)
-  if (targetModel) {
-    const targetType = options.objectTypes[objectTypeName(targetModel)]
-    return schema.type === 'array' ? g.GraphQLList(targetType) : targetType
+function lookupObjectType (type, options) {
+  const model = options.modelsByColl[type]
+  return options.objectTypes[objectTypeName(model)]
+}
+
+function unionType (model, key, types, options) {
+  const resolveType = (doc) => lookupObjectType(doc.type, options)
+  return new g.GraphQLUnionType({
+    name: `_${model.name}${capitalize(key)}Relationship`,
+    types,
+    resolveType
+  })
+}
+
+function getGraphQLType (key, schema, model, options) {
+  const relationshipModels = getRelationshipModels(schema, options)
+  if (relationshipModels) {
+    const targetTypes = relationshipModels.map((targetModel) => {
+      return options.objectTypes[objectTypeName(targetModel)]
+    })
+    let result = targetTypes.length > 1 ? unionType(model, key, targetTypes, options) : targetTypes[0]
+    if (schema.type === 'array') result = g.GraphQLList(result)
+    return result
   } else if (schema.type === 'array') {
-    return g.GraphQLList(getGraphQLType(schema.items))
+    return g.GraphQLList(getGraphQLType(key, schema.items, model, options))
   } else if (schema.type === 'object') {
     return GraphQLJSON
   } else if (schema.type === 'string' && schema.format === 'date-time') {
@@ -116,41 +130,61 @@ function resolveGet (model, options) {
   }
 }
 
+function getId (reference) {
+  return reference.id || reference
+}
+
 function resolveRelationship (key, schema, options) {
   return async function (parentDoc, args) {
-    // TODO: reuse code in relationships module
-    // TODO: this code will not work with multi-type relationships - need Union Types for that
-    const targetModel = getTargetModel(schema, options)
-    if (!targetModel) return
-    const controller = await options.makeController(options.space, targetModel)
-    const ids = array(parentDoc[key]).map(d => d.id || d)
-    if (schema.type === 'array') {
-      const idsQuery = {'filter.id[in]': ids.join(',')}
-      const queryParams = merge(listQueryParams(args), idsQuery)
-      const {data} = await controller._list(options.req, queryParams)
-      const sortedData = compact(ids.map(id => data.find(doc => doc.id === id)))
-      return sortedData
-    } else {
-      let queryParams = {published: true}
-      const {data} = await controller._get(options.req, ids[0], queryParams)
-      return data
-    }
+    const defaultType = getIn(schema, 'x-meta.relationship.toTypes.0')
+    const getType = (ref) => ref.type || defaultType
+    const refs = array(parentDoc[key])
+    if (empty(refs)) return
+    const refsByType = groupBy(refs, getType)
+    const types = Object.keys(refsByType)
+    const docs = await Promise.all(types.map((type) => {
+      return fetchRelationshipForType(type, key, schema, parentDoc, args, options)
+    }))
+    const docsByType = zipObj(types, docs)
+    const result = compact(flatten(refs.map((ref) => {
+      const value = docsByType[getType(ref)]
+      return isArray(value) ? value.find(d => d.id === getId(ref)) : value
+    })))
+    return schema.type === 'array' ? result : result[0]
+  }
+}
+
+async function fetchRelationshipForType (type, key, schema, parentDoc, args, options) {
+  const targetModel = options.modelsByColl[type]
+  if (!targetModel) return
+  const controller = await options.makeController(options.space, targetModel)
+  const ids = array(parentDoc[key]).map(getId)
+  if (schema.type === 'array') {
+    const idsQuery = {'filter.id[in]': ids.join(',')}
+    const queryParams = merge(listQueryParams(args), idsQuery)
+    const {data} = await controller._list(options.req, queryParams)
+    const sortedData = compact(ids.map(id => data.find(doc => doc.id === id)))
+    return sortedData
+  } else {
+    let queryParams = {published: true}
+    const {data} = await controller._get(options.req, ids[0], queryParams)
+    return data
   }
 }
 
 async function getModelObjectType (model, options) {
   const api = await _models.getApi(options.space, model)
   const schema = readableSchema(api.model)
-  // NOTE: fields must be a value or a function returning a value, it cannot be an async function
+  // NOTE: GraphQL fields must be a value or a function returning a value (a thunk), it cannot be an async function
   const fields = () => {
     const keys = Object.keys(schema.properties)
     const values = keys.map((key) => {
       const subSchema = schema.properties[key]
-      let type = getGraphQLType(subSchema, model, options)
+      let type = getGraphQLType(key, subSchema, model, options)
       if ((subSchema.required || []).includes(key)) type = g.GraphQLNonNull(type)
       const field = {type}
-      if (getTargetModel(subSchema, options)) {
-        field.args = LIST_ARGS
+      if (getRelationshipModels(subSchema, options)) {
+        if (subSchema.type === 'array') field.args = LIST_ARGS
         field.resolve = resolveRelationship(key, subSchema, options)
       }
       return field
