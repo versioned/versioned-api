@@ -1,4 +1,4 @@
-const {isArray, flatten, groupBy, empty, makeObj, capitalize, notEmpty, dbFriendly, compact, array, merge, getIn, zipObj} = require('lib/util')
+const {concat, unique, mapObj, isArray, flatten, groupBy, empty, makeObj, capitalize, notEmpty, dbFriendly, compact, array, merge, getIn, zipObj} = require('lib/util')
 const config = require('app/config')
 const {logger} = config.modules
 const _models = require('app/models/models')
@@ -76,27 +76,34 @@ function getRelationshipModels (schema, options) {
   return notEmpty(models) ? models : undefined
 }
 
+function getRelationshipTypes (schema, options) {
+  const relationshipModels = getRelationshipModels(schema, options)
+  return relationshipModels && relationshipModels.map((targetModel) => {
+    return options.objectTypes[objectTypeName(targetModel)]
+  })
+}
+
 function lookupObjectType (type, options) {
   const model = options.modelsByColl[type]
   return options.objectTypes[objectTypeName(model)]
 }
 
+function resolveType (doc, options) {
+  return lookupObjectType(doc.type, options)
+}
+
 function unionType (model, key, types, options) {
-  const resolveType = (doc) => lookupObjectType(doc.type, options)
   return new g.GraphQLUnionType({
-    name: `_${model.name}${capitalize(key)}Relationship`,
+    name: `_${model.name}${capitalize(key)}Union`,
     types,
-    resolveType
+    resolveType: (doc) => resolveType(doc, options)
   })
 }
 
 function getGraphQLType (key, schema, model, options) {
-  const relationshipModels = getRelationshipModels(schema, options)
-  if (relationshipModels) {
-    const targetTypes = relationshipModels.map((targetModel) => {
-      return options.objectTypes[objectTypeName(targetModel)]
-    })
-    let result = targetTypes.length > 1 ? unionType(model, key, targetTypes, options) : targetTypes[0]
+  const relationshipTypes = getRelationshipTypes(schema, options)
+  if (relationshipTypes) {
+    let result = relationshipTypes.length > 1 ? unionType(model, key, relationshipTypes, options) : relationshipTypes[0]
     if (schema.type === 'array') result = g.GraphQLList(result)
     return result
   } else if (schema.type === 'array') {
@@ -108,6 +115,47 @@ function getGraphQLType (key, schema, model, options) {
   } else {
     return GRAPHQL_TYPES[schema.type]
   }
+}
+
+function getGraphQLInterface (model, schema, key, options) {
+  const subSchema = schema.properties[key]
+  const relationshipModels = getRelationshipModels(subSchema, options)
+  if (!relationshipModels || relationshipModels.length <= 1) return
+  const coll = relationshipModels[0].coll
+  const properties = getIn(options.schemasByColl, `${coll}.properties`)
+  const fields = Object.keys(properties).reduce((acc, key) => {
+    const typeKey = properties[key].type === 'array' ? 'items' : 'type'
+    const fieldTypes = relationshipModels.map(model => getIn(model, `model.schema.properties.${key}.${typeKey}`))
+    // Only include shared field names with the same type
+    if (unique(fieldTypes).length === 1) {
+      acc[key] = getGraphQLField(model, schema, key, options)
+    }
+    return acc
+  }, {})
+  if (empty(fields) || Object.keys(fields).length <= 1) return
+  let interfaceType = new g.GraphQLInterfaceType({
+    name: `_${model.name}${capitalize(key)}Interface`,
+    fields,
+    resolveType: (doc) => resolveType(doc, options)
+  })
+  getRelationshipTypes(subSchema, options).forEach((objectType) => {
+    const interfaces = concat(objectType._interfaces(), [interfaceType])
+    objectType._interfaces = () => interfaces
+  })
+  if (subSchema.type === 'array') interfaceType = g.GraphQLList(interfaceType)
+  return interfaceType
+}
+
+function getGraphQLField (model, schema, key, options) {
+  const subSchema = schema.properties[key]
+  let type = (options.interfaceType ? options.interfaceType : getGraphQLType(key, subSchema, model, options))
+  if ((subSchema.required || []).includes(key)) type = g.GraphQLNonNull(type)
+  const field = {type}
+  if (getRelationshipModels(subSchema, options)) {
+    if (subSchema.type === 'array') field.args = LIST_ARGS
+    field.resolve = resolveRelationship(key, subSchema, options)
+  }
+  return field
 }
 
 function resolveList (model, options) {
@@ -172,24 +220,27 @@ async function fetchRelationshipForType (type, key, schema, parentDoc, args, opt
   }
 }
 
-async function getModelObjectType (model, options) {
+async function getModelSchema (model, options) {
   const api = await _models.getApi(options.space, model)
-  const schema = readableSchema(api.model)
+  return readableSchema(api.model)
+}
+
+async function getModelObjectType (model, options) {
+  const schema = options.schemasByColl[model.coll]
   // NOTE: GraphQL fields must be a value or a function returning a value (a thunk), it cannot be an async function
   const fields = () => {
-    const keys = Object.keys(schema.properties)
-    const values = keys.map((key) => {
-      const subSchema = schema.properties[key]
-      let type = getGraphQLType(key, subSchema, model, options)
-      if ((subSchema.required || []).includes(key)) type = g.GraphQLNonNull(type)
-      const field = {type}
-      if (getRelationshipModels(subSchema, options)) {
-        if (subSchema.type === 'array') field.args = LIST_ARGS
-        field.resolve = resolveRelationship(key, subSchema, options)
-      }
-      return field
+    const propertiesFields = mapObj(schema.properties, (key) => {
+      return getGraphQLField(model, schema, key, options)
     })
-    return zipObj(keys, values)
+    const interfaceFields = Object.keys(schema.properties).reduce((acc, key) => {
+      const interfaceType = getGraphQLInterface(model, schema, key, options)
+      if (interfaceType) {
+        const interfaceKey = `_${key}`
+        acc[interfaceKey] = getGraphQLField(model, schema, key, merge(options, {interfaceType}))
+      }
+      return acc
+    }, {})
+    return merge(propertiesFields, interfaceFields)
   }
   return new GraphQLObjectType({
     name: objectTypeName(model),
@@ -229,7 +280,9 @@ async function getSchema (options) {
   const models = await modelsApi.list({spaceId: options.space.id})
   const colls = models.map(model => model.coll)
   const modelsByColl = zipObj(colls, models)
-  options = merge(options, {colls, modelsByColl, objectTypes: {}})
+  const schemas = await Promise.all(models.map(model => getModelSchema(model, options)))
+  const schemasByColl = zipObj(colls, schemas)
+  options = merge(options, {colls, modelsByColl, schemasByColl, objectTypes: {}})
   const objectTypes = []
   for (let model of models) {
     let objectType = await getModelObjectType(model, options)
