@@ -14,13 +14,23 @@ A hosted and managed version of this API is available at [versioned.io](http://v
 
 ```
 export NODE_PATH=.
-yarn install
+npm install
+```
+
+## Environment Variables
+
+The api requires the Algolia env variables to be set:
+
+```sh
+export ALGOLIASEARCH_API_KEY=...
+export ALGOLIASEARCH_API_KEY_SEARCH=...
+export ALGOLIASEARCH_APPLICATION_ID=...
 ```
 
 ## Start Dev Server
 
 ```
-LOG_LEVEL=verbose yarn run dev
+LOG_LEVEL=verbose npm run dev
 ```
 
 ## Tests
@@ -28,19 +38,19 @@ LOG_LEVEL=verbose yarn run dev
 Run linting, unit tests, and api tests:
 
 ```
-yarn test
+npm test
 ```
 
 Quiet mode:
 
 ```
-LOG_LEVEL=error yarn test
+LOG_LEVEL=error npm test
 ```
 
 Verbose mode:
 
 ```
-LOG_LEVEL=verbose yarn test
+LOG_LEVEL=verbose npm test
 ```
 
 ## API Examples

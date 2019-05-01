@@ -4,16 +4,16 @@
   "description": "A CMS REST API on Node/Mongodb, similar to contentful",
   "main": "app/index.js",
   "engines": {
-    "node": "8.11.1"
+    "node": "10.x"
   },
   "scripts": {
     "start": "NODE_PATH=. node app/index.js",
     "dev": "NODE_PATH=. $(npm bin)/nodemon app/index.js",
     "lint": "$(npm bin)/eslint {test/api,app,lib}",
     "test": "npm run lint && npm run unit-test && bin/check-deps && npm run api-test",
-    "unit-test": "$(npm bin)/jest",
+    "unit-test": "NODE_PATH=. $(npm bin)/jest",
     "unit-test-watch": "$(npm bin)/jest --watch",
-    "api-test": "./test/api/js/run",
+    "api-test": "NODE_PATH=. ./test/api/js/run",
     "line-count": "find {app,lib} -iname '*.js'| grep -v test | xargs wc -l",
     "line-count-test": "find {app,lib,test} -iname '*.js'| grep test |xargs wc -l"
   },
@@ -30,8 +30,7 @@
     "graphql-iso-date": "3.6.1",
     "graphql-type-json": "0.2.1",
     "mongodb": "3.0.4",
-    "swagger-ui-dist": "3.13.3",
-    "yarn": "1.10.1"
+    "swagger-ui-dist": "3.13.3"
   },
   "devDependencies": {
     "eslint": "~4.18.0",
@@ -40,7 +39,7 @@
     "eslint-plugin-node": "^6.0.1",
     "eslint-plugin-promise": "^3.7.0",
     "eslint-plugin-standard": "^3.0.1",
-    "jest": "^22.4.3",
+    "jest": "^24.7.1",
     "nodemon": "^1.17.2"
   }
 }
