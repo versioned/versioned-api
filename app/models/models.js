@@ -314,8 +314,7 @@ const X_META_SCHEMA = {
       required: ['type', 'toTypes'],
       additionalProperties: false
     }
-  },
-  additionalProperties: false
+  }
 }
 
 function uniqueAllowed (property) {
