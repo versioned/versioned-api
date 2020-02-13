@@ -76,7 +76,7 @@ const LIST_PARAMETERS = [
     'x-meta': {
       namePattern: '^filter\\.'
     },
-    description: 'Filters to query by, i.e. filter.published=true or filter.name=foobar or filter.updatedAt[lte]=2018-05-09T12:31:33Z',
+    description: 'Filters to query by, i.e. filter.published=true or filter.name=foobar or filter.updatedAt[lte]=2018-05-09T12:31:33Z. Available operators: eq, ne, in, exists, regex, lt, gt, lte, gte.',
     in: 'query',
     required: false,
     schema: {
