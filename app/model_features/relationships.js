@@ -1,8 +1,8 @@
 const config = require('app/config')
 const {logger} = config.modules
-const {omit, values, property, deepMerge, pick, difference, filter, notEmpty, evolve, compact, keys, isArray, groupBy, flatten, first, json, array, keyValues, isObject, getIn, merge, concat, empty} = require('lib/util')
+const {omit, values, property, deepMerge, pick, difference, filter, notEmpty, evolve, compact, keys, isArray, groupBy, flatten, first, json, array, keyValues, isObject, getIn, setIn, merge, concat, empty, last, unique} = require('lib/util')
 const diff = require('lib/diff')
-const {getId, undeletableRelationships, relationshipProperties, twoWayRelationships, getToApi} = require('app/relationships_helper')
+const {getId, undeletableRelationships, relationshipProperties, nestedRelationshipProperties, nestedRelationshipRefs, nestedRelationshipValues, twoWayRelationships, getToApi} = require('app/relationships_helper')
 const {readableDoc} = require('lib/model_access')
 const {validationError} = require('lib/errors')
 
@@ -118,13 +118,13 @@ function nestedGraph (name, property, graph) {
   return graph[name] || graph[getIn(property, 'x-meta.relationship.name')]
 }
 
-async function fetchRelationshipDocs (docs, name, property, options) {
+async function fetchRelationshipDocs (docs, path, property, options) {
   if (empty(array(docs))) return
-  const docsByType = groupBy(flatten(docs.map(doc => array(doc[name]))), (doc) => getType(doc, property))
+  const docsByType = groupBy(flatten(docs.map(doc => nestedRelationshipValues(doc, path))), (doc) => getType(doc, property))
   const result = {}
   const fromType = docs[0].type
   for (let [toType, docsForType] of keyValues(docsByType)) {
-    result[toType] = await fetchRelationshipDocsForType(fromType, toType, docsForType, name, property, options)
+    result[toType] = await fetchRelationshipDocsForType(fromType, toType, docsForType, path, property, options)
   }
   return result
 }
@@ -148,19 +148,19 @@ function relationshipQueryParams (name, property, options) {
   return compact([metaParams, relParams, inheritedParams].reduce(merge))
 }
 
-async function fetchRelationshipDocsForType (fromType, toType, docs, name, property, options) {
-  logger.verbose(`fetchRelationshipDocsForType fromType=${fromType} toType=${toType} name=${name} property=${json(property)} parent=${json(getIn(options, 'relationshipParent'))} options.queryParams=${json(options.queryParams)}`)
+async function fetchRelationshipDocsForType (fromType, toType, docs, path, property, options) {
+  logger.verbose(`fetchRelationshipDocsForType fromType=${fromType} toType=${toType} path=${path.join('.')} property=${json(property)} parent=${json(getIn(options, 'relationshipParent'))} options.queryParams=${json(options.queryParams)}`)
   if (!toType) return
   const api = await getToApi(toType, property, options.model, options.space)
   if (!api) return
-  const ids = docs.map(getId)
+  const ids = unique(docs.map(getId))
   if (empty(ids)) return
-  const queryParams = relationshipQueryParams(name, property, options)
-  const relationshipParent = {type: fromType, field: name}
+  const queryParams = relationshipQueryParams(last(path), property, options)
+  const relationshipParent = {type: fromType, field: last(path)}
   const listOptions = merge({queryParams, space: options.space, relationshipParent, user: options.user}, queryParams)
   const query = {id: {$in: ids}}
   const relationshipDocs = (await api.list(query, listOptions)).map(d => readableDoc(api.model, d))
-  logger.verbose(`fetchRelationshipDocsForType fromType=${fromType} toType=${toType} name=${name} docs.length=${relationshipDocs.length}`)
+  logger.verbose(`fetchRelationshipDocsForType fromType=${fromType} toType=${toType} path=${path.join('.')} docs.length=${relationshipDocs.length}`)
   return groupBy(relationshipDocs, (doc) => doc.id, {unique: true})
 }
 
@@ -229,7 +229,7 @@ async function fetchAllRelationships (data, options) {
   const docs = array(data)
   const relationshipDocs = {}
   for (let [name, property] of keyValues(properties)) {
-    relationshipDocs[name] = await fetchRelationshipDocs(docs, name, property, options)
+    relationshipDocs[name] = await fetchRelationshipDocs(docs, [name], property, options)
   }
   const docsWithRelationships = docs.map(doc => {
     const relationships = keys(properties).reduce((acc, name) => {
@@ -252,6 +252,41 @@ async function fetchAllRelationships (data, options) {
       return acc
     }, {})
     return merge(doc, relationships)
+  })
+  return isArray(data) ? docsWithRelationships : docsWithRelationships[0]
+}
+
+async function fetchAllNestedRelationships (data, options) {
+  if (getIn(options, 'queryParams.relationshipLevels', 0) < 1) return data
+  const properties = nestedRelationshipProperties(options.model.schema).filter(({path}) => path.length > 1)
+  logger.verbose(`fetchAllNestedRelationships type=${getIn(options, 'model.type')} parent=${json(getIn(options, 'relationshipParent'))} options.queryParams=${json(options.queryParams)} keys(properties)=${json(properties.map(p => p.path.join('.')))}`)
+  if (empty(data) || empty(properties)) return data
+  const docs = array(data)
+  const relationshipDocs = {}
+  for (const {path, property} of properties) {
+    relationshipDocs[path.join('.')] = await fetchRelationshipDocs(docs, path, property, options)
+  }
+  const docsWithRelationships = docs.map(doc => {
+    const relationships = properties.reduce((acc, {path, property}) => {
+      for (const ref of nestedRelationshipRefs(doc, path)) {
+        const orderedDocs = compact(ref.value.map(v => {
+          const type = getType(v, property)
+          const doc = getIn(relationshipDocs[ref.path.join('.')], [type, getId(v)])
+          if (doc) {
+            return typeof v === 'object' ? merge(v, doc) : doc
+          } else {
+            return undefined
+          }
+        }))
+        if (notEmpty(orderedDocs)) {
+          acc = setIn(acc, ref.path, property.type === 'array' ? orderedDocs : first(orderedDocs))
+        } else {
+          acc = setIn(acc, ref.path, undefined)
+        }
+      }
+      return acc
+    }, {})
+    return deepMerge(doc, relationships)
   })
   return isArray(data) ? docsWithRelationships : docsWithRelationships[0]
 }
@@ -335,10 +370,11 @@ async function updateRelationship (doc, name, property, options) {
 }
 
 async function validateRelationships (doc, options) {
-  const properties = filter(relationshipProperties(options.model), (property, name) => notEmpty(doc[name]))
-  for (let [name, property] of keyValues(properties)) {
+  const properties = nestedRelationshipProperties(options.model.schema)
+  for (const {path, property} of properties) {
+    const name = last(path)
     const validTypes = getIn(property, 'x-meta.relationship.toTypes')
-    const docsByType = groupBy(array(doc[name]), (doc) => getType(doc, property))
+    const docsByType = groupBy(nestedRelationshipValues(doc, path), (doc) => getType(doc, property))
     for (let [toType, docs] of keyValues(docsByType)) {
       if (!validTypes.includes(toType)) {
         throw validationError(options.model, doc, `contains the invalid type ${toType} for the following ids: ${docs.map(getId).join(', ')} - type must be one of ${validTypes.join(', ')}`, name)
@@ -393,11 +429,11 @@ const model = {
     },
     list: {
       before: [setGraphProjection],
-      after: [fetchAllRelationships]
+      after: [fetchAllRelationships, fetchAllNestedRelationships]
     },
     get: {
       before: [setGraphProjection],
-      after: [fetchAllRelationships]
+      after: [fetchAllRelationships, fetchAllNestedRelationships]
     },
     routeCreate: {
       after: [addRouteParameters]

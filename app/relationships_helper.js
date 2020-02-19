@@ -1,4 +1,4 @@
-const {isObject, array, empty, compact, filter, getIn, keyValues} = require('lib/util')
+const {isObject, array, empty, compact, filter, getIn, flatten, keyValues} = require('lib/util')
 const requireModels = () => require('app/models/models')
 const requireSpaces = () => require('app/models/spaces')
 
@@ -11,6 +11,37 @@ function relationshipProperties (model) {
   return filter(getIn(model, 'schema.properties'), (p) => {
     return getIn(p, 'x-meta.relationship')
   })
+}
+
+function nestedRelationshipProperties (schema, path = []) {
+  const properties = getIn(schema, 'properties') || getIn(schema, 'items.properties')
+  if (!properties) return []
+  return compact(flatten(keyValues(properties).map(([key, property]) => {
+    const nestedPath = [...path, key]
+    if (getIn(property, 'x-meta.relationship')) {
+      return { path: nestedPath, property }
+    } else if (['object', 'array'].includes(property.type)) {
+      return nestedRelationshipProperties(property, nestedPath)
+    }
+  })))
+}
+
+function nestedRelationshipRefs (doc, path, {valuePath = []} = {}) {
+  if (!doc) return []
+  if (empty(path)) return [{path: valuePath, value: array(doc)}]
+  const [key, ...nestedPath] = path
+  const value = doc[key]
+  if (Array.isArray(value) && nestedPath.length > 0) {
+    return flatten(compact(value.map((v, index) => {
+      return nestedRelationshipRefs(v, nestedPath, {valuePath: [...valuePath, key, index]})
+    })))
+  } else {
+    return nestedRelationshipRefs(value, nestedPath, {valuePath: [...valuePath, key]})
+  }
+}
+
+function nestedRelationshipValues (doc, path) {
+  return flatten(nestedRelationshipRefs(doc, path).map(r => r.value))
 }
 
 function isTwoWayRelationship (property) {
@@ -89,6 +120,9 @@ async function getToApi (toType, property, model, space) {
 module.exports = {
   getId,
   relationshipProperties,
+  nestedRelationshipProperties,
+  nestedRelationshipRefs,
+  nestedRelationshipValues,
   isTwoWayRelationship,
   twoWayRelationships,
   canDelete,

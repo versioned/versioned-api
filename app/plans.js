@@ -12,9 +12,15 @@ const professional = merge(free, {
   USERS_LIMIT: 10
 })
 
+const enterprise = merge(free, {
+  DATA_LIMIT: 1000000,
+  USERS_LIMIT: 100
+})
+
 const PLANS = {
   free,
-  professional
+  professional,
+  enterprise
 }
 
 module.exports = {
