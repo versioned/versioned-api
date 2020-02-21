@@ -84,6 +84,15 @@ const LIST_PARAMETERS = [
     }
   },
   {
+    name: 'q',
+    description: 'Search query. Will invoke a mongodb regex filter on string and text fields which might be slow for large amounts of documents',
+    in: 'query',
+    required: false,
+    schema: {
+      type: 'string'
+    }
+  },
+  {
     name: 'dbStats',
     description: 'Include database statistics in the response',
     in: 'query',
