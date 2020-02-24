@@ -2,6 +2,7 @@ const {isObject, intersection, array, keyValues, difference, dbFriendly, notEmpt
 const config = require('app/config')
 const {logger, mongo} = config.modules
 const modelApi = require('lib/model_api')
+const externalModelApi = require('lib/external_model_api')
 const modelSpec = require('lib/model_spec')
 const modelSchema = require('lib/model_spec_schema')
 const requireSpaces = () => require('app/models/spaces')
@@ -79,6 +80,7 @@ async function checkUnique (doc, options) {
 }
 
 async function getApi (space, model) {
+  if (model.external) return externalModelApi(model.model, null, logger)
   const modelInstance = merge(model.model, {
     callbacks: {
       list: {
@@ -406,6 +408,7 @@ const model = {
       },
       propertiesOrder: {type: 'array', items: {type: 'string'}},
       previewUrl: {type: 'string'},
+      external: {type: 'boolean'},
       model: withoutRefs(modelSchema)
     },
     required: ['name', 'spaceId', 'accountId', 'coll', 'model'],

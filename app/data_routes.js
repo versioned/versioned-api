@@ -294,7 +294,7 @@ const ROUTES = {
 async function modelRoutes (prefix, options = {}) {
   const modelCallbacks = require('lib/model_callbacks')(logger)
   const result = []
-  const apiRoutes = getIn(options, 'api.model.routes', DEFAULTS.routes)
+  const apiRoutes = keys(getIn(options, 'api.model.routes', DEFAULTS.routes))
   const routes = keyValues(ROUTES).filter(r => apiRoutes.includes(r[0]))
   for (let [endpoint, route] of routes) {
     const summary = options.model ? `${endpoint} ${options.model.coll} data` : `${endpoint} data`

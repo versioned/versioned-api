@@ -64,7 +64,10 @@ const model = {
       keys: {coll: 1, 'doc.id': 1}
     }
   ],
-  routes: ['list', 'get']
+  routes: {
+    list: {},
+    get: {}
+  }
 }
 
 module.exports = modelApi(model, mongo, logger)
