@@ -9,6 +9,7 @@ const defaultConfig = {
   LOG_LEVEL: 'debug',
   CACHE_EXPIRY: '10',
   MONGODB_URL: `mongodb://localhost:27017/versioned2_${NODE_ENV}`,
+  REDIS_URL: null, // Example: redis://localhost:6379
   JWT_SECRET: '393dabff04884cf89ce918f53924d63e',
   JWT_EXPIRY: (3600 * 24 * 30),
   MODELS_LIMIT: 30,
@@ -35,6 +36,7 @@ module.exports = Object.assign({}, config, {
   modules: {
     logger,
     response: require('lib/response')(logger, config),
-    mongo: require('lib/mongo')(config.MONGODB_URL)
+    mongo: require('lib/mongo')(config.MONGODB_URL),
+    redis: require('lib/redis')(config.REDIS_URL)
   }
 })

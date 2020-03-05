@@ -1,5 +1,5 @@
 const config = require('app/config')
-const {logger, mongo} = config.modules
+const {logger, mongo, redis} = config.modules
 const {lookupRoute, checkAccess} = require('app/routes')
 const app = require('lib/app')(config)
 const requestId = require('lib/middleware/request_id').requestId
@@ -49,21 +49,26 @@ if (process.env.BUGSNAG_API_KEY) {
   bugsnag.register(process.env.BUGSNAG_API_KEY)
 }
 
-function start () {
+function startApp (app) {
   return new Promise((resolve, reject) => {
-    logger.info(`Starting server with config=${JSON.stringify(config, null, 4)}`)
-    mongo.connect()
-      .then(() => {
-        setupMiddleware(app)
-        app.listen(config['PORT'])
-        app.server.on('listening', () => resolve(app.server))
-        app.server.on('error', reject)
-      })
-      .catch(error => {
-        logger.error(`Error thrown when starting server: ${error}`, error)
-        reject(error)
-      })
+    setupMiddleware(app)
+    app.listen(config['PORT'])
+    app.server.on('listening', () => resolve(app.server))
+    app.server.on('error', reject)
   })
+}
+
+async function start () {
+  logger.info(`Starting server with config=${JSON.stringify(config, null, 4)}`)
+  try {
+    await mongo.connect()
+    await redis.connect()
+    const server = await startApp(app)
+    return server
+  } catch (error) {
+    logger.error(`Error thrown when starting server: ${error}`, error)
+    throw error
+  }
 }
 
 module.exports = {

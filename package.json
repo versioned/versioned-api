@@ -30,6 +30,7 @@
     "graphql-iso-date": "3.6.1",
     "graphql-type-json": "0.2.1",
     "mongodb": "3.0.4",
+    "redis": "3.0.2",
     "swagger-ui-dist": "3.13.3"
   },
   "devDependencies": {
