@@ -1,0 +1,33 @@
+#!/usr/bin/env node
+
+const Api = require('./versioned-api-client')
+
+const DEFAULT_CONFIG = {
+  BASE_URL: 'http://localhost:3000/v1',
+  EMAIL: null,
+  PASSWORD: null,
+  SPACE: null,
+}
+
+function json (value) {
+  return JSON.stringify(value, null, 4)
+}
+
+function logData (data) {
+  console.log(json(data))
+}
+
+function logResponse(response) {
+  logData(response.data)
+}
+
+async function main() {
+  const api = await Api.create(DEFAULT_CONFIG)
+  const config = api.config
+  const space = await api.spacesFind({query: {"filter.name": config.SPACE}})
+  logData(space)
+  logResponse(await api.dataStats({spaceId: space.id}))
+  logResponse(await api.modelsList({spaceId: space.id}))
+}
+
+main()
