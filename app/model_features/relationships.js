@@ -5,6 +5,7 @@ const diff = require('lib/diff')
 const {getId, undeletableRelationships, relationshipProperties, nestedRelationshipProperties, nestedRelationshipRefs, nestedRelationshipValues, twoWayRelationships, getToApi} = require('app/relationships_helper')
 const {readableDoc} = require('lib/model_access')
 const {validationError} = require('lib/errors')
+const {schemaPath} = require('lib/json_schema')
 
 const PARAMS = [
   {
@@ -191,7 +192,7 @@ function setGraphProjection (doc, options) {
   }
 }
 
-function propertiesToFetch (options) {
+function propertiesToFetch (data, options) {
   const levels = getIn(options, 'queryParams.relationshipLevels')
   const paths = getIn(options, 'queryParams.relationships')
   const graph = getIn(options, 'queryParams.graph')
@@ -215,6 +216,8 @@ function propertiesToFetch (options) {
     if (toType && toField && isParent(toType, toField, options)) {
       logger.verbose(`propertiesToFetch type=${getIn(options, 'model.type')} parent=${json(getIn(options, 'relationshipParent'))} - skipping isParent=${isParent(toType, toField, options)}`)
       return false
+    } else if (Array.isArray(data) && getIn(property, 'x-meta.relationship.listFetch') === false) {
+      return false
     } else {
       return true
     }
@@ -223,7 +226,7 @@ function propertiesToFetch (options) {
 }
 
 async function fetchAllRelationships (data, options) {
-  const properties = propertiesToFetch(options)
+  const properties = propertiesToFetch(data, options)
   logger.verbose(`fetchAllRelationships type=${getIn(options, 'model.type')} parent=${json(getIn(options, 'relationshipParent'))} options.queryParams=${json(options.queryParams)} keys(properties)=${keys(properties)}`)
   if (empty(data) || empty(properties)) return data
   const docs = array(data)
@@ -258,7 +261,14 @@ async function fetchAllRelationships (data, options) {
 
 async function fetchAllNestedRelationships (data, options) {
   if (getIn(options, 'queryParams.relationshipLevels', 0) < 1) return data
-  const properties = nestedRelationshipProperties(options.model.schema).filter(({path}) => path.length > 1)
+  const shouldFetchProperty = ({path}) => {
+    if (path.length <= 1) return false
+    const schema = getIn(options, 'model.schema')
+    const listFetch = getIn(schema, [...schemaPath(path, schema), 'x-meta', 'relationship', 'listFetch'])
+    if (isArray(data) && listFetch === false) return false
+    return true
+  }
+  const properties = nestedRelationshipProperties(options.model.schema).filter(shouldFetchProperty)
   logger.verbose(`fetchAllNestedRelationships type=${getIn(options, 'model.type')} parent=${json(getIn(options, 'relationshipParent'))} options.queryParams=${json(options.queryParams)} keys(properties)=${json(properties.map(p => p.path.join('.')))}`)
   if (empty(data) || empty(properties)) return data
   const docs = array(data)
