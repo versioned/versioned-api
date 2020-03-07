@@ -295,7 +295,8 @@ const X_META_SCHEMA = {
     field: {
       type: 'object',
       properties: {
-        name: {type: 'string'}
+        name: {type: 'string'},
+        defaultExpanded: {type: 'boolean'}
       },
       additionalProperties: false
     },
