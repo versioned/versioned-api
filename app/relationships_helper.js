@@ -1,4 +1,4 @@
-const {isObject, array, empty, compact, filter, getIn, flatten, keyValues} = require('lib/util')
+const {isObject, array, empty, compact, filter, getIn, flatten, keyValues, setIn, uniqueBy} = require('lib/util')
 const requireModels = () => require('app/models/models')
 const requireSpaces = () => require('app/models/spaces')
 
@@ -117,6 +117,21 @@ async function getToApi (toType, property, model, space) {
   }
 }
 
+function makeUnique (doc, options) {
+  let result = doc
+  for (const {path, property} of nestedRelationshipProperties(options.model.schema)) {
+    if (getIn(property, 'x-meta.relationship.type') === 'one-to-many') {
+      for (const {path: valuePath, value: values} of nestedRelationshipRefs(doc, path)) {
+        const uniqueValues = uniqueBy(values, getId)
+        if (values && uniqueValues.length < values.length) {
+          result = setIn(result, valuePath, uniqueValues)
+        }
+      }
+    }
+  }
+  return result
+}
+
 module.exports = {
   getId,
   relationshipProperties,
@@ -129,5 +144,6 @@ module.exports = {
   undeletableRelationships,
   getModelsApi,
   getDataModel,
-  getToApi
+  getToApi,
+  makeUnique
 }

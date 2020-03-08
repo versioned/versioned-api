@@ -2,7 +2,7 @@ const config = require('app/config')
 const {logger} = config.modules
 const {omit, values, property, deepMerge, pick, difference, filter, notEmpty, evolve, compact, keys, isArray, groupBy, flatten, first, json, array, keyValues, isObject, getIn, setIn, merge, concat, empty, last, unique} = require('lib/util')
 const diff = require('lib/diff')
-const {getId, undeletableRelationships, relationshipProperties, nestedRelationshipProperties, nestedRelationshipRefs, nestedRelationshipValues, twoWayRelationships, getToApi} = require('app/relationships_helper')
+const {getId, undeletableRelationships, relationshipProperties, nestedRelationshipProperties, nestedRelationshipRefs, nestedRelationshipValues, twoWayRelationships, makeUnique, getToApi} = require('app/relationships_helper')
 const {readableDoc} = require('lib/model_access')
 const {validationError} = require('lib/errors')
 const {schemaPath} = require('lib/json_schema')
@@ -431,6 +431,7 @@ async function deleteAllRelationships (doc, options) {
 const model = {
   callbacks: {
     save: {
+      beforeValidation: [makeUnique],
       afterValidation: [validateRelationships],
       afterSave: [updateAllRelationships]
     },
