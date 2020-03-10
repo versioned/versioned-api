@@ -37,7 +37,7 @@ function getConfig (defaultConfig) {
   const missingKeys = []
   const envKey = (key) => `VERSIONED_${key}`
   const config = Object.keys(defaultConfig).reduce((acc, key) => {
-      acc[key] = defaultConfig[key] == null ? process.env[envKey(key)] : defaultConfig[key]
+      acc[key] = process.env[envKey(key)] || defaultConfig[key]
       if (acc[key] == null) missingKeys.push(envKey(key))
       return acc
   }, {})
