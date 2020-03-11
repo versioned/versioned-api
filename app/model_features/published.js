@@ -101,7 +101,8 @@ function mergeVersion (model, doc, versionDoc) {
 }
 
 function versionedChanges (model, existingDoc, doc) {
-  return pick(changes(existingDoc, doc), versionedProperties(model))
+  const keys = versionedProperties(model)
+  return filter(changes(existingDoc, doc), (change, path) => keys.includes(path.split('.')[0]))
 }
 
 function shouldIncrementVersion (model, existingDoc, doc) {
