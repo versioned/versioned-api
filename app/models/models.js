@@ -322,7 +322,7 @@ const X_META_SCHEMA = {
 }
 
 function uniqueAllowed (property) {
-  return ['string', 'integer', 'number'].includes(property.type) && !getIn(property, 'x-meta.relationship')
+  return (['string', 'integer', 'number'].includes(property.type) || property.enum) && !getIn(property, 'x-meta.relationship')
 }
 
 // NOTE: Using this special case validation instead of patternProperties since
