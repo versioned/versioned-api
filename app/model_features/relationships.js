@@ -400,7 +400,7 @@ async function validateRelationships (doc, options) {
           throw validationError(options.model, doc, `contains the following invalid ids: ${invalidIds.join(', ')} for type ${toType}`, name)
         }
       } else {
-        throw validationError(options.model, doc, `contains the following invalid type: ${toType}`, name)
+        throw validationError(options.model, doc, `contains the following invalid type: ${toType}, could not find model for that type`, name)
       }
     }
   }
