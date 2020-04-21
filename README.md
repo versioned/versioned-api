@@ -175,6 +175,9 @@ curl -H "$AUTH" $BASE_URL/data/$SPACE_ID/sections_metadata?q=Ettan
 
 # List data and fetch relationships
 curl -H "$AUTH" $BASE_URL/data/$SPACE_ID/sections_metadata?relationships=section
+
+# List only published data
+curl -H "$AUTH" $BASE_URL/data/$SPACE_ID/sections_metadata?published=1
 ```
 
 ## Deployment
