@@ -139,6 +139,44 @@ Import content:
 echo '{"docs": [{"title": "foo"}, {"title": "bar"}]}' | http post $BASE_URL/data/$SPACE_ID/import/items Authorization:"Bearer $TOKEN"
 ```
 
+Example of command line data fetching with `curl` and [jq](https://stedolan.github.io/jq/):
+
+```sh
+export EMAIL=<your-email>
+export PASSWORD=<your-password>
+export BASE_URL=http://localhost:3000/v1
+
+# Login
+export LOGIN_DATA=$(curl -X POST -H "Content-Type: application/json" -d "{\"email\": \"$VERSIONED_EMAIL\", \"password\": \"$VERSIONED_PASSWORD\"}" $BASE_URL/login?getUser=1)
+export TOKEN=$(echo $LOGIN_DATA | jq --raw-output .data.token)
+export AUTH="Authorization: Bearer $TOKEN"
+export ACCOUNT_ID=$(echo $LOGIN_DATA | jq --raw-output .data.user.accounts[0].id)
+
+# List spaces
+curl -H "$AUTH" $BASE_URL/$ACCOUNT_ID/spaces
+
+# Get space id by name
+export SPACE_ID=$(curl -H "$AUTH" $BASE_URL/$ACCOUNT_ID/spaces?filter.name=Aftonbladet | jq --raw-output .data[].id)
+
+# List models in space and output only a few properties
+curl -H "$AUTH" "$BASE_URL/$SPACE_ID/models?graph=\{name,coll,external,features\}"
+
+# List data for models
+curl -H "$AUTH" $BASE_URL/data/$SPACE_ID/sections_metadata
+
+# List data with sort (default sort is updatedAt descending)
+curl -H "$AUTH" $BASE_URL/data/$SPACE_ID/sections_metadata?sort=title
+
+# List data with filter
+curl -H "$AUTH" $BASE_URL/data/$SPACE_ID/sections_metadata?filter.title=Ettan
+
+# List data with text search
+curl -H "$AUTH" $BASE_URL/data/$SPACE_ID/sections_metadata?q=Ettan
+
+# List data and fetch relationships
+curl -H "$AUTH" $BASE_URL/data/$SPACE_ID/sections_metadata?relationships=section
+```
+
 ## Deployment
 
 Using [Apex Up](https://up.docs.apex.sh):
