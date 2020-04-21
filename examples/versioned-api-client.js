@@ -79,7 +79,7 @@ async function create (config = {}) {
   }
 
   async function dataImport ({spaceId = config.SPACE_ID, model = config.MODEL, docs}) {
-    const docsChunks = chunk(docs)
+    const docsChunks = chunk(docs, 50)
     console.log(`versioned-api.dataImport model=${model} spaceId=${spaceId} docs.length=${docs.length} nChunks=${docsChunks.length}`)
     const url = `${config.BASE_URL}/data/${spaceId}/import/${model}`
     let errorsCount = 0

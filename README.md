@@ -163,6 +163,9 @@ export API_KEY=$(echo $SPACE | jq --raw-output .apiKey) # token for clients to f
 # List models in space and output only a few properties
 curl -H "$AUTH" "$BASE_URL/$SPACE_ID/models?graph=name,coll,external,features"
 
+# Show data stats for models in space (number of documents per model etc.)
+curl -H "$AUTH" "$BASE_URL/$SPACE_ID/dbStats.json"
+
 # List data for a model
 curl -H "$AUTH" $BASE_URL/data/$SPACE_ID/sections_metadata
 
