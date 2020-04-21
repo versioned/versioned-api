@@ -139,30 +139,35 @@ Import content:
 echo '{"docs": [{"title": "foo"}, {"title": "bar"}]}' | http post $BASE_URL/data/$SPACE_ID/import/items Authorization:"Bearer $TOKEN"
 ```
 
-Example of command line data fetching with `curl` and [jq](https://stedolan.github.io/jq/):
+Example of command line data fetching, publishing, and versioning with `curl` and [jq](https://stedolan.github.io/jq/):
 
 ```sh
-export EMAIL=<your-email>
-export PASSWORD=<your-password>
+export VERSIONED_EMAIL=peter.marklund@schibsted.com
+export VERSIONED_PASSWORD=...
 export BASE_URL=http://localhost:3000/v1
 
 # Login
 export LOGIN_DATA=$(curl -X POST -H "Content-Type: application/json" -d "{\"email\": \"$VERSIONED_EMAIL\", \"password\": \"$VERSIONED_PASSWORD\"}" $BASE_URL/login?getUser=1)
-export TOKEN=$(echo $LOGIN_DATA | jq --raw-output .data.token)
-export AUTH="Authorization: Bearer $TOKEN"
+export AUTH_TOKEN=$(echo $LOGIN_DATA | jq --raw-output .data.token) # token for admin usage
+export AUTH="Authorization: Bearer $AUTH_TOKEN"
 export ACCOUNT_ID=$(echo $LOGIN_DATA | jq --raw-output .data.user.accounts[0].id)
 
 # List spaces
 curl -H "$AUTH" $BASE_URL/$ACCOUNT_ID/spaces
 
 # Get space id by name
-export SPACE_ID=$(curl -H "$AUTH" $BASE_URL/$ACCOUNT_ID/spaces?filter.name=Aftonbladet | jq --raw-output .data[].id)
+export SPACE=$(curl -H "$AUTH" $BASE_URL/$ACCOUNT_ID/spaces?filter.name=Aftonbladet | jq --raw-output .data[0])
+export SPACE_ID=$(echo $SPACE | jq --raw-output .id)
+export API_KEY=$(echo $SPACE | jq --raw-output .apiKey) # token for clients to fetch published content
 
 # List models in space and output only a few properties
-curl -H "$AUTH" "$BASE_URL/$SPACE_ID/models?graph=\{name,coll,external,features\}"
+curl -H "$AUTH" "$BASE_URL/$SPACE_ID/models?graph=name,coll,external,features"
 
-# List data for models
+# List data for a model
 curl -H "$AUTH" $BASE_URL/data/$SPACE_ID/sections_metadata
+
+# List data with invalid query param yields error with list of valid params
+curl -H "$AUTH" $BASE_URL/data/$SPACE_ID/sections_metadata?foo=bar
 
 # List data with sort (default sort is updatedAt descending)
 curl -H "$AUTH" $BASE_URL/data/$SPACE_ID/sections_metadata?sort=title
@@ -176,8 +181,27 @@ curl -H "$AUTH" $BASE_URL/data/$SPACE_ID/sections_metadata?q=Ettan
 # List data and fetch relationships
 curl -H "$AUTH" $BASE_URL/data/$SPACE_ID/sections_metadata?relationships=section
 
-# List only published data
-curl -H "$AUTH" $BASE_URL/data/$SPACE_ID/sections_metadata?published=1
+# List published data using apiKey
+curl "$BASE_URL/data/$SPACE_ID/sections_metadata?apiKey=$API_KEY&published=1"
+
+# Publish a document
+export ID=$(curl -H "$AUTH" $BASE_URL/data/$SPACE_ID/sections_metadata | jq --raw-output .data[0].id)
+curl -X PUT -H "$AUTH" -H "Content-Type: application/json" $BASE_URL/data/$SPACE_ID/sections_metadata/$ID -d '{"publishedVersion": 1}'
+
+# The published document now appears in the listing (i.e. it's visible to clients)
+curl "$BASE_URL/data/$SPACE_ID/sections_metadata?apiKey=$API_KEY&published=1"
+
+# Updating a published document creates a draft version
+curl -X PUT -H "$AUTH" -H "Content-Type: application/json" $BASE_URL/data/$SPACE_ID/sections_metadata/$ID -d '{"title": "New Title"}'
+
+# View version history of document
+curl -H "$AUTH" $BASE_URL/data/$SPACE_ID/sections_metadata/$ID?versions=1
+
+# Publish the draft version
+curl -X PUT -H "$AUTH" -H "Content-Type: application/json" $BASE_URL/data/$SPACE_ID/sections_metadata/$ID -d '{"publishedVersion": 2}'
+
+# Unpublish document
+curl -X PUT -H "$AUTH" -H "Content-Type: application/json" $BASE_URL/data/$SPACE_ID/sections_metadata/$ID -d '{"publishedVersion": null}'
 ```
 
 ## Deployment
