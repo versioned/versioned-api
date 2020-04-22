@@ -207,6 +207,32 @@ curl -X PUT -H "$AUTH" -H "Content-Type: application/json" $BASE_URL/data/$SPACE
 curl -X PUT -H "$AUTH" -H "Content-Type: application/json" $BASE_URL/data/$SPACE_ID/sections_metadata/$ID -d '{"publishedVersion": null}'
 ```
 
+## Accessing Data with the Mongo Shell
+
+```sh
+mongo versioned2_development
+
+show collections
+
+# List models in space
+db.models.find({spaceId: '5e9eb9b0161d73a8d440edfd'}, {name: 1}).limit(50).sort({createdAt: -1}).pretty()
+
+# Get all data about a single model
+db.models.find({_id: '5e9eb9c8161d73a8d440ee03'}).pretty()
+
+# Update a document with $set
+db.users.update({_id: '$USER_ID'}, {$set: {superUser: true}})
+
+# Unset a property with $unset
+db.users.update({_id: '$USER_ID'}, {$unset: {defaultSpaceId: ''}})
+
+# List spaces
+db.spaces.find({}, {name: 1, accountId: 1, dbKey: 1}).pretty()
+
+# Remove a data document (name of collection is m_<space.dbKey>_<model.coll>)
+db.m_se366cb3a_tags_metadata.remove({_id: '5e95811a1f0c7e28d58393d0'})
+```
+
 ## Deployment
 
 Using [Apex Up](https://up.docs.apex.sh):
