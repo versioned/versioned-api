@@ -384,6 +384,7 @@ async function validateRelationships (doc, options) {
   for (const {path, property} of properties) {
     const name = last(path)
     const validTypes = getIn(property, 'x-meta.relationship.toTypes')
+    const validateExists = getIn(property, 'x-meta.relationship.validateExists')
     const docsByType = groupBy(nestedRelationshipValues(doc, path), (doc) => getType(doc, property))
     for (let [toType, docs] of keyValues(docsByType)) {
       if (!validTypes.includes(toType)) {
@@ -391,6 +392,7 @@ async function validateRelationships (doc, options) {
       }
       const api = await getToApi(toType, property, options.model, options.space)
       if (api) {
+        if (validateExists === false) continue
         const ids = docs.map(getId)
         const query = {id: {$in: ids}}
         const listOptions = {limit: ids.length, projection: {id: 1}, user: options.user}

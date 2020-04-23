@@ -90,7 +90,8 @@ const model = {
           relationship: {
             toTypes: ['spaces'],
             type: 'many-to-one',
-            name: 'defaultSpace'
+            name: 'defaultSpace',
+            validateExists: false // NOTE: ensure user can be saved even if space was deleted
           }
         }
       },
