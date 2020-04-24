@@ -313,8 +313,8 @@ const X_META_SCHEMA = {
         // NOTE: the name is the optional property name used when fetching relationships
         name: {type: 'string'},
         onDelete: {enum: ['cascade']},
-        // NOTE: validateExists: false means we will not error on save if referenced doc was deleted
-        validateExists: {type: 'boolean'}
+        // NOTE: validateExists: never means we will not error on save if referenced doc was deleted
+        validateExists: {enum: ['always', 'onSave', 'never']}
       },
       required: ['type', 'toTypes'],
       additionalProperties: false

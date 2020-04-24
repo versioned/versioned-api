@@ -6,6 +6,7 @@ const {getId, undeletableRelationships, relationshipProperties, nestedRelationsh
 const {readableDoc} = require('lib/model_access')
 const {validationError} = require('lib/errors')
 const {schemaPath} = require('lib/json_schema')
+const modelApi = require('lib/model_api')
 
 const PARAMS = [
   {
@@ -381,6 +382,7 @@ async function updateRelationship (doc, name, property, options) {
 
 async function validateRelationships (doc, options) {
   const properties = nestedRelationshipProperties(options.model.schema)
+  const changes = modelApi.changes(doc, options.existingDoc)
   for (const {path, property} of properties) {
     const name = last(path)
     const validTypes = getIn(property, 'x-meta.relationship.toTypes')
@@ -392,7 +394,9 @@ async function validateRelationships (doc, options) {
       }
       const api = await getToApi(toType, property, options.model, options.space)
       if (api) {
-        if (validateExists === false) continue
+        if (validateExists === 'never' || (validateExists === 'onChange' && !changes[path])) {
+          continue
+        }
         const ids = docs.map(getId)
         const query = {id: {$in: ids}}
         const listOptions = {limit: ids.length, projection: {id: 1}, user: options.user}

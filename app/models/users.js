@@ -91,7 +91,7 @@ const model = {
             toTypes: ['spaces'],
             type: 'many-to-one',
             name: 'defaultSpace',
-            validateExists: false // NOTE: ensure user can be saved even if space was deleted
+            validateExists: 'onChange' // NOTE: ensure user can be saved even if space was deleted
           }
         }
       },
