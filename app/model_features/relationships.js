@@ -394,7 +394,7 @@ async function validateRelationships (doc, options) {
       }
       const api = await getToApi(toType, property, options.model, options.space)
       if (api) {
-        if (validateExists === 'never' || (validateExists === 'onChange' && !changes[path])) {
+        if (validateExists === 'never' || (validateExists === 'onChange' && !(changes && changes[path]))) {
           continue
         }
         const ids = docs.map(getId)
