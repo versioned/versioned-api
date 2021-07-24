@@ -7,13 +7,13 @@
     "node": "12.16.x"
   },
   "scripts": {
-    "start": "NODE_PATH=. node app/index.js",
-    "dev": "NODE_PATH=. $(npm bin)/nodemon app/index.js",
-    "lint": "$(npm bin)/eslint {test/api,app,lib}",
-    "test": "npm run lint && npm run unit-test && bin/check-deps && npm run api-test",
-    "unit-test": "NODE_PATH=. $(npm bin)/jest",
-    "unit-test-watch": "$(npm bin)/jest --watch",
-    "api-test": "NODE_PATH=. ./test/api/js/run",
+    "start": "cross-env NODE_PATH=. node app/index.js",
+    "dev": "cross-env NODE_PATH=. nodemon app/index.js",
+    "lint": "eslint {test/api,app,lib}",
+    "test": "npm run lint && npm run unit-test && bash bin/check-deps && npm run api-test",
+    "unit-test": "cross-env NODE_PATH=. jest",
+    "unit-test-watch": "jest --watch",
+    "api-test": "cross-env NODE_PATH=. ./test/api/js/run",
     "line-count": "find {app,lib} -iname '*.js'| grep -v test | xargs wc -l",
     "line-count-test": "find {app,lib,test} -iname '*.js'| grep test |xargs wc -l"
   },
@@ -25,6 +25,7 @@
     "algoliasearch": "3.29.0",
     "axios": "0.19.2",
     "bugsnag": "2.4.3",
+    "cross-env": "^7.0.3",
     "graphql": "14.0.2",
     "graphql-iso-date": "3.6.1",
     "graphql-type-json": "0.2.1",
